@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análise de Sementes Soja 25-26</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #2563EB;
+    --accent-light: #3B82F6;
+    --accent-dim: rgba(37,99,235,0.12);
+    --bg: #F8FAFC;
+    --bg2: #FFFFFF;
+    --bg3: #F1F5F9;
+    --card: #FFFFFF;
+    --borda: #E2E8F0;
+    --borda2: #CBD5E1;
+    --texto: #0F172A;
+    --texto2: #64748B;
+    --texto3: #94A3B8;
+    --excelente: #16A34A;
+    --excelente-bg: #F0FDF4;
+    --bom: #2563EB;
+    --bom-bg: #EFF6FF;
+    --regular: #D97706;
+    --regular-bg: #FFFBEB;
+    --critico: #DC2626;
+    --critico-bg: #FEF2F2;
+    --pendente: #64748B;
+    --pendente-bg: #F8FAFC;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--texto);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* HEADER */
+  header {
+    background: #0F172A;
+    border-bottom: 3px solid var(--accent);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+  }
+
+  .logo-area h1 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #FFFFFF;
+    letter-spacing: -0.3px;
+  }
+
+  .logo-area p {
+    font-size: 0.72rem;
+    color: #94A3B8;
+    margin-top: 2px;
+  }
+
+  .header-stats {
+    display: flex;
+    gap: 40px;
+  }
+
+  .h-stat { text-align: right; }
+
+  .h-stat .val {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #FFFFFF;
+  }
+
+  .h-stat .lbl {
+    font-size: 0.62rem;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 0;
+    padding: 0 40px;
+    background: #FFFFFF;
+    border-bottom: 1px solid var(--borda);
+    box-shadow: var(--shadow);
+  }
+
+  .tab {
+    padding: 13px 22px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--texto2);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+  }
+
+  .tab:hover { color: var(--texto); background: var(--bg3); }
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* MAIN */
+  main { padding: 28px 40px; max-width: 1600px; margin: 0 auto; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* CARDS ROW */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .kpi {
+    background: var(--card);
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    padding: 20px 22px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+
+  .kpi::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--accent);
+    border-radius: 10px 0 0 10px;
+  }
+
+  .kpi.accent::after { background: var(--excelente); }
+  .kpi.warn::after { background: var(--regular); }
+  .kpi.danger::after { background: var(--critico); }
+
+  .kpi .label {
+    font-size: 0.68rem;
+    color: var(--texto2);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+  }
+
+  .kpi .value {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--texto);
+    line-height: 1;
+  }
+
+  .kpi .sub {
+    font-size: 0.68rem;
+    color: var(--texto2);
+    margin-top: 5px;
+  }
+
+  /* GRID 2 cols */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+  /* PANEL */
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+
+  .panel-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--borda);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg3);
+  }
+
+  .panel-header h3 {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--texto);
+    letter-spacing: 0;
+  }
+
+  .panel-body { padding: 20px; }
+
+  /* BAR CHART */
+  .bar-chart { display: flex; flex-direction: column; gap: 9px; }
+
+  .bar-row {
+    display: grid;
+    grid-template-columns: 155px 1fr 72px;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .bar-label {
+    font-size: 0.7rem;
+    color: var(--texto2);
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+  }
+
+  .bar-track {
+    height: 22px;
+    background: var(--bg3);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--borda);
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.8s ease;
+  }
+
+  .bar-val {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--texto);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* RANKING BADGE */
+  .rank-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 5px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .rank-A { background: var(--excelente-bg); color: var(--excelente); border: 1px solid #BBF7D0; }
+  .rank-B { background: var(--bom-bg); color: var(--bom); border: 1px solid #BFDBFE; }
+  .rank-C { background: var(--regular-bg); color: var(--regular); border: 1px solid #FDE68A; }
+  .rank-D { background: var(--critico-bg); color: var(--critico); border: 1px solid #FECACA; }
+  .rank-X { background: var(--pendente-bg); color: var(--pendente); border: 1px solid var(--borda); }
+
+  /* TABLE */
+  .data-table-wrap { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+  }
+
+  thead th {
+    background: var(--bg3);
+    color: var(--texto2);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    font-weight: 600;
+    padding: 11px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--borda2);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  thead th:hover { color: var(--accent); }
+
+  tbody tr {
+    border-bottom: 1px solid var(--borda);
+    transition: background 0.1s;
+  }
+
+  tbody tr:hover { background: var(--bg3); }
+
+  tbody td {
+    padding: 10px 14px;
+    color: var(--texto);
+    white-space: nowrap;
+  }
+
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* GAUGE */
+  .gauge-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .gauge-item { text-align: center; }
+  .gauge-ring { width: 90px; height: 90px; margin: 0 auto 8px; }
+  .gauge-label { font-size: 0.65rem; color: var(--texto2); text-transform: uppercase; letter-spacing: 1px; }
+  .gauge-val { font-size: 1.1rem; font-weight: 700; color: var(--texto); }
+
+  /* STACKED BAR */
+  .stacked-bar {
+    height: 18px;
+    display: flex;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 6px;
+    border: 1px solid var(--borda);
+  }
+
+  .sb-A { background: #16A34A; }
+  .sb-B { background: #2563EB; }
+  .sb-C { background: #D97706; }
+  .sb-D { background: #DC2626; }
+  .sb-X { background: #94A3B8; }
+
+  .legend-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 0.65rem;
+    color: var(--texto2);
+  }
+
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+  /* FILTER BAR */
+  .filter-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-bar input, .filter-bar select {
+    background: var(--card);
+    border: 1px solid var(--borda2);
+    border-radius: 7px;
+    color: var(--texto);
+    padding: 8px 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    box-shadow: var(--shadow);
+  }
+
+  .filter-bar input:focus, .filter-bar select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+  }
+
+  .filter-bar input { min-width: 220px; }
+
+  .count-badge {
+    font-size: 0.72rem;
+    color: var(--texto2);
+    padding: 8px 0;
+  }
+
+  .count-badge span {
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  /* CULTIVAR CARD */
+  .cultivar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+
+  .cultivar-card {
+    background: var(--card);
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    padding: 18px 20px;
+    transition: all 0.15s;
+    box-shadow: var(--shadow);
+  }
+
+  .cultivar-card:hover {
+    border-color: var(--accent-light);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  .cultivar-card h4 {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 3px;
+    color: var(--texto);
+  }
+
+  .cultivar-card .kg-badge {
+    font-size: 0.68rem;
+    color: var(--texto2);
+    margin-bottom: 14px;
+    font-weight: 500;
+  }
+
+  .metric-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .metric-box {
+    background: var(--bg3);
+    border: 1px solid var(--borda);
+    border-radius: 7px;
+    padding: 10px;
+  }
+
+  .metric-box .m-label {
+    font-size: 0.6rem;
+    color: var(--texto2);
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    font-weight: 500;
+  }
+
+  .metric-box .m-val {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--texto);
+    margin-top: 2px;
+  }
+
+  .metric-box .m-val.good { color: var(--excelente); }
+  .metric-box .m-val.ok { color: var(--bom); }
+  .metric-box .m-val.warn { color: var(--regular); }
+  .metric-box .m-val.bad { color: var(--critico); }
+
+  /* progress mini */
+  .mini-progress { margin-top: 5px; height: 3px; background: var(--borda); border-radius: 2px; }
+  .mini-progress-fill { height: 100%; border-radius: 2px; background: var(--accent); }
+
+  /* scroll */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg3); }
+  ::-webkit-scrollbar-thumb { background: var(--borda2); border-radius: 3px; }
+
+  /* Tooltip */
+  .tooltip {
+    position: fixed;
+    background: #0F172A;
+    border: 1px solid #334155;
+    border-radius: 7px;
+    padding: 10px 14px;
+    font-size: 0.7rem;
+    color: #F1F5F9;
+    pointer-events: none;
+    z-index: 9999;
+    display: none;
+    max-width: 200px;
+    box-shadow: var(--shadow-md);
+  }
+
+  .section-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--texto2);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--borda);
+  }
+
+  code { font-family: 'IBM Plex Mono', monospace; }
+
+  @media (max-width: 900px) {
+    main { padding: 16px 20px; }
+    header { padding: 14px 20px; }
+    .tabs { padding: 0 20px; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .cultivar-grid { grid-template-columns: 1fr; }
+    .header-stats { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="tooltip" id="tooltip"></div>
+
+<header>
+  <div class="logo-area">
+    <h1>🌱 SOJA 25-26</h1>
+    <p>Análise de Qualidade de Sementes — Safra 2025/2026</p>
+  </div>
+  <div class="header-stats">
+    <div class="h-stat">
+      <div class="val" id="h-kg">—</div>
+      <div class="lbl">Total KG</div>
+    </div>
+    <div class="h-stat">
+      <div class="val" id="h-lotes">—</div>
+      <div class="lbl">Lotes</div>
+    </div>
+    <div class="h-stat">
+      <div class="val" id="h-cultivares">—</div>
+      <div class="lbl">Cultivares</div>
+    </div>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="showPage('overview')">Visão Geral</div>
+  <div class="tab" onclick="showPage('cultivares')">Por Cultivar</div>
+  <div class="tab" onclick="showPage('lotes')">Lotes Detalhados</div>
+</div>
+
+<main>
+
+  <!-- OVERVIEW PAGE -->
+  <div class="page active" id="page-overview">
+
+    <!-- KPI row -->
+    <div id="kpi-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px;"></div>
+
+    <!-- Main content: table + donut side by side -->
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;margin-bottom:16px;">
+
+      <!-- Tabela de cultivares -->
+      <div class="panel">
+        <div class="panel-header">
+          <h3>📋 Resumo por Cultivar</h3>
+          <div style="font-size:0.65rem;color:var(--texto2);">ordenado por volume</div>
+        </div>
+        <div class="data-table-wrap">
+          <table id="ov-table">
+            <thead>
+              <tr>
+                <th>Cultivar</th>
+                <th class="num">Volume</th>
+                <th class="num">Lotes</th>
+                <th class="num">Germ. %</th>
+                <th class="num">Vigor %</th>
+                <th style="text-align:center;min-width:160px;">Distribuição</th>
+                <th class="num">Aprov.</th>
+                <th class="num">Reprov.</th>
+              </tr>
+            </thead>
+            <tbody id="ov-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Coluna lateral -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- Situação geral -->
+        <div class="panel" style="flex:0 0 auto;">
+          <div class="panel-header"><h3>🎯 Situação Geral</h3></div>
+          <div style="padding:16px;">
+            <div style="text-align:center;margin-bottom:14px;">
+              <svg id="donut-svg" width="140" height="140" viewBox="0 0 140 140" style="display:block;margin:0 auto 8px;"></svg>
+              <div id="donut-center" style="font-size:0.7rem;color:var(--texto2);"></div>
+            </div>
+            <div id="donut-legend" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"></div>
+          </div>
+        </div>
+
+        <!-- Alertas -->
+        <div class="panel" style="flex:1;">
+          <div class="panel-header"><h3>⚠️ Atenção</h3></div>
+          <div id="alerts-list" style="padding:12px 16px;display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CULTIVARES PAGE -->
+  <!-- CULTIVARES + PMS PAGE -->
+  <div class="page" id="page-cultivares">
+    <div class="filter-bar">
+      <input type="text" id="cv-search" placeholder="🔍 Buscar cultivar..." oninput="filterCultivares()">
+      <select id="cv-rank-filter" onchange="filterCultivares()">
+        <option value="">Todos os Rankings</option>
+        <option value="A">Maioria A – Ótimo</option>
+        <option value="B">Maioria B – Bom</option>
+        <option value="C">Presença C – Regular</option>
+        <option value="D">Presença D – Crítico</option>
+      </select>
+      <div class="count-badge">Exibindo <span id="cv-count" style="color:var(--accent);font-weight:700;">—</span> cultivares</div>
+    </div>
+    <div id="cultivar-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:16px;"></div>
+  </div>
+
+  <!-- LOTES PAGE -->
+  <div class="page" id="page-lotes">
+    <div class="filter-bar">
+      <input type="text" id="lote-search" placeholder="🔍 Buscar lote, cultivar..." oninput="filterLotes()">
+      <select id="lote-cultivar" onchange="filterLotes()">
+        <option value="">Todos os Cultivares</option>
+      </select>
+      <select id="lote-status" onchange="filterLotes()">
+        <option value="">Todos os Status</option>
+        <option value="Ótimo">Ótimo (A)</option>
+        <option value="Bom">Bom (B)</option>
+        <option value="Regular">Regular (C)</option>
+        <option value="Crítico">Crítico (D)</option>
+        <option value="Pendente">Pendente (X)</option>
+      </select>
+      <div class="count-badge">Exibindo <span id="lote-count">—</span> lotes</div>
+    </div>
+    <div class="panel">
+      <div class="data-table-wrap">
+        <table id="lote-table">
+          <thead>
+            <tr>
+              <th onclick="sortTable('lote')">Lote</th>
+              <th onclick="sortTable('cultivar')">Cultivar</th>
+              <th onclick="sortTable('categoria')">Cat.</th>
+              <th onclick="sortTable('peneira')">Pen.</th>
+              <th onclick="sortTable('umidade')" class="num">Umid. %</th>
+              <th onclick="sortTable('tz_viab')" class="num">TZ Viab.</th>
+              <th onclick="sortTable('tz_vigor')" class="num">TZ Vigor</th>
+              <th onclick="sortTable('germ')" class="num">Germ. %</th>
+              <th onclick="sortTable('vigor')" class="num">Vigor E.A. %</th>
+              <th onclick="sortTable('kg')" class="num">KG</th>
+              <th onclick="sortTable('ranking')">Ranking</th>
+            </tr>
+          </thead>
+          <tbody id="lote-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- RANKING PAGE -->
+  <div class="page" id="page-ranking">
+    <div class="panel" style="margin-bottom:20px;">
+      <div class="panel-header">
+        <h3>🏆 Ranking Geral por Cultivar</h3>
+        <div style="font-size:0.65rem;color:var(--texto2);">Ordenado por qualidade TZ + Germinação</div>
+      </div>
+      <div class="panel-body">
+        <div id="ranking-table-container"></div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-header"><h3>✅ Melhores Lotes (Ranking A)</h3></div>
+        <div class="panel-body" id="top-lotes"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><h3>⚠️ Lotes Críticos (Ranking D)</h3></div>
+        <div class="panel-body" id="critical-lotes"></div>
+      </div>
+    </div>
+  </div>
+
+
+</main>
+
+
+<script>
+
+// ===================== PMS DATA (média só lotes A+B) =====================
+const PMS_CV = [{"cultivar":"55I57RSF IPRO","bags_p1":287,"pms_p1":190.2,"aprov_p1":6,"reprov_p1":7,"pend_p1":2,"bags_p2":630,"pms_p2":227.5,"aprov_p2":11,"reprov_p2":28,"pend_p2":1,"bags_total":917},{"cultivar":"C2550E","bags_p1":482,"pms_p1":150.3,"aprov_p1":21,"reprov_p1":0,"pend_p1":0,"bags_p2":363,"pms_p2":198.3,"aprov_p2":19,"reprov_p2":0,"pend_p2":0,"bags_total":845},{"cultivar":"56IX58RSF I2X","bags_p1":253,"pms_p1":194.4,"aprov_p1":3,"reprov_p1":9,"pend_p1":0,"bags_p2":450,"pms_p2":null,"aprov_p2":0,"reprov_p2":24,"pend_p2":0,"bags_total":703},{"cultivar":"C2530RR","bags_p1":283,"pms_p1":144.6,"aprov_p1":8,"reprov_p1":5,"pend_p1":0,"bags_p2":400,"pms_p2":203.9,"aprov_p2":16,"reprov_p2":6,"pend_p2":0,"bags_total":683},{"cultivar":"C2560CE","bags_p1":196,"pms_p1":216.5,"aprov_p1":2,"reprov_p1":10,"pend_p1":0,"bags_p2":214,"pms_p2":250.3,"aprov_p2":2,"reprov_p2":12,"pend_p2":0,"bags_total":410},{"cultivar":"C2605 E","bags_p1":336,"pms_p1":141.0,"aprov_p1":1,"reprov_p1":13,"pend_p1":0,"bags_p2":60,"pms_p2":null,"aprov_p2":0,"reprov_p2":3,"pend_p2":0,"bags_total":396},{"cultivar":"57K58RSF CE","bags_p1":176,"pms_p1":156.3,"aprov_p1":1,"reprov_p1":8,"pend_p1":0,"bags_p2":141,"pms_p2":198.7,"aprov_p2":1,"reprov_p2":6,"pend_p2":2,"bags_total":317},{"cultivar":"55IX56RSF I2X","bags_p1":40,"pms_p1":null,"aprov_p1":0,"reprov_p1":0,"pend_p1":2,"bags_p2":272,"pms_p2":null,"aprov_p2":0,"reprov_p2":0,"pend_p2":17,"bags_total":312},{"cultivar":"C2575E","bags_p1":88,"pms_p1":138.8,"aprov_p1":2,"reprov_p1":1,"pend_p1":2,"bags_p2":177,"pms_p2":181.8,"aprov_p2":2,"reprov_p2":1,"pend_p2":7,"bags_total":265},{"cultivar":"57K56RSF CE","bags_p1":120,"pms_p1":168.5,"aprov_p1":6,"reprov_p1":0,"pend_p1":0,"bags_p2":144,"pms_p2":203.3,"aprov_p2":9,"reprov_p2":0,"pend_p2":0,"bags_total":264},{"cultivar":"57IX60RSF I2X","bags_p1":87,"pms_p1":null,"aprov_p1":0,"reprov_p1":4,"pend_p1":0,"bags_p2":160,"pms_p2":184.9,"aprov_p2":2,"reprov_p2":6,"pend_p2":0,"bags_total":247},{"cultivar":"BMX ATIVA RR","bags_p1":105,"pms_p1":150.8,"aprov_p1":2,"reprov_p1":3,"pend_p1":0,"bags_p2":138,"pms_p2":189.2,"aprov_p2":1,"reprov_p2":6,"pend_p2":0,"bags_total":243},{"cultivar":"C2535CE","bags_p1":67,"pms_p1":164.7,"aprov_p1":3,"reprov_p1":0,"pend_p1":0,"bags_p2":159,"pms_p2":199.1,"aprov_p2":7,"reprov_p2":2,"pend_p2":0,"bags_total":226},{"cultivar":"50I52RSF IPRO","bags_p1":158,"pms_p1":177.9,"aprov_p1":8,"reprov_p1":1,"pend_p1":0,"bags_p2":48,"pms_p2":226.7,"aprov_p2":2,"reprov_p2":1,"pend_p2":0,"bags_total":206},{"cultivar":"64IX66RSF I2X","bags_p1":120,"pms_p1":134.6,"aprov_p1":2,"reprov_p1":3,"pend_p1":0,"bags_p2":40,"pms_p2":null,"aprov_p2":0,"reprov_p2":2,"pend_p2":0,"bags_total":160},{"cultivar":"64I61RSF IPRO","bags_p1":109,"pms_p1":null,"aprov_p1":0,"reprov_p1":5,"pend_p1":0,"bags_p2":32,"pms_p2":null,"aprov_p2":0,"reprov_p2":2,"pend_p2":0,"bags_total":141},{"cultivar":"63E66RSF E","bags_p1":60,"pms_p1":null,"aprov_p1":0,"reprov_p1":3,"pend_p1":0,"bags_p2":60,"pms_p2":null,"aprov_p2":0,"reprov_p2":3,"pend_p2":0,"bags_total":120},{"cultivar":"C2645CE","bags_p1":47,"pms_p1":null,"aprov_p1":0,"reprov_p1":2,"pend_p1":0,"bags_p2":13,"pms_p2":null,"aprov_p2":0,"reprov_p2":1,"pend_p2":0,"bags_total":60}];
+
+const SUMMARY = [{"cultivar":"55I57RSF IPRO","total_kg":989819,"lotes":55,"germ_media":77.1,"vigor_media":67.9,"tz_viab_media":90.6,"tz_vigor_media":88.9,"rank_A":8,"rank_B":9,"rank_C":11,"rank_D":24,"rank_X":3},{"cultivar":"56IX58RSF I2X","total_kg":795496,"lotes":36,"germ_media":80.2,"vigor_media":68.5,"tz_viab_media":90.6,"tz_vigor_media":87.8,"rank_A":0,"rank_B":3,"rank_C":3,"rank_D":30,"rank_X":0},{"cultivar":"C2550E","total_kg":722252,"lotes":40,"germ_media":93.8,"vigor_media":90.9,"tz_viab_media":96.2,"tz_vigor_media":94.0,"rank_A":1,"rank_B":39,"rank_C":0,"rank_D":0,"rank_X":0},{"cultivar":"C2530RR","total_kg":642639,"lotes":35,"germ_media":89.9,"vigor_media":87.2,"tz_viab_media":95.3,"tz_vigor_media":91.3,"rank_A":0,"rank_B":24,"rank_C":7,"rank_D":4,"rank_X":0},{"cultivar":"C2560CE","total_kg":464058,"lotes":26,"germ_media":86.4,"vigor_media":75.2,"tz_viab_media":89.8,"tz_vigor_media":87.7,"rank_A":0,"rank_B":4,"rank_C":6,"rank_D":16,"rank_X":0},{"cultivar":"55IX56RSF I2X","total_kg":337612,"lotes":19,"germ_media":null,"vigor_media":null,"tz_viab_media":null,"tz_vigor_media":null,"rank_A":0,"rank_B":0,"rank_C":0,"rank_D":0,"rank_X":19},{"cultivar":"57K58RSF CE","total_kg":310198,"lotes":18,"germ_media":72.6,"vigor_media":65.4,"tz_viab_media":82.5,"tz_vigor_media":80.3,"rank_A":2,"rank_B":0,"rank_C":0,"rank_D":14,"rank_X":2},{"cultivar":"C2605 E","total_kg":290028,"lotes":17,"germ_media":79.8,"vigor_media":66.3,"tz_viab_media":91.8,"tz_vigor_media":85.8,"rank_A":0,"rank_B":1,"rank_C":1,"rank_D":15,"rank_X":0},{"cultivar":"57K56RSF CE","total_kg":247449,"lotes":15,"germ_media":90.6,"vigor_media":90.1,"tz_viab_media":97.2,"tz_vigor_media":95.6,"rank_A":0,"rank_B":15,"rank_C":0,"rank_D":0,"rank_X":0},{"cultivar":"57IX60RSF I2X","total_kg":216910,"lotes":12,"germ_media":86.5,"vigor_media":80.7,"tz_viab_media":95.9,"tz_vigor_media":94.0,"rank_A":0,"rank_B":2,"rank_C":5,"rank_D":5,"rank_X":0},{"cultivar":"C2535CE","total_kg":214696,"lotes":12,"germ_media":93.2,"vigor_media":87.8,"tz_viab_media":95.3,"tz_vigor_media":93.4,"rank_A":0,"rank_B":10,"rank_C":2,"rank_D":0,"rank_X":0},{"cultivar":"BMX ATIVA RR","total_kg":212125,"lotes":12,"germ_media":88.2,"vigor_media":80.7,"tz_viab_media":93.9,"tz_vigor_media":91.4,"rank_A":0,"rank_B":3,"rank_C":4,"rank_D":5,"rank_X":0},{"cultivar":"50I52RSF IPRO","total_kg":194237,"lotes":12,"germ_media":94.8,"vigor_media":87.5,"tz_viab_media":96.8,"tz_vigor_media":94.6,"rank_A":0,"rank_B":10,"rank_C":2,"rank_D":0,"rank_X":0},{"cultivar":"64IX66RSF I2X","total_kg":117852,"lotes":7,"germ_media":84.4,"vigor_media":77.2,"tz_viab_media":93.3,"tz_vigor_media":90.3,"rank_A":1,"rank_B":1,"rank_C":3,"rank_D":2,"rank_X":0},{"cultivar":"64I61RSF IPRO","total_kg":109620,"lotes":7,"germ_media":84.1,"vigor_media":58.0,"tz_viab_media":93.7,"tz_vigor_media":86.9,"rank_A":0,"rank_B":0,"rank_C":0,"rank_D":7,"rank_X":0},{"cultivar":"63E66RSF E","total_kg":98760,"lotes":6,"germ_media":79.7,"vigor_media":70.5,"tz_viab_media":91.8,"tz_vigor_media":86.5,"rank_A":0,"rank_B":0,"rank_C":0,"rank_D":6,"rank_X":0},{"cultivar":"C2575E","total_kg":70274,"lotes":15,"germ_media":93.0,"vigor_media":89.8,"tz_viab_media":85.2,"tz_vigor_media":81.2,"rank_A":0,"rank_B":4,"rank_C":2,"rank_D":0,"rank_X":9},{"cultivar":"C2645CE","total_kg":48809,"lotes":3,"germ_media":70.0,"vigor_media":59.3,"tz_viab_media":88.7,"tz_vigor_media":82.3,"rank_A":0,"rank_B":0,"rank_C":0,"rank_D":3,"rank_X":0}];
+
+const LOTS = [{"cultivar":"C2530RR","lote":"26S01F","peneira":"P2","categoria":"C2","umidade":12.92,"tz_viab":99.0,"tz_vigor":94.0,"rank_tz":"A","germ":92.0,"rank_germ":"B","vigor":89.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":19860,"pms_etq":198.6},{"cultivar":"C2530RR","lote":"26S02F","peneira":"P2","categoria":"C2","umidade":12.66,"tz_viab":99.0,"tz_vigor":94.0,"rank_tz":"A","germ":96.0,"rank_germ":"A","vigor":91.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":19860,"pms_etq":198.6},{"cultivar":"C2530RR","lote":"26S03F","peneira":"P2","categoria":"C2","umidade":12.87,"tz_viab":97.0,"tz_vigor":94.0,"rank_tz":"A","germ":93.0,"rank_germ":"B","vigor":86.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":19710,"pms_etq":197.1},{"cultivar":"C2530RR","lote":"26S04F","peneira":"P2","categoria":"C2","umidade":12.81,"tz_viab":95.0,"tz_vigor":92.0,"rank_tz":"A","germ":95.0,"rank_germ":"A","vigor":89.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":19710,"pms_etq":197.1},{"cultivar":"C2530RR","lote":"26S05F","peneira":"P2","categoria":"C2","umidade":12.6,"tz_viab":99.0,"tz_vigor":97.0,"rank_tz":"A","germ":98.0,"rank_germ":"A","vigor":89.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":19710,"pms_etq":197.1},{"cultivar":"C2530RR","lote":"26S06B","peneira":"P1","categoria":"C2","umidade":12.69,"tz_viab":98.0,"tz_vigor":94.0,"rank_tz":"A","germ":97.0,"rank_germ":"A","vigor":88.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":16323,"pms_etq":136.0},{"cultivar":"C2530RR","lote":"26S07B","peneira":"P1","categoria":"C2","umidade":12.66,"tz_viab":97.0,"tz_vigor":95.0,"rank_tz":"A","germ":94.0,"rank_germ":"B","vigor":91.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":16323,"pms_etq":136.0},{"cultivar":"C2530RR","lote":"26S08B","peneira":"P1","categoria":"C2","umidade":12.57,"tz_viab":97.0,"tz_vigor":96.0,"rank_tz":"A","germ":94.0,"rank_germ":"B","vigor":94.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":15,"kg":10202,"pms_etq":136.0},{"cultivar":"C2530RR","lote":"26S09F","peneira":"P2","categoria":"C2","umidade":12.41,"tz_viab":100.0,"tz_vigor":95.0,"rank_tz":"A","germ":92.0,"rank_germ":"B","vigor":89.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":19875,"pms_etq":198.8},{"cultivar":"C2530RR","lote":"26S10F","peneira":"P2","categoria":"C2","umidade":12.56,"tz_viab":97.0,"tz_vigor":89.0,"rank_tz":"A","germ":95.0,"rank_germ":"A","vigor":85.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":19875,"pms_etq":198.8},{"cultivar":"C2530RR","lote":"26S11F","peneira":"P2","categoria":"C2","umidade":12.5,"tz_viab":97.0,"tz_vigor":93.0,"rank_tz":"A","germ":95.0,"rank_germ":"A","vigor":88.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":19899,"pms_etq":199.0},{"cultivar":"C2530RR","lote":"26S12F","peneira":"P2","categoria":"C2","umidade":12.59,"tz_viab":99.0,"tz_vigor":96.0,"rank_tz":"A","germ":95.0,"rank_germ":"A","vigor":88.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":19899,"pms_etq":199.0},{"cultivar":"C2530RR","lote":"26S13F","peneira":"P2","categoria":"C2","umidade":12.57,"tz_viab":98.0,"tz_vigor":95.0,"rank_tz":"A","germ":96.0,"rank_germ":"A","vigor":90.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":19920,"pms_etq":199.2},{"cultivar":"C2530RR","lote":"26S14F","peneira":"P2","categoria":"C2","umidade":12.47,"tz_viab":96.0,"tz_vigor":92.0,"rank_tz":"A","germ":93.0,"rank_germ":"B","vigor":87.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":19780,"pms_etq":197.8},{"cultivar":"C2530RR","lote":"26S15F","peneira":"P2","categoria":"C2","umidade":12.62,"tz_viab":100.0,"tz_vigor":98.0,"rank_tz":"A","germ":95.0,"rank_germ":"A","vigor":91.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":19780,"pms_etq":197.8},{"cultivar":"C2530RR","lote":"26S16B","peneira":"P1","categoria":"C2","umidade":12.25,"tz_viab":98.0,"tz_vigor":96.0,"rank_tz":"A","germ":93.0,"rank_germ":"B","vigor":95.0,"rank_vigor":"A","ranking":"B","status":"Bom","bags":24,"kg":18405,"pms_etq":153.4},{"cultivar":"C2530RR","lote":"26S17B","peneira":"P1","categoria":"C2","umidade":12.35,"tz_viab":96.0,"tz_vigor":91.0,"rank_tz":"A","germ":92.0,"rank_germ":"B","vigor":90.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":18405,"pms_etq":153.4},{"cultivar":"C2530RR","lote":"26S19B","peneira":"P1","categoria":"C2","umidade":12.38,"tz_viab":97.0,"tz_vigor":96.0,"rank_tz":"A","germ":94.0,"rank_germ":"B","vigor":92.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":17676,"pms_etq":147.3},{"cultivar":"C2530RR","lote":"26S20B","peneira":"P1","categoria":"C2","umidade":12.44,"tz_viab":97.0,"tz_vigor":94.0,"rank_tz":"A","germ":93.0,"rank_germ":"B","vigor":88.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":17676,"pms_etq":147.3},{"cultivar":"C2530RR","lote":"26S21B","peneira":"P1","categoria":"C2","umidade":12.58,"tz_viab":97.0,"tz_vigor":93.0,"rank_tz":"A","germ":96.0,"rank_germ":"A","vigor":90.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":17676,"pms_etq":147.3},{"cultivar":"C2550E","lote":"26S22B","peneira":"P1","categoria":"S2","umidade":12.59,"tz_viab":95.0,"tz_vigor":92.0,"rank_tz":"A","germ":94.0,"rank_germ":"B","vigor":94.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":17634,"pms_etq":146.9},{"cultivar":"C2550E","lote":"26S23B","peneira":"P1","categoria":"S2","umidade":12.54,"tz_viab":97.0,"tz_vigor":95.0,"rank_tz":"A","germ":96.0,"rank_germ":"A","vigor":94.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":17634,"pms_etq":146.9},{"cultivar":"C2550E","lote":"26S24B","peneira":"P1","categoria":"S2","umidade":12.62,"tz_viab":97.0,"tz_vigor":96.0,"rank_tz":"A","germ":96.0,"rank_germ":"A","vigor":86.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":17634,"pms_etq":146.9},{"cultivar":"C2550E","lote":"26S25B","peneira":"P1","categoria":"S2","umidade":12.92,"tz_viab":93.0,"tz_vigor":90.0,"rank_tz":"B","germ":93.0,"rank_germ":"B","vigor":87.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":17700,"pms_etq":147.5},{"cultivar":"C2550E","lote":"26S26B","peneira":"P1","categoria":"S2","umidade":12.75,"tz_viab":93.0,"tz_vigor":90.0,"rank_tz":"B","germ":92.0,"rank_germ":"B","vigor":90.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":17700,"pms_etq":147.5},{"cultivar":"C2550E","lote":"26S27B","peneira":"P1","categoria":"S2","umidade":13.51,"tz_viab":94.0,"tz_vigor":90.0,"rank_tz":"B","germ":91.0,"rank_germ":"B","vigor":91.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":17700,"pms_etq":147.5},{"cultivar":"C2550E","lote":"26S28F","peneira":"P2","categoria":"S2","umidade":12.55,"tz_viab":96.0,"tz_vigor":93.0,"rank_tz":"A","germ":91.0,"rank_germ":"B","vigor":92.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":18900,"pms_etq":189.0},{"cultivar":"C2550E","lote":"26S29F","peneira":"P2","categoria":"S2","umidade":12.38,"tz_viab":93.0,"tz_vigor":90.0,"rank_tz":"B","germ":92.0,"rank_germ":"B","vigor":87.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":18900,"pms_etq":189.0},{"cultivar":"C2550E","lote":"26S30F","peneira":"P2","categoria":"S2","umidade":12.64,"tz_viab":97.0,"tz_vigor":95.0,"rank_tz":"A","germ":96.0,"rank_germ":"A","vigor":85.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":18900,"pms_etq":189.0},{"cultivar":"C2550E","lote":"26S31B","peneira":"P1","categoria":"S2","umidade":14.04,"tz_viab":94.0,"tz_vigor":89.0,"rank_tz":"B","germ":94.0,"rank_germ":"B","vigor":89.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":17784,"pms_etq":148.2},{"cultivar":"C2550E","lote":"26S32B","peneira":"P1","categoria":"S2","umidade":13.96,"tz_viab":96.0,"tz_vigor":91.0,"rank_tz":"A","germ":93.0,"rank_germ":"B","vigor":88.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":17784,"pms_etq":148.2},{"cultivar":"C2550E","lote":"26S33F","peneira":"P2","categoria":"S2","umidade":13.4,"tz_viab":95.0,"tz_vigor":94.0,"rank_tz":"A","germ":97.0,"rank_germ":"A","vigor":93.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":19351,"pms_etq":193.5},{"cultivar":"C2550E","lote":"26S34F","peneira":"P2","categoria":"S2","umidade":13.4,"tz_viab":97.0,"tz_vigor":95.0,"rank_tz":"A","germ":95.0,"rank_germ":"A","vigor":91.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":19351,"pms_etq":193.5},{"cultivar":"C2550E","lote":"26S35B","peneira":"P1","categoria":"S2","umidade":13.61,"tz_viab":97.0,"tz_vigor":95.0,"rank_tz":"A","germ":93.0,"rank_germ":"B","vigor":90.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":18036,"pms_etq":150.3},{"cultivar":"C2550E","lote":"26S36B","peneira":"P1","categoria":"S2","umidade":13.57,"tz_viab":100.0,"tz_vigor":97.0,"rank_tz":"A","germ":95.0,"rank_germ":"A","vigor":90.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":18036,"pms_etq":150.3},{"cultivar":"C2550E","lote":"26S37B","peneira":"P1","categoria":"S1","umidade":13.3,"tz_viab":96.0,"tz_vigor":92.0,"rank_tz":"A","germ":94.0,"rank_germ":"B","vigor":92.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":18324,"pms_etq":152.7},{"cultivar":"C2550E","lote":"26S38B","peneira":"P1","categoria":"S1","umidade":13.3,"tz_viab":95.0,"tz_vigor":92.0,"rank_tz":"A","germ":95.0,"rank_germ":"A","vigor":90.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":18324,"pms_etq":152.7},{"cultivar":"C2550E","lote":"26S39B","peneira":"P1","categoria":"S1","umidade":12.59,"tz_viab":95.0,"tz_vigor":91.0,"rank_tz":"A","germ":94.0,"rank_germ":"B","vigor":90.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":18324,"pms_etq":152.7},{"cultivar":"C2550E","lote":"26S40F","peneira":"P2","categoria":"S1","umidade":12.88,"tz_viab":98.0,"tz_vigor":95.0,"rank_tz":"A","germ":96.0,"rank_germ":"A","vigor":92.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":20230,"pms_etq":202.3},{"cultivar":"C2550E","lote":"26S41F","peneira":"P2","categoria":"S1","umidade":12.68,"tz_viab":97.0,"tz_vigor":97.0,"rank_tz":"A","germ":96.0,"rank_germ":"A","vigor":95.0,"rank_vigor":"A","ranking":"A","status":"Ótimo","bags":20,"kg":20230,"pms_etq":202.3},{"cultivar":"C2550E","lote":"26S42F","peneira":"P2","categoria":"S1","umidade":13.13,"tz_viab":97.0,"tz_vigor":95.0,"rank_tz":"A","germ":94.0,"rank_germ":"B","vigor":92.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":20230,"pms_etq":202.3},{"cultivar":"C2550E","lote":"26S43F","peneira":"P2","categoria":"S1","umidade":12.96,"tz_viab":95.0,"tz_vigor":93.0,"rank_tz":"A","germ":90.0,"rank_germ":"B","vigor":92.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":19136,"pms_etq":191.4},{"cultivar":"C2550E","lote":"26S44F","peneira":"P2","categoria":"S1","umidade":12.64,"tz_viab":97.0,"tz_vigor":94.0,"rank_tz":"A","germ":92.0,"rank_germ":"B","vigor":90.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":19136,"pms_etq":191.4},{"cultivar":"C2550E","lote":"26S45F","peneira":"P2","categoria":"S1","umidade":12.59,"tz_viab":97.0,"tz_vigor":97.0,"rank_tz":"A","germ":94.0,"rank_germ":"B","vigor":88.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":9,"kg":8611,"pms_etq":191.4},{"cultivar":"C2550E","lote":"26S46B","peneira":"P1","categoria":"C2","umidade":12.82,"tz_viab":96.0,"tz_vigor":96.0,"rank_tz":"A","germ":96.0,"rank_germ":"A","vigor":93.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":17580,"pms_etq":146.5},{"cultivar":"C2550E","lote":"26S47B","peneira":"P1","categoria":"C2","umidade":13.06,"tz_viab":97.0,"tz_vigor":95.0,"rank_tz":"A","germ":93.0,"rank_germ":"B","vigor":94.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":17580,"pms_etq":146.5},{"cultivar":"C2550E","lote":"26S48B","peneira":"P1","categoria":"C2","umidade":12.74,"tz_viab":96.0,"tz_vigor":95.0,"rank_tz":"A","germ":97.0,"rank_germ":"A","vigor":92.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":15,"kg":10987,"pms_etq":146.5},{"cultivar":"C2550E","lote":"26S49F","peneira":"P2","categoria":"S1","umidade":12.37,"tz_viab":95.0,"tz_vigor":94.0,"rank_tz":"A","germ":95.0,"rank_germ":"A","vigor":93.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":20560,"pms_etq":205.6},{"cultivar":"C2550E","lote":"26S50F","peneira":"P2","categoria":"S1","umidade":12.94,"tz_viab":98.0,"tz_vigor":96.0,"rank_tz":"A","germ":92.0,"rank_germ":"B","vigor":95.0,"rank_vigor":"A","ranking":"B","status":"Bom","bags":20,"kg":20560,"pms_etq":205.6},{"cultivar":"C2550E","lote":"26S51B","peneira":"P1","categoria":"C2","umidade":12.44,"tz_viab":96.0,"tz_vigor":94.0,"rank_tz":"A","germ":91.0,"rank_germ":"B","vigor":90.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":18777,"pms_etq":156.5},{"cultivar":"C2550E","lote":"26S52B","peneira":"P1","categoria":"C2","umidade":12.65,"tz_viab":95.0,"tz_vigor":94.0,"rank_tz":"A","germ":92.0,"rank_germ":"B","vigor":89.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":18777,"pms_etq":156.5},{"cultivar":"C2550E","lote":"26S53F","peneira":"P2","categoria":"S1","umidade":12.5,"tz_viab":95.0,"tz_vigor":95.0,"rank_tz":"A","germ":92.0,"rank_germ":"B","vigor":92.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":20440,"pms_etq":204.4},{"cultivar":"C2550E","lote":"26S54F","peneira":"P2","categoria":"S1","umidade":12.13,"tz_viab":95.0,"tz_vigor":93.0,"rank_tz":"A","germ":95.0,"rank_germ":"A","vigor":93.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":20441,"pms_etq":204.4},{"cultivar":"C2550E","lote":"26S55F","peneira":"P2","categoria":"S1","umidade":11.82,"tz_viab":98.0,"tz_vigor":96.0,"rank_tz":"A","germ":92.0,"rank_germ":"B","vigor":88.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":20318,"pms_etq":203.2},{"cultivar":"C2550E","lote":"26S56B","peneira":"P1","categoria":"S1","umidade":12.32,"tz_viab":98.0,"tz_vigor":94.0,"rank_tz":"A","germ":95.0,"rank_germ":"A","vigor":94.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":18604,"pms_etq":155.0},{"cultivar":"C2550E","lote":"26S57B","peneira":"P1","categoria":"S1","umidade":12.5,"tz_viab":98.0,"tz_vigor":94.0,"rank_tz":"A","germ":92.0,"rank_germ":"B","vigor":91.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":18604,"pms_etq":155.0},{"cultivar":"C2550E","lote":"26S58F","peneira":"P2","categoria":"S1","umidade":12.05,"tz_viab":98.0,"tz_vigor":97.0,"rank_tz":"A","germ":94.0,"rank_germ":"B","vigor":91.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":20318,"pms_etq":203.2},{"cultivar":"C2550E","lote":"26S59F","peneira":"P2","categoria":"S1","umidade":12.38,"tz_viab":97.0,"tz_vigor":95.0,"rank_tz":"A","germ":96.0,"rank_germ":"A","vigor":90.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":20318,"pms_etq":203.2},{"cultivar":"C2550E","lote":"26S60F","peneira":"P2","categoria":"S1","umidade":11.92,"tz_viab":99.0,"tz_vigor":98.0,"rank_tz":"A","germ":94.0,"rank_germ":"B","vigor":92.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":14,"kg":14280,"pms_etq":204.0},{"cultivar":"C2550E","lote":"26S61B","peneira":"P1","categoria":"S1","umidade":12.46,"tz_viab":96.0,"tz_vigor":95.0,"rank_tz":"A","germ":93.0,"rank_germ":"B","vigor":90.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":11,"kg":8519,"pms_etq":154.9},{"cultivar":"C2530RR","lote":"26S62G","peneira":"P2","categoria":"S1","umidade":12.3,"tz_viab":93.0,"tz_vigor":91.0,"rank_tz":"B","germ":85.0,"rank_germ":"B","vigor":83.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":16,"kg":18200,"pms_etq":227.5},{"cultivar":"C2530RR","lote":"26S63G","peneira":"P2","categoria":"S1","umidade":12.36,"tz_viab":91.0,"tz_vigor":87.0,"rank_tz":"B","germ":87.0,"rank_germ":"B","vigor":74.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":18200,"pms_etq":227.5},{"cultivar":"C2530RR","lote":"26S64G","peneira":"P2","categoria":"S1","umidade":11.83,"tz_viab":90.0,"tz_vigor":86.0,"rank_tz":"B","germ":79.0,"rank_germ":"D","vigor":81.0,"rank_vigor":"C","ranking":"D","status":"Ruim","bags":16,"kg":18200,"pms_etq":227.5},{"cultivar":"C2530RR","lote":"26S65C","peneira":"P1","categoria":"S1","umidade":11.93,"tz_viab":91.0,"tz_vigor":84.0,"rank_tz":"B","germ":72.0,"rank_germ":"D","vigor":84.0,"rank_vigor":"C","ranking":"D","status":"Ruim","bags":20,"kg":18781,"pms_etq":187.8},{"cultivar":"C2530RR","lote":"26S66C","peneira":"P1","categoria":"S1","umidade":11.85,"tz_viab":88.0,"tz_vigor":81.0,"rank_tz":"C","germ":74.0,"rank_germ":"D","vigor":79.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":18781,"pms_etq":187.8},{"cultivar":"C2530RR","lote":"26S67G","peneira":"P2","categoria":"S1","umidade":11.99,"tz_viab":92.0,"tz_vigor":90.0,"rank_tz":"B","germ":87.0,"rank_germ":"B","vigor":84.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":16,"kg":18408,"pms_etq":230.1},{"cultivar":"C2530RR","lote":"26S68G","peneira":"P2","categoria":"S1","umidade":12.01,"tz_viab":91.0,"tz_vigor":82.0,"rank_tz":"B","germ":85.0,"rank_germ":"B","vigor":89.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":16,"kg":18117,"pms_etq":226.5},{"cultivar":"C2530RR","lote":"26S69G","peneira":"P2","categoria":"S1","umidade":12.45,"tz_viab":91.0,"tz_vigor":86.0,"rank_tz":"B","germ":86.0,"rank_germ":"B","vigor":83.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":16,"kg":18117,"pms_etq":226.5},{"cultivar":"C2530RR","lote":"26S70C","peneira":"P1","categoria":"S1","umidade":12.68,"tz_viab":92.0,"tz_vigor":86.0,"rank_tz":"B","germ":83.0,"rank_germ":"C","vigor":90.0,"rank_vigor":"B","ranking":"C","status":"Regular","bags":20,"kg":18502,"pms_etq":185.0},{"cultivar":"C2530RR","lote":"26S71C","peneira":"P1","categoria":"S1","umidade":12.39,"tz_viab":91.0,"tz_vigor":86.0,"rank_tz":"B","germ":90.0,"rank_germ":"B","vigor":81.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":20,"kg":18502,"pms_etq":185.0},{"cultivar":"C2530RR","lote":"26S72G","peneira":"P2","categoria":"S1","umidade":12.35,"tz_viab":99.0,"tz_vigor":93.0,"rank_tz":"A","germ":88.0,"rank_germ":"B","vigor":86.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":16,"kg":17498,"pms_etq":218.7},{"cultivar":"C2530RR","lote":"26S73G","peneira":"P2","categoria":"S1","umidade":12.51,"tz_viab":91.0,"tz_vigor":88.0,"rank_tz":"B","germ":87.0,"rank_germ":"B","vigor":90.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":16,"kg":17498,"pms_etq":218.7},{"cultivar":"C2530RR","lote":"26S74G","peneira":"P2","categoria":"S1","umidade":12.46,"tz_viab":94.0,"tz_vigor":91.0,"rank_tz":"B","germ":83.0,"rank_germ":"C","vigor":88.0,"rank_vigor":"B","ranking":"C","status":"Regular","bags":16,"kg":17498,"pms_etq":218.7},{"cultivar":"C2530RR","lote":"26S75G","peneira":"P2","categoria":"S1","umidade":12.27,"tz_viab":96.0,"tz_vigor":95.0,"rank_tz":"A","germ":85.0,"rank_germ":"B","vigor":86.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":16,"kg":17602,"pms_etq":220.0},{"cultivar":"C2530RR","lote":"26S76C","peneira":"P1","categoria":"S1","umidade":12.72,"tz_viab":94.0,"tz_vigor":87.0,"rank_tz":"B","germ":87.0,"rank_germ":"B","vigor":83.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":20,"kg":18171,"pms_etq":181.7},{"cultivar":"C2575E","lote":"26S77A","peneira":"P1","categoria":"C1","umidade":12.47,"tz_viab":95.0,"tz_vigor":85.0,"rank_tz":"A","germ":89.0,"rank_germ":"B","vigor":86.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":16653,"pms_etq":138.8},{"cultivar":"C2575E","lote":"26S78A","peneira":"P1","categoria":"C1","umidade":14.41,"tz_viab":93.0,"tz_vigor":90.0,"rank_tz":"B","germ":92.0,"rank_germ":"B","vigor":89.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":12,"kg":8326,"pms_etq":138.8},{"cultivar":"C2575E","lote":"26S79E","peneira":"P2","categoria":"C1","umidade":12.71,"tz_viab":97.0,"tz_vigor":93.0,"rank_tz":"A","germ":96.0,"rank_germ":"A","vigor":91.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":18178,"pms_etq":181.8},{"cultivar":"C2575E","lote":"26S80E","peneira":"P2","categoria":"C1","umidade":12.68,"tz_viab":93.0,"tz_vigor":91.0,"rank_tz":"B","germ":95.0,"rank_germ":"A","vigor":93.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":9,"kg":8180,"pms_etq":181.8},{"cultivar":"55I57RSF IPRO","lote":"26S81G","peneira":"P2","categoria":"S1","umidade":12.18,"tz_viab":94.0,"tz_vigor":90.0,"rank_tz":"B","germ":71.0,"rank_germ":"D","vigor":63.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":18600,"pms_etq":232.5},{"cultivar":"55I57RSF IPRO","lote":"26S82G","peneira":"P2","categoria":"S1","umidade":11.9,"tz_viab":91.0,"tz_vigor":89.0,"rank_tz":"B","germ":74.0,"rank_germ":"D","vigor":62.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":18600,"pms_etq":232.5},{"cultivar":"55I57RSF IPRO","lote":"26S83G","peneira":"P2","categoria":"S1","umidade":11.9,"tz_viab":89.0,"tz_vigor":86.0,"rank_tz":"C","germ":65.0,"rank_germ":"D","vigor":61.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":18600,"pms_etq":232.5},{"cultivar":"55I57RSF IPRO","lote":"26S84G","peneira":"P2","categoria":"S1","umidade":11.81,"tz_viab":87.0,"tz_vigor":86.0,"rank_tz":"C","germ":72.0,"rank_germ":"D","vigor":59.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":18775,"pms_etq":234.7},{"cultivar":"55I57RSF IPRO","lote":"25S85G","peneira":"P2","categoria":"S1","umidade":11.9,"tz_viab":91.0,"tz_vigor":86.0,"rank_tz":"B","germ":73.0,"rank_germ":"D","vigor":62.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":18775,"pms_etq":234.7},{"cultivar":"55I57RSF IPRO","lote":"25S86G","peneira":"P2","categoria":"S1","umidade":12.1,"tz_viab":92.0,"tz_vigor":91.0,"rank_tz":"B","germ":76.0,"rank_germ":"D","vigor":74.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":18346,"pms_etq":229.3},{"cultivar":"55I57RSF IPRO","lote":"25S87G","peneira":"P2","categoria":"S1","umidade":11.94,"tz_viab":89.0,"tz_vigor":85.0,"rank_tz":"C","germ":74.0,"rank_germ":"D","vigor":74.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":18346,"pms_etq":229.3},{"cultivar":"55I57RSF IPRO","lote":"25S88G","peneira":"P2","categoria":"S1","umidade":12.24,"tz_viab":89.0,"tz_vigor":88.0,"rank_tz":"C","germ":78.0,"rank_germ":"D","vigor":67.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":18346,"pms_etq":229.3},{"cultivar":"55I57RSF IPRO","lote":"25S89C","peneira":"P1","categoria":"S1","umidade":12.3,"tz_viab":91.0,"tz_vigor":88.0,"rank_tz":"B","germ":68.0,"rank_germ":"D","vigor":74.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":18776,"pms_etq":187.8},{"cultivar":"55I57RSF IPRO","lote":"25S90C","peneira":"P1","categoria":"S1","umidade":12.1,"tz_viab":87.0,"tz_vigor":85.0,"rank_tz":"C","germ":82.0,"rank_germ":"C","vigor":64.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":18776,"pms_etq":187.8},{"cultivar":"55I57RSF IPRO","lote":"25S91C","peneira":"P1","categoria":"S1","umidade":12.02,"tz_viab":90.0,"tz_vigor":87.0,"rank_tz":"B","germ":66.0,"rank_germ":"D","vigor":56.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":8,"kg":7510,"pms_etq":187.8},{"cultivar":"55I57RSF IPRO","lote":"25S92G","peneira":"P2","categoria":"S1","umidade":12.1,"tz_viab":89.0,"tz_vigor":88.0,"rank_tz":"C","germ":78.0,"rank_germ":"D","vigor":70.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":18572,"pms_etq":232.2},{"cultivar":"55I57RSF IPRO","lote":"25S93G","peneira":"P2","categoria":"S1","umidade":11.69,"tz_viab":92.0,"tz_vigor":92.0,"rank_tz":"B","germ":82.0,"rank_germ":"C","vigor":74.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":18572,"pms_etq":232.2},{"cultivar":"55I57RSF IPRO","lote":"26S94G","peneira":"P2","categoria":"S1","umidade":12.12,"tz_viab":88.0,"tz_vigor":86.0,"rank_tz":"C","germ":77.0,"rank_germ":"D","vigor":68.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":6,"kg":6964,"pms_etq":232.2},{"cultivar":"55I57RSF IPRO","lote":"26S95C","peneira":"P1","categoria":"S1","umidade":12.14,"tz_viab":87.0,"tz_vigor":81.0,"rank_tz":"C","germ":77.0,"rank_germ":"D","vigor":68.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":23,"kg":18541,"pms_etq":161.2},{"cultivar":"C2535CE","lote":"26S96F","peneira":"P2","categoria":"S1","umidade":12.94,"tz_viab":97.0,"tz_vigor":97.0,"rank_tz":"A","germ":93.0,"rank_germ":"B","vigor":90.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":20279,"pms_etq":202.8},{"cultivar":"C2535CE","lote":"26S97F","peneira":"P2","categoria":"S1","umidade":12.0,"tz_viab":97.0,"tz_vigor":96.0,"rank_tz":"A","germ":92.0,"rank_germ":"B","vigor":91.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":20279,"pms_etq":202.8},{"cultivar":"C2535CE","lote":"26S98F","peneira":"P2","categoria":"S1","umidade":12.69,"tz_viab":94.0,"tz_vigor":91.0,"rank_tz":"B","germ":87.0,"rank_germ":"B","vigor":90.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":20279,"pms_etq":202.8},{"cultivar":"C2535CE","lote":"26S99F","peneira":"P2","categoria":"S1","umidade":12.98,"tz_viab":95.0,"tz_vigor":94.0,"rank_tz":"A","germ":88.0,"rank_germ":"B","vigor":82.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":20,"kg":20357,"pms_etq":203.6},{"cultivar":"C2535CE","lote":"26S100B","peneira":"P1","categoria":"S1","umidade":12.5,"tz_viab":98.0,"tz_vigor":98.0,"rank_tz":"A","germ":94.0,"rank_germ":"B","vigor":85.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":19932,"pms_etq":166.1},{"cultivar":"C2535CE","lote":"26S101F","peneira":"P2","categoria":"S1","umidade":12.48,"tz_viab":89.0,"tz_vigor":89.0,"rank_tz":"C","germ":93.0,"rank_germ":"B","vigor":91.0,"rank_vigor":"B","ranking":"C","status":"Regular","bags":20,"kg":20471,"pms_etq":204.7},{"cultivar":"C2535CE","lote":"26S102F","peneira":"P2","categoria":"S1","umidade":12.76,"tz_viab":97.0,"tz_vigor":94.0,"rank_tz":"A","germ":97.0,"rank_germ":"A","vigor":86.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":19500,"pms_etq":195.0},{"cultivar":"C2535CE","lote":"26S103F","peneira":"P2","categoria":"S1","umidade":12.58,"tz_viab":94.0,"tz_vigor":90.0,"rank_tz":"B","germ":93.0,"rank_germ":"B","vigor":88.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":19500,"pms_etq":195.0},{"cultivar":"C2535CE","lote":"26S104F","peneira":"P2","categoria":"S1","umidade":12.46,"tz_viab":95.0,"tz_vigor":91.0,"rank_tz":"A","germ":94.0,"rank_germ":"B","vigor":86.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":7,"kg":6825,"pms_etq":195.0},{"cultivar":"C2535CE","lote":"26S105F","peneira":"P2","categoria":"S1","umidade":12.18,"tz_viab":97.0,"tz_vigor":95.0,"rank_tz":"A","germ":95.0,"rank_germ":"A","vigor":89.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":12,"kg":12025,"pms_etq":200.4},{"cultivar":"C2535CE","lote":"26S106B","peneira":"P1","categoria":"S1","umidade":12.65,"tz_viab":95.0,"tz_vigor":94.0,"rank_tz":"A","germ":97.0,"rank_germ":"A","vigor":87.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":19674,"pms_etq":163.9},{"cultivar":"C2535CE","lote":"26S107B","peneira":"P1","categoria":"S1","umidade":12.38,"tz_viab":96.0,"tz_vigor":92.0,"rank_tz":"A","germ":95.0,"rank_germ":"A","vigor":88.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":19,"kg":15575,"pms_etq":163.9},{"cultivar":"50I52RSF IPRO","lote":"26S108C","peneira":"P1","categoria":"S2","umidade":12.2,"tz_viab":98.0,"tz_vigor":97.0,"rank_tz":"A","germ":94.0,"rank_germ":"B","vigor":86.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":17460,"pms_etq":174.6},{"cultivar":"50I52RSF IPRO","lote":"26S109C","peneira":"P1","categoria":"S2","umidade":12.54,"tz_viab":96.0,"tz_vigor":93.0,"rank_tz":"A","germ":95.0,"rank_germ":"A","vigor":88.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":17460,"pms_etq":174.6},{"cultivar":"50I52RSF IPRO","lote":"26S110C","peneira":"P1","categoria":"S2","umidade":12.25,"tz_viab":95.0,"tz_vigor":93.0,"rank_tz":"A","germ":95.0,"rank_germ":"A","vigor":88.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":17460,"pms_etq":174.6},{"cultivar":"50I52RSF IPRO","lote":"26S111C","peneira":"P1","categoria":"S2","umidade":12.58,"tz_viab":97.0,"tz_vigor":92.0,"rank_tz":"A","germ":96.0,"rank_germ":"A","vigor":91.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":17657,"pms_etq":176.6},{"cultivar":"50I52RSF IPRO","lote":"26S112C","peneira":"P1","categoria":"S2","umidade":12.15,"tz_viab":96.0,"tz_vigor":94.0,"rank_tz":"A","germ":95.0,"rank_germ":"A","vigor":93.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":17657,"pms_etq":176.6},{"cultivar":"50I52RSF IPRO","lote":"26S113G","peneira":"P2","categoria":"S2","umidade":12.26,"tz_viab":98.0,"tz_vigor":96.0,"rank_tz":"A","germ":94.0,"rank_germ":"B","vigor":90.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":16,"kg":17904,"pms_etq":223.8},{"cultivar":"50I52RSF IPRO","lote":"26S114G","peneira":"P2","categoria":"S2","umidade":12.11,"tz_viab":96.0,"tz_vigor":94.0,"rank_tz":"A","germ":95.0,"rank_germ":"A","vigor":84.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":16,"kg":17904,"pms_etq":223.8},{"cultivar":"50I52RSF IPRO","lote":"26S115G","peneira":"P2","categoria":"S2","umidade":13.15,"tz_viab":94.0,"tz_vigor":94.0,"rank_tz":"B","germ":94.0,"rank_germ":"B","vigor":91.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":16,"kg":18360,"pms_etq":229.5},{"cultivar":"50I52RSF IPRO","lote":"26S116C","peneira":"P1","categoria":"S2","umidade":13.2,"tz_viab":96.0,"tz_vigor":96.0,"rank_tz":"A","germ":96.0,"rank_germ":"A","vigor":87.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":17817,"pms_etq":178.2},{"cultivar":"50I52RSF IPRO","lote":"26S117C","peneira":"P1","categoria":"S2","umidade":12.2,"tz_viab":99.0,"tz_vigor":94.0,"rank_tz":"A","germ":93.0,"rank_germ":"B","vigor":82.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":14,"kg":12471,"pms_etq":178.2},{"cultivar":"50I52RSF IPRO","lote":"26S118C","peneira":"P1","categoria":"S2","umidade":13.28,"tz_viab":99.0,"tz_vigor":97.0,"rank_tz":"A","germ":96.0,"rank_germ":"A","vigor":85.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":18406,"pms_etq":184.1},{"cultivar":"50I52RSF IPRO","lote":"26S119C","peneira":"P1","categoria":"S2","umidade":13.25,"tz_viab":97.0,"tz_vigor":95.0,"rank_tz":"A","germ":94.0,"rank_germ":"B","vigor":85.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":4,"kg":3681,"pms_etq":184.1},{"cultivar":"C2560CE","lote":"26S120C","peneira":"P1","categoria":"C2","umidade":11.64,"tz_viab":84.0,"tz_vigor":78.0,"rank_tz":"C","germ":76.0,"rank_germ":"D","vigor":45.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":11,"kg":11753,"pms_etq":213.7},{"cultivar":"C2560CE","lote":"26S121G","peneira":"P2","categoria":"C2","umidade":11.23,"tz_viab":64.0,"tz_vigor":62.0,"rank_tz":"C","germ":66.0,"rank_germ":"D","vigor":48.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":14,"kg":17586,"pms_etq":251.2},{"cultivar":"C2560CE","lote":"26S122G","peneira":"P2","categoria":"C2","umidade":12.19,"tz_viab":93.0,"tz_vigor":90.0,"rank_tz":"B","germ":94.0,"rank_germ":"B","vigor":null,"rank_vigor":null,"ranking":"B","status":"Bom","bags":16,"kg":20022,"pms_etq":250.3},{"cultivar":"C2560CE","lote":"26S123G","peneira":"P2","categoria":"C2","umidade":12.13,"tz_viab":85.0,"tz_vigor":84.0,"rank_tz":"C","germ":92.0,"rank_germ":"B","vigor":86.0,"rank_vigor":"B","ranking":"C","status":"Regular","bags":16,"kg":20022,"pms_etq":250.3},{"cultivar":"C2560CE","lote":"26S124G","peneira":"P2","categoria":"C2","umidade":12.09,"tz_viab":97.0,"tz_vigor":94.0,"rank_tz":"A","germ":90.0,"rank_germ":"B","vigor":86.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":16,"kg":20022,"pms_etq":250.3},{"cultivar":"C2560CE","lote":"26S125G","peneira":"P2","categoria":"C2","umidade":11.92,"tz_viab":91.0,"tz_vigor":91.0,"rank_tz":"B","germ":87.0,"rank_germ":"B","vigor":80.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":16,"kg":19656,"pms_etq":245.7},{"cultivar":"C2560CE","lote":"26S126G","peneira":"P2","categoria":"C2","umidade":12.1,"tz_viab":92.0,"tz_vigor":91.0,"rank_tz":"B","germ":92.0,"rank_germ":"B","vigor":83.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":16,"kg":19656,"pms_etq":245.7},{"cultivar":"C2560CE","lote":"26S127C","peneira":"P1","categoria":"C2","umidade":12.1,"tz_viab":95.0,"tz_vigor":92.0,"rank_tz":"A","germ":91.0,"rank_germ":"B","vigor":89.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":16,"kg":17317,"pms_etq":216.5},{"cultivar":"C2560CE","lote":"26S128C","peneira":"P1","categoria":"C2","umidade":11.95,"tz_viab":95.0,"tz_vigor":94.0,"rank_tz":"A","germ":90.0,"rank_germ":"B","vigor":86.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":16,"kg":17317,"pms_etq":216.5},{"cultivar":"C2560CE","lote":"26S129C","peneira":"P1","categoria":"C2","umidade":11.94,"tz_viab":95.0,"tz_vigor":95.0,"rank_tz":"A","germ":83.0,"rank_germ":"C","vigor":86.0,"rank_vigor":"B","ranking":"C","status":"Regular","bags":11,"kg":11905,"pms_etq":216.5},{"cultivar":"C2560CE","lote":"26S130G","peneira":"P2","categoria":"S1","umidade":12.36,"tz_viab":93.0,"tz_vigor":88.0,"rank_tz":"B","germ":91.0,"rank_germ":"B","vigor":67.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":19501,"pms_etq":243.8},{"cultivar":"C2560CE","lote":"26S131G","peneira":"P2","categoria":"S1","umidade":12.31,"tz_viab":96.0,"tz_vigor":93.0,"rank_tz":"A","germ":92.0,"rank_germ":"B","vigor":67.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":19501,"pms_etq":243.8},{"cultivar":"C2560CE","lote":"26S132G","peneira":"P2","categoria":"S1","umidade":12.13,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":91.0,"rank_germ":"B","vigor":74.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":19501,"pms_etq":243.8},{"cultivar":"C2560CE","lote":"26S133C","peneira":"P1","categoria":"S1","umidade":12.32,"tz_viab":92.0,"tz_vigor":89.0,"rank_tz":"B","germ":89.0,"rank_germ":"B","vigor":73.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":20668,"pms_etq":206.7},{"cultivar":"C2560CE","lote":"26S134C","peneira":"P1","categoria":"S1","umidade":12.34,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":88.0,"rank_germ":"B","vigor":73.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":20668,"pms_etq":206.7},{"cultivar":"C2560CE","lote":"26S135C","peneira":"P1","categoria":"S1","umidade":12.11,"tz_viab":92.0,"tz_vigor":89.0,"rank_tz":"B","germ":82.0,"rank_germ":"C","vigor":77.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":20668,"pms_etq":206.7},{"cultivar":"C2560CE","lote":"26S136G","peneira":"P2","categoria":"S1","umidade":11.62,"tz_viab":93.0,"tz_vigor":91.0,"rank_tz":"B","germ":91.0,"rank_germ":"B","vigor":81.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":16,"kg":19044,"pms_etq":238.1},{"cultivar":"C2560CE","lote":"26S137G","peneira":"P2","categoria":"S1","umidade":12.15,"tz_viab":89.0,"tz_vigor":87.0,"rank_tz":"C","germ":83.0,"rank_germ":"C","vigor":76.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":19044,"pms_etq":238.1},{"cultivar":"C2560CE","lote":"26S138C","peneira":"P1","categoria":"S1","umidade":12.33,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":85.0,"rank_germ":"B","vigor":74.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":20426,"pms_etq":204.3},{"cultivar":"C2560CE","lote":"26S139C","peneira":"P1","categoria":"S1","umidade":12.1,"tz_viab":95.0,"tz_vigor":93.0,"rank_tz":"A","germ":89.0,"rank_germ":"B","vigor":78.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":9,"kg":9191,"pms_etq":204.3},{"cultivar":"C2560CE","lote":"26S140G","peneira":"P2","categoria":"S1","umidade":12.2,"tz_viab":90.0,"tz_vigor":87.0,"rank_tz":"B","germ":79.0,"rank_germ":"D","vigor":79.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":19412,"pms_etq":242.7},{"cultivar":"C2560CE","lote":"26S141G","peneira":"P2","categoria":"S1","umidade":11.88,"tz_viab":92.0,"tz_vigor":92.0,"rank_tz":"B","germ":86.0,"rank_germ":"B","vigor":82.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":16,"kg":19412,"pms_etq":242.7},{"cultivar":"C2560CE","lote":"26S142G","peneira":"P2","categoria":"S1","umidade":12.3,"tz_viab":85.0,"tz_vigor":84.0,"rank_tz":"C","germ":84.0,"rank_germ":"C","vigor":74.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":8,"kg":9816,"pms_etq":245.4},{"cultivar":"C2560CE","lote":"26S143C","peneira":"P1","categoria":"S1","umidade":11.79,"tz_viab":90.0,"tz_vigor":88.0,"rank_tz":"B","germ":84.0,"rank_germ":"C","vigor":78.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":19604,"pms_etq":196.0},{"cultivar":"C2560CE","lote":"26S144C","peneira":"P1","categoria":"S1","umidade":11.81,"tz_viab":87.0,"tz_vigor":85.0,"rank_tz":"C","germ":88.0,"rank_germ":"B","vigor":73.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":19604,"pms_etq":196.0},{"cultivar":"C2560CE","lote":"26S145C","peneira":"P1","categoria":"S1","umidade":11.67,"tz_viab":80.0,"tz_vigor":79.0,"rank_tz":"C","germ":84.0,"rank_germ":"C","vigor":64.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":13,"kg":12742,"pms_etq":196.0},{"cultivar":"57K58RSF CE","lote":"26S146C","peneira":"P1","categoria":"C2","umidade":11.88,"tz_viab":77.0,"tz_vigor":74.0,"rank_tz":"C","germ":75.0,"rank_germ":"D","vigor":63.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":18290,"pms_etq":182.9},{"cultivar":"57K58RSF CE","lote":"26S147C","peneira":"P1","categoria":"C2","umidade":11.98,"tz_viab":82.0,"tz_vigor":81.0,"rank_tz":"C","germ":79.0,"rank_germ":"D","vigor":71.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":18290,"pms_etq":182.9},{"cultivar":"57K58RSF CE","lote":"26S148C","peneira":"P1","categoria":"C2","umidade":12.1,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":77.0,"rank_germ":"D","vigor":70.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":18290,"pms_etq":182.9},{"cultivar":"57K58RSF CE","lote":"26S149G","peneira":"P2","categoria":"C2","umidade":11.41,"tz_viab":69.0,"tz_vigor":65.0,"rank_tz":"C","germ":60.0,"rank_germ":"D","vigor":61.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":17840,"pms_etq":223.0},{"cultivar":"57K58RSF CE","lote":"26S150G","peneira":"P2","categoria":"C2","umidade":11.98,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":69.0,"rank_germ":"D","vigor":58.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":17840,"pms_etq":223.0},{"cultivar":"57K58RSF CE","lote":"26S151G","peneira":"P2","categoria":"C2","umidade":11.66,"tz_viab":66.0,"tz_vigor":61.0,"rank_tz":"C","germ":74.0,"rank_germ":"D","vigor":64.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":17840,"pms_etq":223.0},{"cultivar":"57K58RSF CE","lote":"26S152C","peneira":"P1","categoria":"C2","umidade":11.98,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":73.0,"rank_germ":"D","vigor":47.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":18404,"pms_etq":184.0},{"cultivar":"57K58RSF CE","lote":"26S153C","peneira":"P1","categoria":"C2","umidade":12.0,"tz_viab":72.0,"tz_vigor":71.0,"rank_tz":"C","germ":66.0,"rank_germ":"D","vigor":58.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":18404,"pms_etq":184.0},{"cultivar":"57K58RSF CE","lote":"26S154G","peneira":"P2","categoria":"C2","umidade":12.09,"tz_viab":84.0,"tz_vigor":82.0,"rank_tz":"C","germ":74.0,"rank_germ":"D","vigor":67.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":17832,"pms_etq":222.9},{"cultivar":"57K58RSF CE","lote":"26S155G","peneira":"P2","categoria":"C2","umidade":12.3,"tz_viab":88.0,"tz_vigor":87.0,"rank_tz":"C","germ":67.0,"rank_germ":"D","vigor":70.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":17832,"pms_etq":222.9},{"cultivar":"57K58RSF CE","lote":"26S156C","peneira":"P1","categoria":"C2","umidade":12.72,"tz_viab":88.0,"tz_vigor":84.0,"rank_tz":"C","germ":83.0,"rank_germ":"C","vigor":72.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":18617,"pms_etq":186.2},{"cultivar":"57K58RSF CE","lote":"26S157C","peneira":"P1","categoria":"C2","umidade":12.31,"tz_viab":89.0,"tz_vigor":84.0,"rank_tz":"C","germ":79.0,"rank_germ":"D","vigor":70.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":18617,"pms_etq":186.2},{"cultivar":"57K58RSF CE","lote":"26S158C","peneira":"P1","categoria":"C2","umidade":12.15,"tz_viab":82.0,"tz_vigor":81.0,"rank_tz":"C","germ":67.0,"rank_germ":"D","vigor":76.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":10,"kg":9308,"pms_etq":186.2},{"cultivar":"57K58RSF CE","lote":"26S159G","peneira":"P2","categoria":"C2","umidade":12.59,"tz_viab":79.0,"tz_vigor":79.0,"rank_tz":"C","germ":74.0,"rank_germ":"D","vigor":69.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":17764,"pms_etq":222.1},{"cultivar":"56IX58RSF I2X","lote":"26S160G","peneira":"P2","categoria":"S1","umidade":12.39,"tz_viab":91.0,"tz_vigor":88.0,"rank_tz":"B","germ":81.0,"rank_germ":"C","vigor":75.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":24820,"pms_etq":248.2},{"cultivar":"56IX58RSF I2X","lote":"26S161G","peneira":"P2","categoria":"S1","umidade":12.44,"tz_viab":88.0,"tz_vigor":87.0,"rank_tz":"C","germ":79.0,"rank_germ":"D","vigor":74.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":24820,"pms_etq":248.2},{"cultivar":"56IX58RSF I2X","lote":"26S162G","peneira":"P2","categoria":"S1","umidade":12.4,"tz_viab":94.0,"tz_vigor":94.0,"rank_tz":"B","germ":82.0,"rank_germ":"C","vigor":63.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":24820,"pms_etq":248.2},{"cultivar":"56IX58RSF I2X","lote":"26S163G","peneira":"P2","categoria":"S1","umidade":12.77,"tz_viab":91.0,"tz_vigor":89.0,"rank_tz":"B","germ":85.0,"rank_germ":"B","vigor":72.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":24803,"pms_etq":248.0},{"cultivar":"56IX58RSF I2X","lote":"26S164G","peneira":"P2","categoria":"S1","umidade":12.78,"tz_viab":92.0,"tz_vigor":90.0,"rank_tz":"B","germ":81.0,"rank_germ":"C","vigor":75.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":24803,"pms_etq":248.0},{"cultivar":"56IX58RSF I2X","lote":"26S165G","peneira":"P2","categoria":"S1","umidade":12.4,"tz_viab":91.0,"tz_vigor":89.0,"rank_tz":"B","germ":84.0,"rank_germ":"C","vigor":67.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":24803,"pms_etq":248.0},{"cultivar":"56IX58RSF I2X","lote":"26S166G","peneira":"P2","categoria":"S1","umidade":12.37,"tz_viab":85.0,"tz_vigor":82.0,"rank_tz":"C","germ":76.0,"rank_germ":"D","vigor":60.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":24909,"pms_etq":249.1},{"cultivar":"56IX58RSF I2X","lote":"26S167G","peneira":"P2","categoria":"S1","umidade":12.47,"tz_viab":87.0,"tz_vigor":87.0,"rank_tz":"C","germ":64.0,"rank_germ":"D","vigor":65.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":24909,"pms_etq":249.1},{"cultivar":"56IX58RSF I2X","lote":"26S168C","peneira":"P1","categoria":"S1","umidade":12.92,"tz_viab":88.0,"tz_vigor":84.0,"rank_tz":"C","germ":75.0,"rank_germ":"D","vigor":67.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":24276,"pms_etq":202.3},{"cultivar":"56IX58RSF I2X","lote":"26S169C","peneira":"P1","categoria":"S1","umidade":13.11,"tz_viab":89.0,"tz_vigor":85.0,"rank_tz":"C","germ":74.0,"rank_germ":"D","vigor":71.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":24276,"pms_etq":202.3},{"cultivar":"56IX58RSF I2X","lote":"26S170C","peneira":"P1","categoria":"S1","umidade":12.65,"tz_viab":92.0,"tz_vigor":86.0,"rank_tz":"B","germ":83.0,"rank_germ":"C","vigor":52.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":8,"kg":8092,"pms_etq":202.3},{"cultivar":"56IX58RSF I2X","lote":"26S171G","peneira":"P2","categoria":"S1","umidade":12.57,"tz_viab":92.0,"tz_vigor":87.0,"rank_tz":"B","germ":85.0,"rank_germ":"B","vigor":79.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":24360,"pms_etq":243.6},{"cultivar":"56IX58RSF I2X","lote":"26S172G","peneira":"P2","categoria":"S1","umidade":12.82,"tz_viab":87.0,"tz_vigor":85.0,"rank_tz":"C","germ":75.0,"rank_germ":"D","vigor":65.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":24360,"pms_etq":243.6},{"cultivar":"56IX58RSF I2X","lote":"26S173G","peneira":"P2","categoria":"S1","umidade":12.89,"tz_viab":95.0,"tz_vigor":93.0,"rank_tz":"A","germ":91.0,"rank_germ":"B","vigor":84.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":20,"kg":23840,"pms_etq":238.4},{"cultivar":"56IX58RSF I2X","lote":"26S174G","peneira":"P2","categoria":"S1","umidade":12.58,"tz_viab":97.0,"tz_vigor":94.0,"rank_tz":"A","germ":80.0,"rank_germ":"C","vigor":78.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":23840,"pms_etq":238.4},{"cultivar":"56IX58RSF I2X","lote":"26S175C","peneira":"P1","categoria":"S1","umidade":12.71,"tz_viab":93.0,"tz_vigor":92.0,"rank_tz":"B","germ":89.0,"rank_germ":"B","vigor":85.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":23080,"pms_etq":192.3},{"cultivar":"56IX58RSF I2X","lote":"26S176C","peneira":"P1","categoria":"S1","umidade":12.57,"tz_viab":93.0,"tz_vigor":93.0,"rank_tz":"B","germ":90.0,"rank_germ":"B","vigor":86.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":23080,"pms_etq":192.3},{"cultivar":"56IX58RSF I2X","lote":"26S177C","peneira":"P1","categoria":"S1","umidade":12.4,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":84.0,"rank_germ":"C","vigor":60.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":23080,"pms_etq":192.3},{"cultivar":"56IX58RSF I2X","lote":"26S178G","peneira":"P2","categoria":"S1","umidade":12.72,"tz_viab":93.0,"tz_vigor":87.0,"rank_tz":"B","germ":82.0,"rank_germ":"C","vigor":83.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":20,"kg":23658,"pms_etq":236.6},{"cultivar":"56IX58RSF I2X","lote":"26S179G","peneira":"P2","categoria":"S1","umidade":12.13,"tz_viab":96.0,"tz_vigor":91.0,"rank_tz":"A","germ":72.0,"rank_germ":"D","vigor":66.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":23658,"pms_etq":236.6},{"cultivar":"56IX58RSF I2X","lote":"26S180G","peneira":"P2","categoria":"S1","umidade":12.99,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":89.0,"rank_germ":"B","vigor":71.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":23658,"pms_etq":236.6},{"cultivar":"56IX58RSF I2X","lote":"26S181G","peneira":"P2","categoria":"S1","umidade":12.73,"tz_viab":97.0,"tz_vigor":93.0,"rank_tz":"A","germ":74.0,"rank_germ":"D","vigor":79.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":23799,"pms_etq":238.0},{"cultivar":"56IX58RSF I2X","lote":"26S182G","peneira":"P2","categoria":"S1","umidade":12.14,"tz_viab":96.0,"tz_vigor":92.0,"rank_tz":"A","germ":88.0,"rank_germ":"B","vigor":68.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":23799,"pms_etq":238.0},{"cultivar":"56IX58RSF I2X","lote":"26S183C","peneira":"P1","categoria":"S1","umidade":12.2,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":86.0,"rank_germ":"B","vigor":70.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":23319,"pms_etq":194.3},{"cultivar":"56IX58RSF I2X","lote":"26S184C","peneira":"P1","categoria":"S1","umidade":12.3,"tz_viab":95.0,"tz_vigor":93.0,"rank_tz":"A","germ":82.0,"rank_germ":"C","vigor":68.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":23319,"pms_etq":194.3},{"cultivar":"56IX58RSF I2X","lote":"26S185C","peneira":"P1","categoria":"S1","umidade":12.3,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":80.0,"rank_germ":"C","vigor":58.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":22908,"pms_etq":190.9},{"cultivar":"56IX58RSF I2X","lote":"26S186C","peneira":"P1","categoria":"S1","umidade":10.47,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":75.0,"rank_germ":"D","vigor":59.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":22908,"pms_etq":190.9},{"cultivar":"56IX58RSF I2X","lote":"26S187C","peneira":"P1","categoria":"S1","umidade":12.61,"tz_viab":93.0,"tz_vigor":87.0,"rank_tz":"B","germ":null,"rank_germ":null,"vigor":52.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":5,"kg":4772,"pms_etq":190.9},{"cultivar":"56IX58RSF I2X","lote":"26S188G","peneira":"P2","categoria":"S1","umidade":12.19,"tz_viab":91.0,"tz_vigor":89.0,"rank_tz":"B","germ":68.0,"rank_germ":"D","vigor":78.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":24031,"pms_etq":240.3},{"cultivar":"56IX58RSF I2X","lote":"26S189G","peneira":"P2","categoria":"S1","umidade":12.2,"tz_viab":87.0,"tz_vigor":86.0,"rank_tz":"C","germ":75.0,"rank_germ":"D","vigor":59.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":24031,"pms_etq":240.3},{"cultivar":"56IX58RSF I2X","lote":"26S190G","peneira":"P2","categoria":"S1","umidade":11.55,"tz_viab":73.0,"tz_vigor":72.0,"rank_tz":"C","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"C","status":"Regular","bags":6,"kg":7209,"pms_etq":240.3},{"cultivar":"56IX58RSF I2X","lote":"26S191G","peneira":"P2","categoria":"S1","umidade":12.47,"tz_viab":83.0,"tz_vigor":83.0,"rank_tz":"C","germ":81.0,"rank_germ":"C","vigor":54.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":24757,"pms_etq":247.6},{"cultivar":"56IX58RSF I2X","lote":"26S192G","peneira":"P2","categoria":"S1","umidade":12.72,"tz_viab":92.0,"tz_vigor":88.0,"rank_tz":"B","germ":80.0,"rank_germ":"C","vigor":60.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":24757,"pms_etq":247.6},{"cultivar":"56IX58RSF I2X","lote":"26S193G","peneira":"P2","categoria":"S1","umidade":12.76,"tz_viab":93.0,"tz_vigor":89.0,"rank_tz":"B","germ":75.0,"rank_germ":"D","vigor":null,"rank_vigor":null,"ranking":"D","status":"Ruim","bags":6,"kg":7427,"pms_etq":247.6},{"cultivar":"56IX58RSF I2X","lote":"26S194G","peneira":"P2","categoria":"S1","umidade":12.15,"tz_viab":85.0,"tz_vigor":81.0,"rank_tz":"C","germ":81.0,"rank_germ":"C","vigor":57.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":18,"kg":22700,"pms_etq":252.2},{"cultivar":"56IX58RSF I2X","lote":"26S195C","peneira":"P1","categoria":"S1","umidade":null,"tz_viab":90.0,"tz_vigor":85.0,"rank_tz":"B","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"B","status":"Bom","bags":24,"kg":23815,"pms_etq":198.5},{"cultivar":"57K56RSF CE","lote":"26S196F","peneira":"P2","categoria":"C1","umidade":12.15,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":93.0,"rank_germ":"B","vigor":90.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":16,"kg":16240,"pms_etq":203.0},{"cultivar":"57K56RSF CE","lote":"26S197F","peneira":"P2","categoria":"C1","umidade":12.2,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":93.0,"rank_germ":"B","vigor":87.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":16,"kg":16240,"pms_etq":203.0},{"cultivar":"57K56RSF CE","lote":"26S198F","peneira":"P2","categoria":"C1","umidade":12.19,"tz_viab":99.0,"tz_vigor":97.0,"rank_tz":"A","germ":92.0,"rank_germ":"B","vigor":92.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":16,"kg":16240,"pms_etq":203.0},{"cultivar":"57K56RSF CE","lote":"26S199B","peneira":"P1","categoria":"C1","umidade":12.21,"tz_viab":98.0,"tz_vigor":95.0,"rank_tz":"A","germ":91.0,"rank_germ":"B","vigor":86.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":16816,"pms_etq":168.2},{"cultivar":"57K56RSF CE","lote":"26S200B","peneira":"P1","categoria":"C1","umidade":12.3,"tz_viab":94.0,"tz_vigor":93.0,"rank_tz":"B","germ":95.0,"rank_germ":"A","vigor":90.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":16816,"pms_etq":168.2},{"cultivar":"57K56RSF CE","lote":"26S201B","peneira":"P1","categoria":"C1","umidade":12.24,"tz_viab":95.0,"tz_vigor":94.0,"rank_tz":"A","germ":93.0,"rank_germ":"B","vigor":88.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":16816,"pms_etq":168.2},{"cultivar":"57K56RSF CE","lote":"26S202F","peneira":"P2","categoria":"C1","umidade":12.26,"tz_viab":97.0,"tz_vigor":95.0,"rank_tz":"A","germ":87.0,"rank_germ":"B","vigor":87.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":16,"kg":16272,"pms_etq":203.4},{"cultivar":"57K56RSF CE","lote":"26S203F","peneira":"P2","categoria":"C1","umidade":12.15,"tz_viab":99.0,"tz_vigor":96.0,"rank_tz":"A","germ":89.0,"rank_germ":"B","vigor":92.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":16,"kg":16272,"pms_etq":203.4},{"cultivar":"57K56RSF CE","lote":"26S204F","peneira":"P2","categoria":"C1","umidade":12.44,"tz_viab":95.0,"tz_vigor":92.0,"rank_tz":"A","germ":87.0,"rank_germ":"B","vigor":93.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":16,"kg":16272,"pms_etq":203.4},{"cultivar":"57K56RSF CE","lote":"26S205F","peneira":"P2","categoria":"C1","umidade":12.38,"tz_viab":99.0,"tz_vigor":99.0,"rank_tz":"A","germ":87.0,"rank_germ":"B","vigor":90.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":16,"kg":16272,"pms_etq":203.4},{"cultivar":"57K56RSF CE","lote":"26S206F","peneira":"P2","categoria":"C1","umidade":12.49,"tz_viab":98.0,"tz_vigor":98.0,"rank_tz":"A","germ":88.0,"rank_germ":"B","vigor":87.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":16,"kg":16272,"pms_etq":203.4},{"cultivar":"57K56RSF CE","lote":"26S207F","peneira":"P2","categoria":"C1","umidade":12.43,"tz_viab":96.0,"tz_vigor":96.0,"rank_tz":"A","germ":91.0,"rank_germ":"B","vigor":92.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":16,"kg":16272,"pms_etq":203.4},{"cultivar":"57K56RSF CE","lote":"26S208B","peneira":"P1","categoria":"C1","umidade":12.83,"tz_viab":97.0,"tz_vigor":96.0,"rank_tz":"A","germ":91.0,"rank_germ":"B","vigor":91.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":16883,"pms_etq":168.8},{"cultivar":"57K56RSF CE","lote":"26S209B","peneira":"P1","categoria":"C1","umidade":12.28,"tz_viab":97.0,"tz_vigor":95.0,"rank_tz":"A","germ":90.0,"rank_germ":"B","vigor":93.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":16883,"pms_etq":168.8},{"cultivar":"57K56RSF CE","lote":"26S210B","peneira":"P1","categoria":"C1","umidade":12.54,"tz_viab":99.0,"tz_vigor":97.0,"rank_tz":"A","germ":92.0,"rank_germ":"B","vigor":93.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":16883,"pms_etq":168.8},{"cultivar":"55I57RSF IPRO","lote":"26S211G","peneira":"P2","categoria":"C2","umidade":12.54,"tz_viab":92.0,"tz_vigor":91.0,"rank_tz":"B","germ":null,"rank_germ":null,"vigor":62.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":18544,"pms_etq":231.8},{"cultivar":"55I57RSF IPRO","lote":"26S212G","peneira":"P2","categoria":"C2","umidade":12.34,"tz_viab":89.0,"tz_vigor":89.0,"rank_tz":"C","germ":81.0,"rank_germ":"C","vigor":73.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":18544,"pms_etq":231.8},{"cultivar":"55I57RSF IPRO","lote":"26S213G","peneira":"P2","categoria":"C2","umidade":12.31,"tz_viab":83.0,"tz_vigor":81.0,"rank_tz":"C","germ":85.0,"rank_germ":"B","vigor":63.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":18160,"pms_etq":227.0},{"cultivar":"55I57RSF IPRO","lote":"26S214G","peneira":"P2","categoria":"C2","umidade":12.3,"tz_viab":86.0,"tz_vigor":85.0,"rank_tz":"C","germ":75.0,"rank_germ":"D","vigor":66.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":18160,"pms_etq":227.0},{"cultivar":"55I57RSF IPRO","lote":"26S215G","peneira":"P2","categoria":"C2","umidade":12.19,"tz_viab":93.0,"tz_vigor":93.0,"rank_tz":"B","germ":83.0,"rank_germ":"C","vigor":71.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":18376,"pms_etq":229.7},{"cultivar":"55I57RSF IPRO","lote":"26S216G","peneira":"P2","categoria":"C2","umidade":12.02,"tz_viab":85.0,"tz_vigor":84.0,"rank_tz":"C","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"C","status":"Regular","bags":16,"kg":18376,"pms_etq":229.7},{"cultivar":"55I57RSF IPRO","lote":"26S217G","peneira":"P2","categoria":"C2","umidade":13.01,"tz_viab":85.0,"tz_vigor":84.0,"rank_tz":"C","germ":81.0,"rank_germ":"C","vigor":85.0,"rank_vigor":"B","ranking":"C","status":"Regular","bags":16,"kg":18376,"pms_etq":229.7},{"cultivar":"55I57RSF IPRO","lote":"26S218C","peneira":"P1","categoria":"C2","umidade":12.08,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":83.0,"rank_germ":"C","vigor":null,"rank_vigor":null,"ranking":"C","status":"Regular","bags":20,"kg":18800,"pms_etq":188.0},{"cultivar":"55I57RSF IPRO","lote":"26S219C","peneira":"P1","categoria":"C2","umidade":12.27,"tz_viab":87.0,"tz_vigor":86.0,"rank_tz":"C","germ":78.0,"rank_germ":"D","vigor":74.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":18800,"pms_etq":188.0},{"cultivar":"55I57RSF IPRO","lote":"26S220C","peneira":"P1","categoria":"C2","umidade":12.15,"tz_viab":91.0,"tz_vigor":91.0,"rank_tz":"B","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"B","status":"Bom","bags":20,"kg":18800,"pms_etq":188.0},{"cultivar":"55I57RSF IPRO","lote":"26S221G","peneira":"P2","categoria":"C2","umidade":12.01,"tz_viab":91.0,"tz_vigor":91.0,"rank_tz":"B","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"B","status":"Bom","bags":16,"kg":18400,"pms_etq":230.0},{"cultivar":"55I57RSF IPRO","lote":"26S222G","peneira":"P2","categoria":"C2","umidade":12.31,"tz_viab":93.0,"tz_vigor":92.0,"rank_tz":"B","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"B","status":"Bom","bags":16,"kg":18400,"pms_etq":230.0},{"cultivar":"55I57RSF IPRO","lote":"26S223G","peneira":"P2","categoria":"C2","umidade":12.05,"tz_viab":93.0,"tz_vigor":91.0,"rank_tz":"B","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"B","status":"Bom","bags":16,"kg":18400,"pms_etq":230.0},{"cultivar":"55I57RSF IPRO","lote":"26S224G","peneira":"P2","categoria":"C2","umidade":12.15,"tz_viab":96.0,"tz_vigor":95.0,"rank_tz":"A","germ":84.0,"rank_germ":"C","vigor":71.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":16,"kg":18400,"pms_etq":230.0},{"cultivar":"55I57RSF IPRO","lote":"26S225G","peneira":"P2","categoria":"C2","umidade":12.65,"tz_viab":98.0,"tz_vigor":96.0,"rank_tz":"A","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"A","status":"Ótimo","bags":16,"kg":18400,"pms_etq":230.0},{"cultivar":"55I57RSF IPRO","lote":"26S226G","peneira":"P2","categoria":"C2","umidade":12.27,"tz_viab":97.0,"tz_vigor":96.0,"rank_tz":"A","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"A","status":"Ótimo","bags":16,"kg":18400,"pms_etq":230.0},{"cultivar":"55I57RSF IPRO","lote":"26S227G","peneira":"P2","categoria":"C2","umidade":11.93,"tz_viab":89.0,"tz_vigor":89.0,"rank_tz":"C","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"C","status":"Regular","bags":16,"kg":18264,"pms_etq":228.3},{"cultivar":"55I57RSF IPRO","lote":"26S228G","peneira":"P2","categoria":"C2","umidade":11.93,"tz_viab":88.0,"tz_vigor":87.0,"rank_tz":"C","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"C","status":"Regular","bags":16,"kg":18264,"pms_etq":228.3},{"cultivar":"55I57RSF IPRO","lote":"26S229G","peneira":"P2","categoria":"C2","umidade":12.15,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":86.0,"rank_germ":"B","vigor":null,"rank_vigor":null,"ranking":"B","status":"Bom","bags":16,"kg":18264,"pms_etq":228.3},{"cultivar":"55I57RSF IPRO","lote":"26S230C","peneira":"P1","categoria":"C2","umidade":12.38,"tz_viab":92.0,"tz_vigor":91.0,"rank_tz":"B","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"B","status":"Bom","bags":20,"kg":19140,"pms_etq":191.4},{"cultivar":"55I57RSF IPRO","lote":"26S231C","peneira":"P1","categoria":"C2","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":20,"kg":19140,"pms_etq":191.4},{"cultivar":"55I57RSF IPRO","lote":"26S232G","peneira":"P2","categoria":"C2","umidade":11.99,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":81.0,"rank_germ":"C","vigor":null,"rank_vigor":null,"ranking":"C","status":"Regular","bags":16,"kg":18224,"pms_etq":227.8},{"cultivar":"55I57RSF IPRO","lote":"26S233G","peneira":"P2","categoria":"C2","umidade":12.21,"tz_viab":93.0,"tz_vigor":93.0,"rank_tz":"B","germ":77.0,"rank_germ":"D","vigor":null,"rank_vigor":null,"ranking":"D","status":"Ruim","bags":16,"kg":18224,"pms_etq":227.8},{"cultivar":"55I57RSF IPRO","lote":"26S234G","peneira":"P2","categoria":"C2","umidade":11.41,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":84.0,"rank_germ":"C","vigor":null,"rank_vigor":null,"ranking":"C","status":"Regular","bags":16,"kg":18352,"pms_etq":229.4},{"cultivar":"55I57RSF IPRO","lote":"26S235G","peneira":"P2","categoria":"C2","umidade":null,"tz_viab":80.0,"tz_vigor":80.0,"rank_tz":"C","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"C","status":"Regular","bags":16,"kg":18352,"pms_etq":229.4},{"cultivar":"55I57RSF IPRO","lote":"26S236G","peneira":"P2","categoria":"C2","umidade":11.37,"tz_viab":94.0,"tz_vigor":90.0,"rank_tz":"B","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"B","status":"Bom","bags":16,"kg":18352,"pms_etq":229.4},{"cultivar":"55I57RSF IPRO","lote":"26S237C","peneira":"P1","categoria":"C2","umidade":null,"tz_viab":92.0,"tz_vigor":89.0,"rank_tz":"B","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"B","status":"Bom","bags":20,"kg":18730,"pms_etq":187.3},{"cultivar":"55I57RSF IPRO","lote":"26S238C","peneira":"P1","categoria":"C2","umidade":12.3,"tz_viab":94.0,"tz_vigor":92.0,"rank_tz":"B","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"B","status":"Bom","bags":20,"kg":18730,"pms_etq":187.3},{"cultivar":"55I57RSF IPRO","lote":"26S239C","peneira":"P1","categoria":"C2","umidade":11.76,"tz_viab":85.0,"tz_vigor":81.0,"rank_tz":"C","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"C","status":"Regular","bags":20,"kg":18730,"pms_etq":187.3},{"cultivar":"55I57RSF IPRO","lote":"26S240C","peneira":"P1","categoria":"C2","umidade":12.24,"tz_viab":96.0,"tz_vigor":96.0,"rank_tz":"A","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"A","status":"Ótimo","bags":20,"kg":19230,"pms_etq":192.3},{"cultivar":"55I57RSF IPRO","lote":"26S241G","peneira":"P2","categoria":"C2","umidade":null,"tz_viab":88.0,"tz_vigor":86.0,"rank_tz":"C","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"C","status":"Regular","bags":16,"kg":18000,"pms_etq":225.0},{"cultivar":"55I57RSF IPRO","lote":"26S242G","peneira":"P2","categoria":"C2","umidade":null,"tz_viab":84.0,"tz_vigor":82.0,"rank_tz":"C","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"C","status":"Regular","bags":16,"kg":18000,"pms_etq":225.0},{"cultivar":"55I57RSF IPRO","lote":"26S243G","peneira":"P2","categoria":"C2","umidade":null,"tz_viab":97.0,"tz_vigor":93.0,"rank_tz":"A","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"A","status":"Ótimo","bags":16,"kg":18000,"pms_etq":225.0},{"cultivar":"55I57RSF IPRO","lote":"26S244G","peneira":"P2","categoria":"C2","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":16,"kg":17824,"pms_etq":222.8},{"cultivar":"55I57RSF IPRO","lote":"26S245G","peneira":"P2","categoria":"C2","umidade":null,"tz_viab":95.0,"tz_vigor":94.0,"rank_tz":"A","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"A","status":"Ótimo","bags":16,"kg":17824,"pms_etq":222.8},{"cultivar":"55I57RSF IPRO","lote":"26S246G","peneira":"P2","categoria":"C2","umidade":null,"tz_viab":96.0,"tz_vigor":96.0,"rank_tz":"A","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"A","status":"Ótimo","bags":16,"kg":17880,"pms_etq":223.5},{"cultivar":"55I57RSF IPRO","lote":"26S247G","peneira":"P2","categoria":"C2","umidade":null,"tz_viab":95.0,"tz_vigor":92.0,"rank_tz":"A","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"A","status":"Ótimo","bags":16,"kg":17880,"pms_etq":223.5},{"cultivar":"55I57RSF IPRO","lote":"26S248G","peneira":"P2","categoria":"C2","umidade":11.97,"tz_viab":90.0,"tz_vigor":90.0,"rank_tz":"B","germ":69.0,"rank_germ":"D","vigor":null,"rank_vigor":null,"ranking":"D","status":"Ruim","bags":16,"kg":17880,"pms_etq":223.5},{"cultivar":"55I57RSF IPRO","lote":"26S249C","peneira":"P1","categoria":"C2","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":20,"kg":19500,"pms_etq":195.0},{"cultivar":"55I57RSF IPRO","lote":"26S250C","peneira":"P1","categoria":"C2","umidade":null,"tz_viab":97.0,"tz_vigor":95.0,"rank_tz":"A","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"A","status":"Ótimo","bags":16,"kg":15600,"pms_etq":195.0},{"cultivar":"55IX56RSF I2X","lote":"26S251F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":16,"kg":17744,"pms_etq":221.8},{"cultivar":"55IX56RSF I2X","lote":"26S252F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":16,"kg":17744,"pms_etq":221.8},{"cultivar":"55IX56RSF I2X","lote":"26S253F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":16,"kg":17744,"pms_etq":221.8},{"cultivar":"55IX56RSF I2X","lote":"26S254F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":16,"kg":17656,"pms_etq":220.7},{"cultivar":"55IX56RSF I2X","lote":"26S255F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":16,"kg":17656,"pms_etq":220.7},{"cultivar":"55IX56RSF I2X","lote":"26S256F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":16,"kg":18224,"pms_etq":227.8},{"cultivar":"55IX56RSF I2X","lote":"26S257F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":16,"kg":18224,"pms_etq":227.8},{"cultivar":"55IX56RSF I2X","lote":"26S258F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":16,"kg":18224,"pms_etq":227.8},{"cultivar":"55IX56RSF I2X","lote":"26S259F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":16,"kg":18136,"pms_etq":226.7},{"cultivar":"55IX56RSF I2X","lote":"26S260F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":16,"kg":18136,"pms_etq":226.7},{"cultivar":"55IX56RSF I2X","lote":"26S261B","peneira":"P1","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":20,"kg":16710,"pms_etq":167.1},{"cultivar":"55IX56RSF I2X","lote":"26S262B","peneira":"P1","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":20,"kg":16710,"pms_etq":167.1},{"cultivar":"55IX56RSF I2X","lote":"26S264F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":16,"kg":17784,"pms_etq":222.3},{"cultivar":"55IX56RSF I2X","lote":"26S265F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":16,"kg":17784,"pms_etq":222.3},{"cultivar":"55IX56RSF I2X","lote":"26S266F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":16,"kg":17784,"pms_etq":222.3},{"cultivar":"55IX56RSF I2X","lote":"26S267F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":16,"kg":17800,"pms_etq":222.5},{"cultivar":"55IX56RSF I2X","lote":"26S268F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":16,"kg":17800,"pms_etq":222.5},{"cultivar":"55IX56RSF I2X","lote":"26S269F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":16,"kg":17800,"pms_etq":222.5},{"cultivar":"55IX56RSF I2X","lote":"26S270F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":16,"kg":17952,"pms_etq":224.4},{"cultivar":"C2575E","lote":"26S450G","peneira":"P2","categoria":"S1","umidade":null,"tz_viab":68.0,"tz_vigor":65.0,"rank_tz":"C","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"C","status":"Regular","bags":8,"kg":8179,"pms_etq":204.5},{"cultivar":"C2575E","lote":"26S451C","peneira":"P1","categoria":"S1","umidade":null,"tz_viab":65.0,"tz_vigor":63.0,"rank_tz":"C","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"C","status":"Regular","bags":12,"kg":10758,"pms_etq":179.3},{"cultivar":"57K58RSF CE","lote":"26S452F","peneira":"P2","categoria":"S1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":20,"kg":19869,"pms_etq":198.7},{"cultivar":"57K58RSF CE","lote":"26S453F","peneira":"P2","categoria":"S1","umidade":null,"tz_viab":98.0,"tz_vigor":97.0,"rank_tz":"A","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"A","status":"Ótimo","bags":20,"kg":19869,"pms_etq":198.7},{"cultivar":"57K58RSF CE","lote":"26S454B","peneira":"P1","categoria":"S1","umidade":null,"tz_viab":98.0,"tz_vigor":98.0,"rank_tz":"A","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"A","status":"Ótimo","bags":26,"kg":20325,"pms_etq":156.3},{"cultivar":"57K58RSF CE","lote":"26S456F","peneira":"P2","categoria":"S1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":5,"kg":4967,"pms_etq":198.7},{"cultivar":"C2575E","lote":"26S457B","peneira":"P1","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":20,"kg":0,"pms_etq":null},{"cultivar":"C2575E","lote":"26S458F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":20,"kg":0,"pms_etq":null},{"cultivar":"C2575E","lote":"26S459B","peneira":"P1","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":20,"kg":0,"pms_etq":null},{"cultivar":"C2575E","lote":"26S460F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":20,"kg":0,"pms_etq":null},{"cultivar":"C2575E","lote":"26S461F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":20,"kg":0,"pms_etq":null},{"cultivar":"C2575E","lote":"26S462F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":20,"kg":0,"pms_etq":null},{"cultivar":"C2575E","lote":"26S463F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":20,"kg":0,"pms_etq":null},{"cultivar":"C2575E","lote":"26S464F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":20,"kg":0,"pms_etq":null},{"cultivar":"C2575E","lote":"26S466F","peneira":"P2","categoria":"C1","umidade":null,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"X","status":"Pendente","bags":20,"kg":0,"pms_etq":null},{"cultivar":"57IX60RSF I2X","lote":"26S700E","peneira":"P2","categoria":"S2","umidade":11.93,"tz_viab":96.0,"tz_vigor":94.0,"rank_tz":"A","germ":90.0,"rank_germ":"B","vigor":83.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":20,"kg":18660,"pms_etq":186.6},{"cultivar":"57IX60RSF I2X","lote":"26S701E","peneira":"P2","categoria":"S2","umidade":11.74,"tz_viab":94.0,"tz_vigor":92.0,"rank_tz":"B","germ":87.0,"rank_germ":"B","vigor":85.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":18560,"pms_etq":185.6},{"cultivar":"57IX60RSF I2X","lote":"26S702A","peneira":"P1","categoria":"S2","umidade":12.01,"tz_viab":95.0,"tz_vigor":91.0,"rank_tz":"A","germ":83.0,"rank_germ":"C","vigor":78.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":18720,"pms_etq":156.0},{"cultivar":"57IX60RSF I2X","lote":"26S703E","peneira":"P2","categoria":"S2","umidade":11.6,"tz_viab":93.0,"tz_vigor":91.0,"rank_tz":"B","germ":89.0,"rank_germ":"B","vigor":81.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":20,"kg":18560,"pms_etq":185.6},{"cultivar":"57IX60RSF I2X","lote":"26S704A","peneira":"P1","categoria":"S2","umidade":11.77,"tz_viab":97.0,"tz_vigor":96.0,"rank_tz":"A","germ":85.0,"rank_germ":"B","vigor":76.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":18744,"pms_etq":156.2},{"cultivar":"57IX60RSF I2X","lote":"26S705E","peneira":"P2","categoria":"S2","umidade":11.78,"tz_viab":90.0,"tz_vigor":88.0,"rank_tz":"B","germ":86.0,"rank_germ":"B","vigor":81.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":20,"kg":18500,"pms_etq":185.0},{"cultivar":"57IX60RSF I2X","lote":"26S706E","peneira":"P2","categoria":"S2","umidade":12.0,"tz_viab":99.0,"tz_vigor":97.0,"rank_tz":"A","germ":82.0,"rank_germ":"C","vigor":78.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":18460,"pms_etq":184.6},{"cultivar":"57IX60RSF I2X","lote":"26S707A","peneira":"P1","categoria":"S2","umidade":12.21,"tz_viab":100.0,"tz_vigor":100.0,"rank_tz":"A","germ":91.0,"rank_germ":"B","vigor":81.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":24,"kg":18696,"pms_etq":155.8},{"cultivar":"57IX60RSF I2X","lote":"26S708E","peneira":"P2","categoria":"S2","umidade":11.78,"tz_viab":99.0,"tz_vigor":97.0,"rank_tz":"A","germ":91.0,"rank_germ":"B","vigor":85.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":18420,"pms_etq":184.2},{"cultivar":"57IX60RSF I2X","lote":"26S709E","peneira":"P2","categoria":"S2","umidade":12.19,"tz_viab":98.0,"tz_vigor":95.0,"rank_tz":"A","germ":87.0,"rank_germ":"B","vigor":84.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":20,"kg":18160,"pms_etq":181.6},{"cultivar":"57IX60RSF I2X","lote":"26S710A","peneira":"P1","categoria":"S2","umidade":12.19,"tz_viab":95.0,"tz_vigor":93.0,"rank_tz":"A","germ":82.0,"rank_germ":"C","vigor":78.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":15,"kg":11550,"pms_etq":154.0},{"cultivar":"57IX60RSF I2X","lote":"26S711E","peneira":"P2","categoria":"S2","umidade":12.36,"tz_viab":95.0,"tz_vigor":94.0,"rank_tz":"A","germ":85.0,"rank_germ":"B","vigor":78.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":19880,"pms_etq":198.8},{"cultivar":"BMX ATIVA RR","lote":"26S712E","peneira":"P2","categoria":"S2","umidade":12.29,"tz_viab":95.0,"tz_vigor":94.0,"rank_tz":"A","germ":91.0,"rank_germ":"B","vigor":79.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":19860,"pms_etq":198.6},{"cultivar":"BMX ATIVA RR","lote":"26S713A","peneira":"P1","categoria":"S2","umidade":12.62,"tz_viab":91.0,"tz_vigor":88.0,"rank_tz":"B","germ":90.0,"rank_germ":"B","vigor":81.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":24,"kg":18480,"pms_etq":154.0},{"cultivar":"BMX ATIVA RR","lote":"26S714E","peneira":"P2","categoria":"S2","umidade":12.53,"tz_viab":92.0,"tz_vigor":91.0,"rank_tz":"B","germ":93.0,"rank_germ":"B","vigor":79.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":19700,"pms_etq":197.0},{"cultivar":"BMX ATIVA RR","lote":"26S715E","peneira":"P2","categoria":"S2","umidade":12.71,"tz_viab":97.0,"tz_vigor":94.0,"rank_tz":"A","germ":91.0,"rank_germ":"B","vigor":80.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":20,"kg":19560,"pms_etq":195.6},{"cultivar":"BMX ATIVA RR","lote":"26S716A","peneira":"P1","categoria":"S2","umidade":12.85,"tz_viab":99.0,"tz_vigor":97.0,"rank_tz":"A","germ":92.0,"rank_germ":"B","vigor":88.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":18264,"pms_etq":152.2},{"cultivar":"BMX ATIVA RR","lote":"26S717E","peneira":"P2","categoria":"S2","umidade":12.31,"tz_viab":92.0,"tz_vigor":89.0,"rank_tz":"B","germ":88.0,"rank_germ":"B","vigor":82.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":20,"kg":19560,"pms_etq":195.6},{"cultivar":"BMX ATIVA RR","lote":"26S718E","peneira":"P2","categoria":"S2","umidade":12.18,"tz_viab":97.0,"tz_vigor":92.0,"rank_tz":"A","germ":85.0,"rank_germ":"B","vigor":89.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":20,"kg":18920,"pms_etq":189.2},{"cultivar":"BMX ATIVA RR","lote":"26S719A","peneira":"P1","categoria":"S2","umidade":11.47,"tz_viab":94.0,"tz_vigor":93.0,"rank_tz":"B","germ":88.0,"rank_germ":"B","vigor":86.0,"rank_vigor":"B","ranking":"B","status":"Bom","bags":24,"kg":17928,"pms_etq":149.4},{"cultivar":"BMX ATIVA RR","lote":"26S720E","peneira":"P2","categoria":"S2","umidade":11.11,"tz_viab":93.0,"tz_vigor":90.0,"rank_tz":"B","germ":89.0,"rank_germ":"B","vigor":77.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":18720,"pms_etq":187.2},{"cultivar":"BMX ATIVA RR","lote":"26S721A","peneira":"P1","categoria":"S2","umidade":10.81,"tz_viab":91.0,"tz_vigor":89.0,"rank_tz":"B","germ":82.0,"rank_germ":"C","vigor":77.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":17904,"pms_etq":149.2},{"cultivar":"BMX ATIVA RR","lote":"26S722E","peneira":"P2","categoria":"S2","umidade":10.94,"tz_viab":95.0,"tz_vigor":91.0,"rank_tz":"A","germ":84.0,"rank_germ":"C","vigor":84.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":18,"kg":16524,"pms_etq":183.6},{"cultivar":"BMX ATIVA RR","lote":"26S723A","peneira":"P1","categoria":"S2","umidade":12.1,"tz_viab":91.0,"tz_vigor":89.0,"rank_tz":"B","germ":85.0,"rank_germ":"B","vigor":66.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":9,"kg":6705,"pms_etq":149.0},{"cultivar":"C2605 E","lote":"26S724A","peneira":"P1","categoria":"C1","umidade":13.07,"tz_viab":91.0,"tz_vigor":87.0,"rank_tz":"B","germ":87.0,"rank_germ":"B","vigor":null,"rank_vigor":null,"ranking":"B","status":"Bom","bags":24,"kg":16920,"pms_etq":141.0},{"cultivar":"C2605 E","lote":"26S725A","peneira":"P1","categoria":"C1","umidade":13.13,"tz_viab":94.0,"tz_vigor":87.0,"rank_tz":"B","germ":78.0,"rank_germ":"D","vigor":68.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":16752,"pms_etq":139.6},{"cultivar":"C2605 E","lote":"26S726A","peneira":"P1","categoria":"C1","umidade":13.25,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":73.0,"rank_germ":"D","vigor":69.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":17064,"pms_etq":142.2},{"cultivar":"C2605 E","lote":"26S727E","peneira":"P2","categoria":"C1","umidade":12.82,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":73.0,"rank_germ":"D","vigor":57.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":17940,"pms_etq":179.4},{"cultivar":"C2605 E","lote":"26S728A","peneira":"P1","categoria":"C1","umidade":13.31,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":76.0,"rank_germ":"D","vigor":65.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":16992,"pms_etq":141.6},{"cultivar":"C2605 E","lote":"26S729A","peneira":"P1","categoria":"C1","umidade":12.97,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":84.0,"rank_germ":"C","vigor":70.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":16824,"pms_etq":140.2},{"cultivar":"C2605 E","lote":"26S730A","peneira":"P1","categoria":"C1","umidade":12.15,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":84.0,"rank_germ":"C","vigor":63.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":16992,"pms_etq":141.6},{"cultivar":"C2605 E","lote":"26S731A","peneira":"P1","categoria":"C1","umidade":12.3,"tz_viab":91.0,"tz_vigor":83.0,"rank_tz":"B","germ":72.0,"rank_germ":"D","vigor":77.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":16944,"pms_etq":141.2},{"cultivar":"C2605 E","lote":"26S732A","peneira":"P1","categoria":"C1","umidade":13.25,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":75.0,"rank_germ":"D","vigor":67.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":16800,"pms_etq":140.0},{"cultivar":"C2605 E","lote":"26S733E","peneira":"P2","categoria":"C1","umidade":12.91,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":86.0,"rank_germ":"B","vigor":66.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":17960,"pms_etq":179.6},{"cultivar":"C2605 E","lote":"26S734A","peneira":"P1","categoria":"C1","umidade":13.41,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":82.0,"rank_germ":"C","vigor":66.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":16920,"pms_etq":141.0},{"cultivar":"C2605 E","lote":"26S735A","peneira":"P1","categoria":"C1","umidade":12.0,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":80.0,"rank_germ":"C","vigor":67.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":16896,"pms_etq":140.8},{"cultivar":"C2605 E","lote":"26S736A","peneira":"P1","categoria":"C1","umidade":12.35,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":79.0,"rank_germ":"D","vigor":68.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":16920,"pms_etq":141.0},{"cultivar":"C2605 E","lote":"26S737A","peneira":"P1","categoria":"C1","umidade":13.09,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":83.0,"rank_germ":"C","vigor":null,"rank_vigor":null,"ranking":"C","status":"Regular","bags":24,"kg":16824,"pms_etq":140.2},{"cultivar":"C2605 E","lote":"26S738A","peneira":"P1","categoria":"C1","umidade":11.78,"tz_viab":91.0,"tz_vigor":86.0,"rank_tz":"B","germ":80.0,"rank_germ":"C","vigor":63.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":16632,"pms_etq":138.6},{"cultivar":"C2605 E","lote":"26S739E","peneira":"P2","categoria":"C1","umidade":12.1,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":83.0,"rank_germ":"C","vigor":71.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":17800,"pms_etq":178.0},{"cultivar":"C2605 E","lote":"26S740A","peneira":"P1","categoria":"C1","umidade":13.15,"tz_viab":null,"tz_vigor":null,"rank_tz":null,"germ":82.0,"rank_germ":"C","vigor":58.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":16848,"pms_etq":140.4},{"cultivar":"64I61RSF IPRO","lote":"26S800B","peneira":"P1","categoria":"C2","umidade":12.15,"tz_viab":92.0,"tz_vigor":89.0,"rank_tz":"B","germ":84.0,"rank_germ":"C","vigor":60.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":17616,"pms_etq":146.8},{"cultivar":"64I61RSF IPRO","lote":"26S801B","peneira":"P1","categoria":"C2","umidade":11.25,"tz_viab":93.0,"tz_vigor":83.0,"rank_tz":"B","germ":85.0,"rank_germ":"B","vigor":59.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":17616,"pms_etq":146.8},{"cultivar":"64I61RSF IPRO","lote":"26S802B","peneira":"P1","categoria":"C2","umidade":12.31,"tz_viab":99.0,"tz_vigor":91.0,"rank_tz":"A","germ":89.0,"rank_germ":"B","vigor":61.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":17616,"pms_etq":146.8},{"cultivar":"64I61RSF IPRO","lote":"26S803B","peneira":"P1","categoria":"C2","umidade":11.1,"tz_viab":90.0,"tz_vigor":83.0,"rank_tz":"B","germ":84.0,"rank_germ":"C","vigor":61.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":17,"kg":12478,"pms_etq":146.8},{"cultivar":"64I61RSF IPRO","lote":"26S804F","peneira":"P2","categoria":"C2","umidade":10.81,"tz_viab":91.0,"tz_vigor":83.0,"rank_tz":"B","germ":83.0,"rank_germ":"C","vigor":52.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":18540,"pms_etq":185.4},{"cultivar":"64I61RSF IPRO","lote":"26S805F","peneira":"P2","categoria":"C2","umidade":10.88,"tz_viab":95.0,"tz_vigor":87.0,"rank_tz":"A","germ":76.0,"rank_germ":"D","vigor":61.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":12,"kg":11124,"pms_etq":185.4},{"cultivar":"64I61RSF IPRO","lote":"26S806B","peneira":"P1","categoria":"C2","umidade":12.3,"tz_viab":96.0,"tz_vigor":92.0,"rank_tz":"A","germ":88.0,"rank_germ":"B","vigor":52.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":14630,"pms_etq":146.3},{"cultivar":"63E66RSF E","lote":"26S807B","peneira":"P1","categoria":"C2","umidade":10.98,"tz_viab":96.0,"tz_vigor":86.0,"rank_tz":"A","germ":85.0,"rank_germ":"B","vigor":75.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":17508,"pms_etq":145.9},{"cultivar":"63E66RSF E","lote":"26S808B","peneira":"P1","categoria":"C2","umidade":11.01,"tz_viab":89.0,"tz_vigor":81.0,"rank_tz":"C","germ":84.0,"rank_germ":"C","vigor":78.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":17508,"pms_etq":145.9},{"cultivar":"63E66RSF E","lote":"26S809B","peneira":"P1","categoria":"C2","umidade":11.21,"tz_viab":92.0,"tz_vigor":84.0,"rank_tz":"B","germ":75.0,"rank_germ":"D","vigor":70.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":12,"kg":8754,"pms_etq":145.9},{"cultivar":"63E66RSF E","lote":"26S810E","peneira":"P2","categoria":"C2","umidade":11.57,"tz_viab":85.0,"tz_vigor":84.0,"rank_tz":"C","germ":78.0,"rank_germ":"D","vigor":57.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":18330,"pms_etq":183.3},{"cultivar":"63E66RSF E","lote":"26S811E","peneira":"P2","categoria":"C2","umidade":11.71,"tz_viab":97.0,"tz_vigor":95.0,"rank_tz":"A","germ":66.0,"rank_germ":"D","vigor":65.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":18330,"pms_etq":183.3},{"cultivar":"63E66RSF E","lote":"26S812E","peneira":"P2","categoria":"C2","umidade":11.54,"tz_viab":92.0,"tz_vigor":89.0,"rank_tz":"B","germ":90.0,"rank_germ":"B","vigor":78.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":18330,"pms_etq":183.3},{"cultivar":"C2645CE","lote":"26S813B","peneira":"P1","categoria":"C2","umidade":11.13,"tz_viab":86.0,"tz_vigor":81.0,"rank_tz":"C","germ":77.0,"rank_germ":"D","vigor":52.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":18312,"pms_etq":152.6},{"cultivar":"C2645CE","lote":"26S814B","peneira":"P1","categoria":"C2","umidade":11.4,"tz_viab":90.0,"tz_vigor":81.0,"rank_tz":"B","germ":null,"rank_germ":null,"vigor":59.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":23,"kg":17549,"pms_etq":152.6},{"cultivar":"C2645CE","lote":"26S815E","peneira":"P2","categoria":"C2","umidade":10.8,"tz_viab":90.0,"tz_vigor":85.0,"rank_tz":"B","germ":63.0,"rank_germ":"D","vigor":67.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":13,"kg":12948,"pms_etq":199.2},{"cultivar":"64IX66RSF I2X","lote":"26S816A","peneira":"P1","categoria":"C2","umidade":12.33,"tz_viab":97.0,"tz_vigor":92.0,"rank_tz":"A","germ":85.0,"rank_germ":"B","vigor":83.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":24,"kg":16176,"pms_etq":134.8},{"cultivar":"64IX66RSF I2X","lote":"26S817A","peneira":"P1","categoria":"C2","umidade":11.64,"tz_viab":93.0,"tz_vigor":91.0,"rank_tz":"B","germ":87.0,"rank_germ":"B","vigor":null,"rank_vigor":null,"ranking":"B","status":"Bom","bags":24,"kg":16176,"pms_etq":134.8},{"cultivar":"64IX66RSF I2X","lote":"26S818A","peneira":"P1","categoria":"C2","umidade":9.41,"tz_viab":96.0,"tz_vigor":93.0,"rank_tz":"A","germ":88.0,"rank_germ":"B","vigor":81.0,"rank_vigor":"C","ranking":"C","status":"Regular","bags":24,"kg":16176,"pms_etq":134.8},{"cultivar":"64IX66RSF I2X","lote":"26S819A","peneira":"P1","categoria":"C2","umidade":11.58,"tz_viab":98.0,"tz_vigor":95.0,"rank_tz":"A","germ":82.0,"rank_germ":"C","vigor":74.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":24,"kg":16176,"pms_etq":134.8},{"cultivar":"64IX66RSF I2X","lote":"26S820A","peneira":"P1","categoria":"S1","umidade":11.84,"tz_viab":98.0,"tz_vigor":96.0,"rank_tz":"A","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"A","status":"Ótimo","bags":24,"kg":16128,"pms_etq":134.4},{"cultivar":"64IX66RSF I2X","lote":"26S821E","peneira":"P2","categoria":"C2","umidade":11.15,"tz_viab":89.0,"tz_vigor":87.0,"rank_tz":"C","germ":null,"rank_germ":null,"vigor":null,"rank_vigor":null,"ranking":"C","status":"Regular","bags":20,"kg":18510,"pms_etq":185.1},{"cultivar":"64IX66RSF I2X","lote":"26S822E","peneira":"P2","categoria":"S1","umidade":10.63,"tz_viab":82.0,"tz_vigor":78.0,"rank_tz":"C","germ":80.0,"rank_germ":"C","vigor":71.0,"rank_vigor":"D","ranking":"D","status":"Ruim","bags":20,"kg":18510,"pms_etq":185.1}];
+
+// ===================== UTILS =====================
+const fmt = n => n != null ? n.toFixed(1) : '—';
+const fmtKg = n => n >= 1000 ? (n/1000).toFixed(1)+'t' : n+'kg';
+const fmtKgFull = n => n.toLocaleString('pt-BR') + ' kg';
+
+function colorForVal(v, low=70, mid=85, high=90) {
+  if (v == null) return 'var(--texto2)';
+  if (v >= high) return 'var(--excelente)';
+  if (v >= mid) return 'var(--bom)';
+  if (v >= low) return 'var(--regular)';
+  return 'var(--critico)';
+}
+
+// Parâmetros oficiais da tabela de classificação
+// TZ Germinação: A≥95, B 90-94.9, C≤89
+function colorTZ(v) {
+  if (v == null) return 'var(--texto2)';
+  if (v >= 95) return 'var(--excelente)';
+  if (v >= 90) return 'var(--bom)';
+  return 'var(--regular)';
+}
+// Germinação RP: A≥95, B 85-94.9, C 80-84.9, D<80
+function colorGerm(v) {
+  if (v == null) return 'var(--texto2)';
+  if (v >= 95) return 'var(--excelente)';
+  if (v >= 85) return 'var(--bom)';
+  if (v >= 80) return 'var(--regular)';
+  return 'var(--critico)';
+}
+// Vigor EA: A≥95, B 85-94.9, C 80-84.9, D<80
+function colorVigor(v) {
+  if (v == null) return 'var(--texto2)';
+  if (v >= 95) return 'var(--excelente)';
+  if (v >= 85) return 'var(--bom)';
+  if (v >= 80) return 'var(--regular)';
+  return 'var(--critico)';
+}
+function classGerm(v) {
+  if (v == null) return '';
+  if (v >= 95) return 'good';
+  if (v >= 85) return 'ok';
+  if (v >= 80) return 'warn';
+  return 'bad';
+}
+function classVigor(v) {
+  if (v == null) return '';
+  if (v >= 95) return 'good';
+  if (v >= 85) return 'ok';
+  if (v >= 80) return 'warn';
+  return 'bad';
+}
+function classTZ(v) {
+  if (v == null) return '';
+  if (v >= 95) return 'good';
+  if (v >= 90) return 'ok';
+  return 'warn';
+}
+
+function rankColor(r) {
+  const map = {A:'var(--excelente)',B:'var(--bom)',C:'var(--regular)',D:'var(--critico)',X:'var(--pendente)'};
+  return map[r] || 'var(--pendente)';
+}
+
+// ===================== PAGES =====================
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ===================== OVERVIEW =====================
+function buildOverview() {
+  const totalKg    = SUMMARY.reduce((s,c) => s + c.total_kg, 0);
+  const totalLotes = SUMMARY.reduce((s,c) => s + c.lotes, 0);
+  const rankA      = SUMMARY.reduce((s,c) => s + c.rank_A, 0);
+  const rankB      = SUMMARY.reduce((s,c) => s + c.rank_B, 0);
+  const rankC      = SUMMARY.reduce((s,c) => s + c.rank_C, 0);
+  const rankD      = SUMMARY.reduce((s,c) => s + c.rank_D, 0);
+  const rankX      = SUMMARY.reduce((s,c) => s + c.rank_X, 0);
+  const aprovados  = rankA + rankB;
+  const reprovados = rankC + rankD;
+  const germs      = SUMMARY.filter(c => c.germ_media != null).map(c => c.germ_media);
+  const avgGerm    = germs.length ? (germs.reduce((a,b)=>a+b,0)/germs.length).toFixed(1) : '—';
+  const vigors     = SUMMARY.filter(c => c.vigor_media != null).map(c => c.vigor_media);
+  const avgVigor   = vigors.length ? (vigors.reduce((a,b)=>a+b,0)/vigors.length).toFixed(1) : '—';
+  const pctAprov   = totalLotes ? Math.round(aprovados/totalLotes*100) : 0;
+
+  // Header stats
+  document.getElementById('h-kg').textContent = (totalKg/1000000).toFixed(2) + 'M kg';
+  document.getElementById('h-lotes').textContent = totalLotes;
+  document.getElementById('h-cultivares').textContent = SUMMARY.length;
+
+  // KPIs
+  const kpiColor = pctAprov >= 80 ? '' : pctAprov >= 60 ? 'warn' : 'danger';
+  document.getElementById('kpi-grid').innerHTML = `
+    <div class="kpi accent">
+      <div class="label">Volume Total</div>
+      <div class="value" style="font-size:1.6rem;">${(totalKg/1000).toFixed(0)}t</div>
+      <div class="sub">${totalKg.toLocaleString('pt-BR')} kg</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Lotes Analisados</div>
+      <div class="value" style="font-size:1.6rem;">${totalLotes}</div>
+      <div class="sub">${SUMMARY.length} cultivares</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Germ. Média</div>
+      <div class="value" style="font-size:1.6rem;color:${colorGerm(parseFloat(avgGerm))}">${avgGerm}%</div>
+      <div class="sub">Rolo de papel</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Vigor Médio</div>
+      <div class="value" style="font-size:1.6rem;color:${colorVigor(parseFloat(avgVigor))}">${avgVigor}%</div>
+      <div class="sub">Envelh. acelerado</div>
+    </div>
+    <div class="kpi ${kpiColor}">
+      <div class="label">Taxa de Aprovação</div>
+      <div class="value" style="font-size:1.6rem;color:${pctAprov>=80?'var(--excelente)':pctAprov>=60?'var(--regular)':'var(--critico)'}">${pctAprov}%</div>
+      <div class="sub">${aprovados} apr. · ${reprovados} rep.</div>
+    </div>
+  `;
+
+  // ---- TABELA RESUMO ----
+  document.getElementById('ov-tbody').innerHTML = SUMMARY.map(c => {
+    const total = c.rank_A + c.rank_B + c.rank_C + c.rank_D + c.rank_X;
+    const aprov = c.rank_A + c.rank_B;
+    const reprov = c.rank_C + c.rank_D;
+    const pct = total ? Math.round(aprov/total*100) : 0;
+    const gc = classGerm(c.germ_media);
+    const vc = classVigor(c.vigor_media);
+    return `
+      <tr>
+        <td style="font-weight:600;font-size:0.78rem;">${c.cultivar}</td>
+        <td class="num" style="font-size:0.75rem;">${c.total_kg>0?(c.total_kg/1000).toFixed(0)+'t':'—'}</td>
+        <td class="num" style="color:var(--texto2);font-size:0.75rem;">${c.lotes}</td>
+        <td class="num"><span style="font-weight:600;color:${colorGerm(c.germ_media)}">${c.germ_media!=null?c.germ_media+'%':'—'}</span></td>
+        <td class="num"><span style="font-weight:600;color:${colorVigor(c.vigor_media)}">${c.vigor_media!=null?c.vigor_media+'%':'—'}</span></td>
+        <td style="padding:8px 14px;">
+          <div style="display:flex;height:14px;border-radius:3px;overflow:hidden;background:var(--bg3);border:1px solid var(--borda);">
+            ${c.rank_A?`<div style="width:${(c.rank_A/total*100).toFixed(1)}%;background:#16A34A;" title="A: ${c.rank_A}"></div>`:''}
+            ${c.rank_B?`<div style="width:${(c.rank_B/total*100).toFixed(1)}%;background:#2563EB;" title="B: ${c.rank_B}"></div>`:''}
+            ${c.rank_C?`<div style="width:${(c.rank_C/total*100).toFixed(1)}%;background:#D97706;" title="C: ${c.rank_C}"></div>`:''}
+            ${c.rank_D?`<div style="width:${(c.rank_D/total*100).toFixed(1)}%;background:#DC2626;" title="D: ${c.rank_D}"></div>`:''}
+            ${c.rank_X?`<div style="width:${(c.rank_X/total*100).toFixed(1)}%;background:#94A3B8;" title="X: ${c.rank_X}"></div>`:''}
+          </div>
+        </td>
+        <td class="num"><span style="font-weight:700;color:var(--excelente);">${aprov}</span></td>
+        <td class="num"><span style="font-weight:700;color:${reprov>0?'var(--critico)':'var(--texto2)'};">${reprov}</span></td>
+      </tr>`;
+  }).join('');
+
+  // ---- DONUT ----
+  const slices = [
+    {label:'A – Ótimo', val:rankA, color:'#16A34A'},
+    {label:'B – Bom',   val:rankB, color:'#2563EB'},
+    {label:'C – Regular',val:rankC,color:'#D97706'},
+    {label:'D – Ruim',  val:rankD, color:'#DC2626'},
+    {label:'Pendente',  val:rankX, color:'#94A3B8'},
+  ].filter(s => s.val > 0);
+  const total2 = slices.reduce((s,x)=>s+x.val,0);
+  const cx=70, cy=70, r=52, inner=34;
+  let angle = -Math.PI/2;
+  let paths = '';
+  slices.forEach(s => {
+    const sweep = (s.val/total2)*2*Math.PI;
+    const x1=cx+r*Math.cos(angle), y1=cy+r*Math.sin(angle);
+    const x2=cx+r*Math.cos(angle+sweep), y2=cy+r*Math.sin(angle+sweep);
+    const xi1=cx+inner*Math.cos(angle), yi1=cy+inner*Math.sin(angle);
+    const xi2=cx+inner*Math.cos(angle+sweep), yi2=cy+inner*Math.sin(angle+sweep);
+    const large = sweep>Math.PI?1:0;
+    paths += `<path d="M${xi1},${yi1} L${x1},${y1} A${r},${r} 0 ${large} 1 ${x2},${y2} L${xi2},${yi2} A${inner},${inner} 0 ${large} 0 ${xi1},${yi1}" fill="${s.color}" opacity="0.9"/>`;
+    angle += sweep;
+  });
+  document.getElementById('donut-svg').innerHTML = `${paths}
+    <text x="70" y="65" text-anchor="middle" font-size="18" font-weight="800" fill="#0F172A" font-family="Inter">${pctAprov}%</text>
+    <text x="70" y="82" text-anchor="middle" font-size="9" fill="#64748B" font-family="Inter">APROVADOS</text>`;
+  document.getElementById('donut-center').textContent = `${aprovados} de ${total2} lotes`;
+  document.getElementById('donut-legend').innerHTML = slices.map(s=>`
+    <div style="display:flex;align-items:center;gap:6px;font-size:0.68rem;color:var(--texto2);">
+      <div style="width:10px;height:10px;border-radius:2px;background:${s.color};flex-shrink:0;"></div>
+      <span><b style="color:var(--texto);">${s.val}</b> ${s.label}</span>
+    </div>`).join('');
+
+  // ---- ALERTAS ----
+  const alerts = [];
+  const allD = SUMMARY.filter(c => c.rank_D > 0).sort((a,b)=>b.rank_D-a.rank_D);
+  if (allD.length) {
+    allD.slice(0,3).forEach(c => {
+      alerts.push({icon:'🔴', text:`<b>${c.cultivar}</b> — ${c.rank_D} lote${c.rank_D>1?'s':''} reprovado${c.rank_D>1?'s':''} (D)`, color:'#FEF2F2', border:'#FECACA'});
+    });
+  }
+  const allX = SUMMARY.filter(c => c.rank_X > 0).sort((a,b)=>b.rank_X-a.rank_X);
+  if (allX.length) {
+    allX.slice(0,2).forEach(c => {
+      alerts.push({icon:'⏳', text:`<b>${c.cultivar}</b> — ${c.rank_X} lote${c.rank_X>1?'s':''} sem análise`, color:'#F8FAFC', border:'#E2E8F0'});
+    });
+  }
+  if (!alerts.length) alerts.push({icon:'✅', text:'Nenhum alerta crítico!', color:'#F0FDF4', border:'#BBF7D0'});
+  document.getElementById('alerts-list').innerHTML = alerts.map(a=>`
+    <div style="background:${a.color};border:1px solid ${a.border};border-radius:7px;padding:9px 12px;font-size:0.72rem;color:var(--texto);line-height:1.4;">
+      ${a.icon} ${a.text}
+    </div>`).join('');
+
+  // ---- GERM BARS ----
+  const germData = SUMMARY.filter(c => c.germ_media != null).sort((a,b) => b.germ_media - a.germ_media);
+  document.getElementById('germ-chart').innerHTML = germData.map(c => `
+    <div class="bar-row">
+      <div class="bar-label">${c.cultivar}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${c.germ_media}%;background:${c.germ_media>=95?'linear-gradient(90deg,#15803D,#4ADE80)':c.germ_media>=85?'linear-gradient(90deg,#1D4ED8,#60A5FA)':c.germ_media>=80?'linear-gradient(90deg,#B45309,#FCD34D)':'linear-gradient(90deg,#B91C1C,#FCA5A5)'}"></div>
+      </div>
+      <div class="bar-val">${c.germ_media}%</div>
+    </div>`).join('');
+
+  // ---- VIGOR BARS ----
+  const vigorData = SUMMARY.filter(c => c.vigor_media != null).sort((a,b) => b.vigor_media - a.vigor_media);
+  document.getElementById('vigor-chart').innerHTML = vigorData.map(c => `
+    <div class="bar-row">
+      <div class="bar-label">${c.cultivar}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${c.vigor_media}%;background:${c.vigor_media>=95?'linear-gradient(90deg,#15803D,#4ADE80)':c.vigor_media>=85?'linear-gradient(90deg,#1D4ED8,#60A5FA)':c.vigor_media>=80?'linear-gradient(90deg,#B45309,#FCD34D)':'linear-gradient(90deg,#B91C1C,#FCA5A5)'}"></div>
+      </div>
+      <div class="bar-val">${c.vigor_media}%</div>
+    </div>`).join('');
+}
+
+// ===================== CULTIVARES =====================
+function buildCultivares() {
+  const sel = document.getElementById('lote-cultivar');
+  SUMMARY.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.cultivar;
+    opt.textContent = c.cultivar;
+    sel.appendChild(opt);
+  });
+  filterCultivares();
+}
+
+function filterCultivares() {
+  const q  = document.getElementById('cv-search').value.toLowerCase();
+  const rf = document.getElementById('cv-rank-filter').value;
+
+  const filtered = SUMMARY.filter(c => {
+    if (q && !c.cultivar.toLowerCase().includes(q)) return false;
+    if (rf === 'A' && c.rank_A < c.rank_B) return false;
+    if (rf === 'B' && c.rank_B < c.rank_A) return false;
+    if (rf === 'C' && c.rank_C === 0) return false;
+    if (rf === 'D' && c.rank_D === 0) return false;
+    return true;
+  });
+
+  document.getElementById('cv-count').textContent = filtered.length;
+  document.getElementById('cultivar-grid').innerHTML = filtered.map(c => {
+    const pms  = PMS_CV.find(p => p.cultivar === c.cultivar) || {};
+    const total = c.rank_A + c.rank_B + c.rank_C + c.rank_D + c.rank_X;
+    const aprov  = c.rank_A + c.rank_B;
+    const reprov = c.rank_C + c.rank_D;
+    const pctAprov = total ? Math.round(aprov/total*100) : 0;
+
+    // Bags de lotes aprovados (A+B) para este cultivar
+    const bagsAprov = LOTS.filter(l => l.cultivar === c.cultivar && (l.ranking === 'A' || l.ranking === 'B'))
+                           .reduce((s, l) => s + (l.bags || 0), 0);
+    // Bags de lotes reprovados (C+D) para este cultivar
+    const bagsReprov = LOTS.filter(l => l.cultivar === c.cultivar && (l.ranking === 'C' || l.ranking === 'D'))
+                           .reduce((s, l) => s + (l.bags || 0), 0);
+    // Bags de lotes pendentes (X) para este cultivar
+    const bagsPend = LOTS.filter(l => l.cultivar === c.cultivar && l.ranking === 'X')
+                         .reduce((s, l) => s + (l.bags || 0), 0);
+    const barA  = total ? (c.rank_A/total*100).toFixed(1) : 0;
+    const barB  = total ? (c.rank_B/total*100).toFixed(1) : 0;
+    const barC  = total ? (c.rank_C/total*100).toFixed(1) : 0;
+    const barD  = total ? (c.rank_D/total*100).toFixed(1) : 0;
+    const barX  = total ? (c.rank_X/total*100).toFixed(1) : 0;
+    const apColor = pctAprov >= 80 ? 'var(--excelente)' : pctAprov >= 50 ? 'var(--bom)' : 'var(--critico)';
+    const fn = v => v != null ? v.toFixed(1)+'g' : '—';
+
+    return `
+    <div class="panel" style="overflow:hidden;">
+
+      <!-- Cabeçalho -->
+      <div style="background:#0F172A;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:0.95rem;color:#fff;">${c.cultivar}</div>
+          <div style="font-size:0.62rem;color:#64748B;margin-top:2px;">${c.total_kg>0?(c.total_kg/1000).toFixed(0)+'t':''} · ${c.lotes} lotes · ${(pms.bags_total||0).toLocaleString('pt-BR')} bags</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:1.3rem;font-weight:800;font-family:'Inter',sans-serif;color:${apColor};">${pctAprov}%</div>
+          <div style="font-size:0.58rem;color:#64748B;">aprovados</div>
+        </div>
+      </div>
+
+      <!-- Barra de ranking -->
+      <div style="display:flex;height:5px;">
+        ${c.rank_A?`<div style="width:${barA}%;background:#16A34A;"></div>`:''}
+        ${c.rank_B?`<div style="width:${barB}%;background:#2563EB;"></div>`:''}
+        ${c.rank_C?`<div style="width:${barC}%;background:#D97706;"></div>`:''}
+        ${c.rank_D?`<div style="width:${barD}%;background:#DC2626;"></div>`:''}
+        ${c.rank_X?`<div style="width:${barX}%;background:#94A3B8;"></div>`:''}
+      </div>
+
+      <div style="padding:14px 18px;">
+
+        <!-- Métricas de qualidade -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:12px;">
+          ${[
+            {label:'Germinação', val:c.germ_media,   color:colorGerm(c.germ_media)},
+            {label:'Vigor E.A.', val:c.vigor_media,  color:colorVigor(c.vigor_media)},
+            {label:'TZ Viab.',   val:c.tz_viab_media,color:colorTZ(c.tz_viab_media)},
+            {label:'TZ Vigor',   val:c.tz_vigor_media,color:colorTZ(c.tz_vigor_media)},
+          ].map(m=>`
+            <div style="background:var(--bg3);border:1px solid var(--borda);border-radius:7px;padding:8px;text-align:center;">
+              <div style="font-size:0.58rem;color:var(--texto2);text-transform:uppercase;letter-spacing:0.5px;">${m.label}</div>
+              <div style="font-size:1rem;font-weight:700;font-family:'Inter',sans-serif;color:${m.color};margin-top:2px;">${m.val!=null?m.val+'%':'—'}</div>
+            </div>`).join('')}
+        </div>
+
+        <!-- Divider -->
+        <div style="border-top:1px dashed var(--borda);margin-bottom:12px;"></div>
+
+        <!-- Lotes + PMS side by side -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+
+          <!-- Aprovação -->
+          <div style="background:var(--bg3);border:1px solid var(--borda);border-radius:8px;padding:10px 12px;">
+            <div style="font-size:0.6rem;font-weight:600;color:var(--texto2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Lotes</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;text-align:center;">
+              <div>
+                <div style="font-size:1.05rem;font-weight:800;font-family:'Inter',sans-serif;color:var(--excelente);">${aprov}</div>
+                <div style="font-size:0.58rem;color:var(--excelente);">Aprovados</div>
+                ${aprov>0 && bagsAprov>0 ? `<div style="font-size:0.62rem;font-weight:700;color:var(--excelente);margin-top:2px;">${bagsAprov.toLocaleString('pt-BR')} bags</div>` : ''}
+              </div>
+              <div>
+                <div style="font-size:1.05rem;font-weight:800;font-family:'Inter',sans-serif;color:${reprov>0?'var(--critico)':'var(--texto2)'};">${reprov}</div>
+                <div style="font-size:0.58rem;color:${reprov>0?'var(--critico)':'var(--texto2)'};">Reprovados</div>
+                ${reprov>0 && bagsReprov>0 ? `<div style="font-size:0.62rem;font-weight:700;color:var(--critico);margin-top:2px;">${bagsReprov.toLocaleString('pt-BR')} bags</div>` : ''}
+              </div>
+              <div>
+                <div style="font-size:1.05rem;font-weight:800;font-family:'Inter',sans-serif;color:var(--texto2);">${c.rank_X}</div>
+                <div style="font-size:0.58rem;color:var(--texto2);">Pendentes</div>
+                ${c.rank_X>0 && bagsPend>0 ? `<div style="font-size:0.62rem;font-weight:700;color:var(--texto2);margin-top:2px;">${bagsPend.toLocaleString('pt-BR')} bags</div>` : ''}
+              </div>
+            </div>
+          </div>
+
+          <!-- PMS e Bags -->
+          <div style="background:var(--bg3);border:1px solid var(--borda);border-radius:8px;padding:10px 12px;">
+            <div style="font-size:0.6rem;font-weight:600;color:var(--texto2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">PMS (A+B) · Bags</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+              <div style="text-align:center;">
+                <div style="font-size:0.58rem;color:#1D4ED8;font-weight:600;background:#EFF6FF;border-radius:3px;padding:1px 4px;display:inline-block;margin-bottom:3px;">P1</div>
+                <div style="font-size:0.78rem;font-weight:700;color:var(--texto);">${fn(pms.pms_p1)}</div>
+                <div style="font-size:0.72rem;color:#1D4ED8;font-weight:700;">${(pms.bags_p1||0).toLocaleString('pt-BR')} <span style="font-size:0.58rem;font-weight:400;color:var(--texto2);">bags</span></div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:0.58rem;color:#6D28D9;font-weight:600;background:#F5F3FF;border-radius:3px;padding:1px 4px;display:inline-block;margin-bottom:3px;">P2</div>
+                <div style="font-size:0.78rem;font-weight:700;color:var(--texto);">${fn(pms.pms_p2)}</div>
+                <div style="font-size:0.72rem;color:#6D28D9;font-weight:700;">${(pms.bags_p2||0).toLocaleString('pt-BR')} <span style="font-size:0.58rem;font-weight:400;color:var(--texto2);">bags</span></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+
+// ===================== LOTES =====================
+let sortKey = 'lote', sortAsc = true;
+let filteredLots = [...LOTS];
+
+function buildLotes() { filterLotes(); }
+
+function filterLotes() {
+  const q = document.getElementById('lote-search').value.toLowerCase();
+  const cv = document.getElementById('lote-cultivar').value;
+  const st = document.getElementById('lote-status').value;
+
+  filteredLots = LOTS.filter(l => {
+    if (cv && l.cultivar !== cv) return false;
+    if (st && l.status !== st) return false;
+    if (q && !l.lote.toLowerCase().includes(q) && !l.cultivar.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  renderLoteTable();
+}
+
+function sortTable(key) {
+  if (sortKey === key) sortAsc = !sortAsc;
+  else { sortKey = key; sortAsc = true; }
+  filteredLots.sort((a,b) => {
+    const va = a[key], vb = b[key];
+    if (va == null && vb == null) return 0;
+    if (va == null) return 1;
+    if (vb == null) return -1;
+    return sortAsc ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
+  });
+  renderLoteTable();
+}
+
+function renderLoteTable() {
+  document.getElementById('lote-count').textContent = filteredLots.length;
+  document.getElementById('lote-tbody').innerHTML = filteredLots.map(l => `
+    <tr>
+      <td><code style="color:var(--verde-neon);font-size:0.7rem">${l.lote}</code></td>
+      <td>${l.cultivar}</td>
+      <td>${l.categoria}</td>
+      <td>${l.peneira}</td>
+      <td class="num">${l.umidade != null ? l.umidade.toFixed(2) : '—'}</td>
+      <td class="num" style="color:${colorTZ(l.tz_viab)}">${fmt(l.tz_viab)}</td>
+      <td class="num" style="color:${colorTZ(l.tz_vigor)}">${fmt(l.tz_vigor)}</td>
+      <td class="num" style="color:${colorGerm(l.germ)}">${fmt(l.germ)}</td>
+      <td class="num" style="color:${colorVigor(l.vigor)}">${fmt(l.vigor)}</td>
+      <td class="num">${l.kg.toLocaleString('pt-BR')}</td>
+      <td><span class="rank-badge rank-${l.ranking}">${l.ranking} — ${l.status}</span></td>
+    </tr>
+  `).join('');
+}
+
+// ===================== RANKING =====================
+function buildRanking() {
+  // Score: A=4, B=3, C=2, D=1, X=0
+  const scored = SUMMARY.map(c => {
+    const total = c.rank_A + c.rank_B + c.rank_C + c.rank_D + c.rank_X;
+    const score = total ? (c.rank_A*4 + c.rank_B*3 + c.rank_C*2 + c.rank_D*1) / total : 0;
+    const germ = c.germ_media || 0;
+    const combi = (score / 4 * 60) + (germ / 100 * 40);
+    return {...c, score, combi, total};
+  }).sort((a,b) => b.combi - a.combi);
+
+  document.getElementById('ranking-table-container').innerHTML = `
+    <table style="width:100%">
+      <thead>
+        <tr>
+          <th style="width:40px">#</th>
+          <th>Cultivar</th>
+          <th class="num">Germ. %</th>
+          <th class="num">Vigor %</th>
+          <th class="num">Volume (kg)</th>
+          <th>Distribuição</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${scored.map((c, i) => {
+          const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}`;
+          return `
+            <tr>
+              <td style="font-family:'Syne',sans-serif;font-weight:700;color:var(--texto2)">${medal}</td>
+              <td style="font-family:'Syne',sans-serif;font-weight:600">${c.cultivar}</td>
+              <td class="num" style="color:${colorGerm(c.germ_media)}">${fmt(c.germ_media)}</td>
+              <td class="num" style="color:${colorVigor(c.vigor_media)}">${fmt(c.vigor_media)}</td>
+              <td class="num">${c.total_kg.toLocaleString('pt-BR')}</td>
+              <td>
+                <div class="stacked-bar" style="height:14px">
+                  ${c.rank_A ? `<div class="sb-A" style="width:${(c.rank_A/c.total*100).toFixed(1)}%"></div>` : ''}
+                  ${c.rank_B ? `<div class="sb-B" style="width:${(c.rank_B/c.total*100).toFixed(1)}%"></div>` : ''}
+                  ${c.rank_C ? `<div class="sb-C" style="width:${(c.rank_C/c.total*100).toFixed(1)}%"></div>` : ''}
+                  ${c.rank_D ? `<div class="sb-D" style="width:${(c.rank_D/c.total*100).toFixed(1)}%"></div>` : ''}
+                  ${c.rank_X ? `<div class="sb-X" style="width:${(c.rank_X/c.total*100).toFixed(1)}%"></div>` : ''}
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table>
+  `;
+
+  // Best lots (A)
+  const bestA = LOTS.filter(l => l.ranking === 'A' && l.germ != null)
+    .sort((a,b) => (b.germ||0) - (a.germ||0)).slice(0,8);
+  document.getElementById('top-lotes').innerHTML = bestA.map(l => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--borda)">
+      <div>
+        <div style="font-size:0.72rem;color:var(--texto)"><code style="color:var(--verde-neon)">${l.lote}</code> · ${l.cultivar}</div>
+        <div style="font-size:0.62rem;color:var(--texto2)">${l.peneira} · ${l.kg.toLocaleString('pt-BR')} kg</div>
+      </div>
+      <div style="text-align:right">
+        <div style="color:var(--excelente);font-family:'Syne',sans-serif;font-weight:700">${l.germ}%</div>
+        <div style="font-size:0.62rem;color:var(--texto2)">germ.</div>
+      </div>
+    </div>
+  `).join('');
+
+  // Critical (D)
+  const critD = LOTS.filter(l => l.ranking === 'D');
+  document.getElementById('critical-lotes').innerHTML = critD.length === 0 
+    ? '<p style="color:var(--excelente);font-size:0.8rem">✅ Nenhum lote crítico!</p>'
+    : critD.map(l => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--borda)">
+      <div>
+        <div style="font-size:0.72rem;color:var(--texto)"><code style="color:var(--critico)">${l.lote}</code> · ${l.cultivar}</div>
+        <div style="font-size:0.62rem;color:var(--texto2)">${l.peneira} · ${l.kg.toLocaleString('pt-BR')} kg</div>
+      </div>
+      <div style="text-align:right">
+        <div style="color:var(--critico);font-family:'Syne',sans-serif;font-weight:700">${fmt(l.tz_viab)}%</div>
+        <div style="font-size:0.62rem;color:var(--texto2)">TZ viab.</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+
+// ===================== INIT =====================
+buildOverview();
+buildCultivares();
+buildLotes();
+buildRanking();
+</script>
+
+<footer style="background:#fff;border-top:1px solid #E2E8F0;padding:10px 40px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;font-size:0.62rem;color:#94A3B8;">
+  <span style="font-weight:700;color:#CBD5E1;text-transform:uppercase;letter-spacing:1px;">Parâmetros</span>
+  <span style="color:#E2E8F0;">·</span>
+  <span><b style="color:#64748B;">TZ Germ:</b>
+    <span style="color:#16A34A;font-weight:600;">A≥95%</span> &nbsp;
+    <span style="color:#2563EB;font-weight:600;">B 90–94%</span> &nbsp;
+    <span style="color:#D97706;font-weight:600;">C≤89%</span>
+  </span>
+  <span style="color:#E2E8F0;">·</span>
+  <span><b style="color:#64748B;">Germ. RP:</b>
+    <span style="color:#16A34A;font-weight:600;">A≥95%</span> &nbsp;
+    <span style="color:#2563EB;font-weight:600;">B 85–94%</span> &nbsp;
+    <span style="color:#D97706;font-weight:600;">C 80–84%</span> &nbsp;
+    <span style="color:#DC2626;font-weight:600;">D&lt;80%</span>
+  </span>
+  <span style="color:#E2E8F0;">·</span>
+  <span><b style="color:#64748B;">Vigor E.A.:</b>
+    <span style="color:#16A34A;font-weight:600;">A≥95%</span> &nbsp;
+    <span style="color:#2563EB;font-weight:600;">B 85–94%</span> &nbsp;
+    <span style="color:#D97706;font-weight:600;">C 80–84%</span> &nbsp;
+    <span style="color:#DC2626;font-weight:600;">D&lt;80%</span>
+  </span>
+  <span style="color:#E2E8F0;">·</span>
+  <span style="color:#94A3B8;">Status final = pior critério entre os três</span>
+  <span style="margin-left:auto;color:#CBD5E1;">Soja 25-26 · Análise de Sementes</span>
+</footer>
+
+</body>
+</html>
