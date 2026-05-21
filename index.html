@@ -30,6 +30,8 @@
     --regular-bg: #FFFBEB;
     --critico: #DC2626;
     --critico-bg: #FEF2F2;
+    --condicional: #D97706;
+    --condicional-bg: #FFFBEB;
     --pendente: #64748B;
     --pendente-bg: #F8FAFC;
     --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
@@ -289,7 +291,7 @@
 
   .rank-A { background: var(--excelente-bg); color: var(--excelente); border: 1px solid #BBF7D0; }
   .rank-B { background: var(--bom-bg);       color: var(--bom);       border: 1px solid #BFDBFE; }
-  .rank-C { background: var(--regular-bg);   color: var(--regular);   border: 1px solid #FDE68A; }
+  .rank-C { background: #FFFBEB; color: #D97706; border: 1px solid #FDE68A; } /* Condicional */
   .rank-D { background: var(--critico-bg);   color: var(--critico);   border: 1px solid #FECACA; }
   .rank-X { background: var(--pendente-bg);  color: var(--pendente);  border: 1px solid var(--borda); }
 
@@ -876,8 +878,9 @@
       <select id="lote-status" onchange="filterLotes()">
         <option value="">Todos os Status</option>
         <option value="Ótimo">Ótimo (A)</option>
+      <option value="Bom">Bom (B)</option>
         <option value="Bom">Bom (B)</option>
-        <option value="Regular">Regular (C)</option>
+        <option value="Regular">Condicional (C)</option>
         <option value="Crítico">Crítico (D)</option>
         <option value="Pendente">Pendente (X)</option>
       </select>
@@ -1023,8 +1026,9 @@ function buildOverview() {
   const rankC      = SUMMARY.reduce((s,c) => s + c.rank_C, 0);
   const rankD      = SUMMARY.reduce((s,c) => s + c.rank_D, 0);
   const rankX      = SUMMARY.reduce((s,c) => s + c.rank_X, 0);
-  const aprovados  = rankA + rankB;
-  const reprovados = rankC + rankD;
+  const aprovados    = rankA + rankB;
+  const condicionais = rankC;
+  const reprovados   = rankD;
   const germs      = SUMMARY.filter(c => c.germ_media != null).map(c => c.germ_media);
   const avgGerm    = germs.length ? (germs.reduce((a,b)=>a+b,0)/germs.length).toFixed(1) : '—';
   const vigors     = SUMMARY.filter(c => c.vigor_media != null).map(c => c.vigor_media);
@@ -1091,7 +1095,8 @@ function buildOverview() {
           </div>
         </td>
         <td class="num"><span style="font-weight:700;color:var(--excelente);">${aprov}</span></td>
-        <td class="num"><span style="font-weight:700;color:${reprov>0?'var(--critico)':'var(--texto2)'};">${reprov}</span></td>
+        <td class="num"><span style="font-weight:700;color:${(c.rank_C)>0?'var(--regular)':'var(--texto2)'};">${c.rank_C}</span></td>
+        <td class="num"><span style="font-weight:700;color:${(c.rank_D)>0?'var(--critico)':'var(--texto2)'};">${c.rank_D}</span></td>
       </tr>`;
   }).join('');
 
@@ -1099,7 +1104,7 @@ function buildOverview() {
   const slices = [
     {label:'A – Ótimo', val:rankA, color:'#16A34A'},
     {label:'B – Bom',   val:rankB, color:'#2563EB'},
-    {label:'C – Regular',val:rankC,color:'#D97706'},
+    {label:'C – Condicional',val:rankC,color:'#D97706'},
     {label:'D – Ruim',  val:rankD, color:'#DC2626'},
     {label:'Pendente',  val:rankX, color:'#94A3B8'},
   ].filter(s => s.val > 0);
@@ -1133,6 +1138,12 @@ function buildOverview() {
   if (allD.length) {
     allD.slice(0,3).forEach(c => {
       alerts.push({icon:'🔴', text:`<b>${c.cultivar}</b> — ${c.rank_D} lote${c.rank_D>1?'s':''} reprovado${c.rank_D>1?'s':''} (D)`, color:'#FEF2F2', border:'#FECACA'});
+    });
+  }
+  const allC = SUMMARY.filter(c => c.rank_C > 0).sort((a,b)=>b.rank_C-a.rank_C);
+  if (allC.length) {
+    allC.slice(0,2).forEach(c => {
+      alerts.push({icon:'⚠️', text:`<b>${c.cultivar}</b> — ${c.rank_C} lote${c.rank_C>1?'s':''} condicional${c.rank_C>1?'is':''} (C)`, color:'#FFFBEB', border:'#FDE68A'});
     });
   }
   const allX = SUMMARY.filter(c => c.rank_X > 0).sort((a,b)=>b.rank_X-a.rank_X);
@@ -1206,14 +1217,18 @@ function filterCultivares() {
     const pms  = PMS_CV.find(p => p.cultivar === c.cultivar) || {};
     const total = c.rank_A + c.rank_B + c.rank_C + c.rank_D + c.rank_X;
     const aprov  = c.rank_A + c.rank_B;
-    const reprov = c.rank_C + c.rank_D;
+    const cond   = c.rank_C;
+    const reprov = c.rank_D;
     const pctAprov = total ? Math.round(aprov/total*100) : 0;
 
     // Bags de lotes aprovados (A+B) para este cultivar
     const bagsAprov = LOTS.filter(l => l.cultivar === c.cultivar && (l.ranking === 'A' || l.ranking === 'B'))
                            .reduce((s, l) => s + (l.bags || 0), 0);
-    // Bags de lotes reprovados (C+D) para este cultivar
-    const bagsReprov = LOTS.filter(l => l.cultivar === c.cultivar && (l.ranking === 'C' || l.ranking === 'D'))
+    // Bags de lotes condicionais (C)
+    const bagsCond = LOTS.filter(l => l.cultivar === c.cultivar && l.ranking === 'C')
+                         .reduce((s, l) => s + (l.bags || 0), 0);
+    // Bags de lotes reprovados (D)
+    const bagsReprov = LOTS.filter(l => l.cultivar === c.cultivar && l.ranking === 'D')
                            .reduce((s, l) => s + (l.bags || 0), 0);
     // Bags de lotes pendentes (X) para este cultivar
     const bagsPend = LOTS.filter(l => l.cultivar === c.cultivar && l.ranking === 'X')
@@ -1275,21 +1290,26 @@ function filterCultivares() {
           <!-- Aprovação -->
           <div style="background:var(--bg3);border:1px solid var(--borda);border-radius:8px;padding:10px 12px;">
             <div style="font-size:0.6rem;font-weight:600;color:var(--texto2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Lotes</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;text-align:center;">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;text-align:center;">
               <div>
-                <div style="font-size:1.05rem;font-weight:800;font-family:'Inter',sans-serif;color:var(--excelente);">${aprov}</div>
-                <div style="font-size:0.58rem;color:var(--excelente);">Aprovados</div>
-                ${aprov>0 && bagsAprov>0 ? `<div style="font-size:0.62rem;font-weight:700;color:var(--excelente);margin-top:2px;">${bagsAprov.toLocaleString('pt-BR')} bags</div>` : ''}
+                <div style="font-size:1.0rem;font-weight:800;font-family:'Inter',sans-serif;color:var(--excelente);">${aprov}</div>
+                <div style="font-size:0.55rem;color:var(--excelente);">Aprovados</div>
+                ${aprov>0 && bagsAprov>0 ? `<div style="font-size:0.6rem;font-weight:700;color:var(--excelente);margin-top:2px;">${bagsAprov.toLocaleString('pt-BR')} bags</div>` : ''}
               </div>
               <div>
-                <div style="font-size:1.05rem;font-weight:800;font-family:'Inter',sans-serif;color:${reprov>0?'var(--critico)':'var(--texto2)'};">${reprov}</div>
-                <div style="font-size:0.58rem;color:${reprov>0?'var(--critico)':'var(--texto2)'};">Reprovados</div>
-                ${reprov>0 && bagsReprov>0 ? `<div style="font-size:0.62rem;font-weight:700;color:var(--critico);margin-top:2px;">${bagsReprov.toLocaleString('pt-BR')} bags</div>` : ''}
+                <div style="font-size:1.0rem;font-weight:800;font-family:'Inter',sans-serif;color:${cond>0?'#D97706':'var(--texto2)'};">${cond}</div>
+                <div style="font-size:0.55rem;color:${cond>0?'#D97706':'var(--texto2)'};">Condicionais</div>
+                ${cond>0 && bagsCond>0 ? `<div style="font-size:0.6rem;font-weight:700;color:#D97706;margin-top:2px;">${bagsCond.toLocaleString('pt-BR')} bags</div>` : ''}
               </div>
               <div>
-                <div style="font-size:1.05rem;font-weight:800;font-family:'Inter',sans-serif;color:var(--texto2);">${c.rank_X}</div>
-                <div style="font-size:0.58rem;color:var(--texto2);">Pendentes</div>
-                ${c.rank_X>0 && bagsPend>0 ? `<div style="font-size:0.62rem;font-weight:700;color:var(--texto2);margin-top:2px;">${bagsPend.toLocaleString('pt-BR')} bags</div>` : ''}
+                <div style="font-size:1.0rem;font-weight:800;font-family:'Inter',sans-serif;color:${reprov>0?'var(--critico)':'var(--texto2)'};">${reprov}</div>
+                <div style="font-size:0.55rem;color:${reprov>0?'var(--critico)':'var(--texto2)'};">Reprovados</div>
+                ${reprov>0 && bagsReprov>0 ? `<div style="font-size:0.6rem;font-weight:700;color:var(--critico);margin-top:2px;">${bagsReprov.toLocaleString('pt-BR')} bags</div>` : ''}
+              </div>
+              <div>
+                <div style="font-size:1.0rem;font-weight:800;font-family:'Inter',sans-serif;color:var(--texto2);">${c.rank_X}</div>
+                <div style="font-size:0.55rem;color:var(--texto2);">Pendentes</div>
+                ${c.rank_X>0 && bagsPend>0 ? `<div style="font-size:0.6rem;font-weight:700;color:var(--texto2);margin-top:2px;">${bagsPend.toLocaleString('pt-BR')} bags</div>` : ''}
               </div>
             </div>
           </div>
@@ -1366,7 +1386,7 @@ function renderLoteTable() {
       <td class="num" style="color:${colorGerm(l.germ)}">${fmt(l.germ)}</td>
       <td class="num" style="color:${colorVigor(l.vigor)}">${fmt(l.vigor)}</td>
       <td class="num col-hide-mobile">${l.kg.toLocaleString('pt-BR')}</td>
-      <td><span class="rank-badge rank-${l.ranking}">${l.ranking} — ${l.status}</span></td>
+      <td><span class="rank-badge rank-${l.ranking}">${l.ranking === 'C' ? 'C — Condicional' : l.ranking + ' — ' + l.status}</span></td>
     </tr>
   `).join('');
 }
@@ -1476,14 +1496,14 @@ buildRanking();
   <span><b style="color:#64748B;">Germ. RP:</b>
     <span style="color:#16A34A;font-weight:600;">A≥95%</span> &nbsp;
     <span style="color:#2563EB;font-weight:600;">B 85–94%</span> &nbsp;
-    <span style="color:#D97706;font-weight:600;">C 80–84%</span> &nbsp;
+    <span style="color:#D97706;font-weight:600;">C 80–84% (Cond.)</span> &nbsp;
     <span style="color:#DC2626;font-weight:600;">D&lt;80%</span>
   </span>
   <span class="footer-spacer" style="color:#E2E8F0;">·</span>
   <span><b style="color:#64748B;">Vigor E.A.:</b>
     <span style="color:#16A34A;font-weight:600;">A≥95%</span> &nbsp;
     <span style="color:#2563EB;font-weight:600;">B 85–94%</span> &nbsp;
-    <span style="color:#D97706;font-weight:600;">C 80–84%</span> &nbsp;
+    <span style="color:#D97706;font-weight:600;">C 80–84% (Cond.)</span> &nbsp;
     <span style="color:#DC2626;font-weight:600;">D&lt;80%</span>
   </span>
   <span class="footer-spacer" style="color:#E2E8F0;">·</span>
