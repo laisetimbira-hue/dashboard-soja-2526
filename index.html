@@ -503,8 +503,250 @@
     .header-stats { display: none; }
   }
 </style>
+
+<!-- ========== LOGIN STYLES ========== -->
+<style>
+  #login-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: linear-gradient(135deg, #0a0f1e 0%, #0f172a 50%, #0d1a2e 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', sans-serif;
+  }
+
+  #login-screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(37,99,235,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(16,163,74,0.08) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .login-box {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    margin: 20px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 48px 40px 40px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+  }
+
+  .login-badge {
+    display: inline-block;
+    background: rgba(37,99,235,0.15);
+    border: 1px solid rgba(37,99,235,0.3);
+    color: #60A5FA;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+
+  .login-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #F1F5F9;
+    line-height: 1.2;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+  }
+
+  .login-subtitle {
+    font-size: 0.78rem;
+    color: #475569;
+    margin-bottom: 36px;
+  }
+
+  .login-label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .login-input-wrap {
+    position: relative;
+    margin-bottom: 12px;
+  }
+
+  .login-input {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 14px 48px 14px 16px;
+    font-size: 0.95rem;
+    color: #F1F5F9;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+    letter-spacing: 2px;
+  }
+
+  .login-input::placeholder {
+    color: #334155;
+    letter-spacing: 0;
+  }
+
+  .login-input:focus {
+    border-color: rgba(37,99,235,0.6);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+  }
+
+  .login-input.error {
+    border-color: rgba(220,38,38,0.6);
+    box-shadow: 0 0 0 3px rgba(220,38,38,0.1);
+    animation: shake 0.4s ease;
+  }
+
+  @keyframes shake {
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-6px)}
+    40%{transform:translateX(6px)}
+    60%{transform:translateX(-4px)}
+    80%{transform:translateX(4px)}
+  }
+
+  .toggle-pw {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #475569;
+    font-size: 1rem;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s;
+  }
+  .toggle-pw:hover { color: #94A3B8; }
+
+  .login-error {
+    display: none;
+    background: rgba(220,38,38,0.1);
+    border: 1px solid rgba(220,38,38,0.25);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.75rem;
+    color: #FCA5A5;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .login-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #1D4ED8, #2563EB);
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    letter-spacing: 0.3px;
+    margin-top: 4px;
+  }
+
+  .login-btn:hover { opacity: 0.9; }
+  .login-btn:active { transform: scale(0.98); }
+
+  .login-footer {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 0.63rem;
+    color: #1E293B;
+    text-align: center;
+  }
+
+  /* Hide dashboard while on login */
+  body.locked > *:not(#login-screen) {
+    visibility: hidden;
+    pointer-events: none;
+  }
+</style>
 </head>
-<body>
+<body class="locked">
+
+<!-- ========== LOGIN SCREEN ========== -->
+<div id="login-screen">
+  <div class="login-box">
+
+    <div class="login-badge">🌱 Acesso Restrito</div>
+    <div class="login-title">Dashboard<br>Safra Soja 25/26</div>
+    <div class="login-subtitle">Análise de Qualidade de Sementes — Campanha 2025/2026</div>
+
+    <label class="login-label" for="pw-input">Senha de acesso</label>
+    <div class="login-input-wrap">
+      <input
+        class="login-input"
+        id="pw-input"
+        type="password"
+        placeholder="Digite a senha..."
+        onkeydown="if(event.key==='Enter') doLogin()"
+        autocomplete="current-password"
+      >
+      <button class="toggle-pw" onclick="togglePw()" tabindex="-1" title="Mostrar/ocultar senha">👁</button>
+    </div>
+
+    <div class="login-error" id="login-error">❌ Senha incorreta. Tente novamente.</div>
+
+    <button class="login-btn" onclick="doLogin()">Entrar →</button>
+
+    <div class="login-footer">Uso interno · Safra Soja 25/26</div>
+  </div>
+</div>
+
+<!-- ========== LOGIN SCRIPT ========== -->
+<script>
+  const SENHA = 'soja2026';
+
+  function doLogin() {
+    const input = document.getElementById('pw-input');
+    const error = document.getElementById('login-error');
+    if (input.value === SENHA) {
+      // Acesso liberado
+      document.getElementById('login-screen').style.display = 'none';
+      document.body.classList.remove('locked');
+    } else {
+      // Acesso negado
+      input.classList.add('error');
+      error.style.display = 'block';
+      input.value = '';
+      input.focus();
+      setTimeout(() => input.classList.remove('error'), 500);
+    }
+  }
+
+  function togglePw() {
+    const input = document.getElementById('pw-input');
+    input.type = input.type === 'password' ? 'text' : 'password';
+    input.focus();
+  }
+
+  // Foca no campo ao carregar
+  window.addEventListener('load', () => document.getElementById('pw-input').focus());
+</script>
 
 <div class="tooltip" id="tooltip"></div>
 
