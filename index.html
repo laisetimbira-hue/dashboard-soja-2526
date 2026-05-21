@@ -6,6 +6,9 @@
 <title>Análise de Sementes Soja 25-26</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+  /* ============================================
+     DESIGN TOKENS
+  ============================================ */
   :root {
     --accent: #2563EB;
     --accent-light: #3B82F6;
@@ -30,114 +33,129 @@
     --pendente: #64748B;
     --pendente-bg: #F8FAFC;
     --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-    --shadow-md: 0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    --radius: 10px;
+    --header-h: 60px;
+    --tabs-h: 46px;
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  /* ============================================
+     RESET & BASE
+  ============================================ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 
   body {
     background: var(--bg);
     color: var(--texto);
     font-family: 'Inter', sans-serif;
-    min-height: 100vh;
     font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+    overflow-x: hidden;
   }
 
-  /* HEADER */
+  /* ============================================
+     HEADER — mobile-first
+  ============================================ */
   header {
     background: #0F172A;
     border-bottom: 3px solid var(--accent);
-    padding: 20px 40px;
+    padding: 0 16px;
+    height: var(--header-h);
     display: flex;
     align-items: center;
     justify-content: space-between;
     position: sticky;
     top: 0;
-    z-index: 100;
-    backdrop-filter: blur(10px);
+    z-index: 200;
   }
 
   .logo-area h1 {
-    font-family: 'Inter', sans-serif;
     font-weight: 700;
-    font-size: 1.2rem;
-    color: #FFFFFF;
+    font-size: 1rem;
+    color: #fff;
     letter-spacing: -0.3px;
+    white-space: nowrap;
   }
 
   .logo-area p {
-    font-size: 0.72rem;
-    color: #94A3B8;
-    margin-top: 2px;
+    font-size: 0.65rem;
+    color: #64748B;
+    margin-top: 1px;
+    display: none; /* hidden on mobile */
   }
 
   .header-stats {
-    display: flex;
-    gap: 40px;
+    display: none; /* hidden on mobile */
+    gap: 24px;
   }
 
   .h-stat { text-align: right; }
+  .h-stat .val { font-size: 1.1rem; font-weight: 700; color: #fff; }
+  .h-stat .lbl { font-size: 0.58rem; color: #64748B; text-transform: uppercase; letter-spacing: 1px; }
 
-  .h-stat .val {
-    font-family: 'Inter', sans-serif;
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: #FFFFFF;
-  }
-
-  .h-stat .lbl {
-    font-size: 0.62rem;
-    color: #64748B;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  /* TABS */
+  /* ============================================
+     TABS — horizontal scroll on mobile
+  ============================================ */
   .tabs {
-    display: flex;
-    gap: 0;
-    padding: 0 40px;
-    background: #FFFFFF;
+    background: #fff;
     border-bottom: 1px solid var(--borda);
     box-shadow: var(--shadow);
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    position: sticky;
+    top: var(--header-h);
+    z-index: 190;
+    padding: 0 4px;
   }
+  .tabs::-webkit-scrollbar { display: none; }
 
   .tab {
-    padding: 13px 22px;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.78rem;
+    flex: 0 0 auto;
+    padding: 13px 18px;
+    font-size: 0.8rem;
     font-weight: 600;
     color: var(--texto2);
     cursor: pointer;
     border-bottom: 2px solid transparent;
     transition: all 0.15s;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
   }
+  .tab:active { background: var(--bg3); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-  .tab:hover { color: var(--texto); background: var(--bg3); }
-  .tab.active {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
+  /* ============================================
+     MAIN CONTENT
+  ============================================ */
+  main {
+    padding: 16px;
+    max-width: 1600px;
+    margin: 0 auto;
   }
-
-  /* MAIN */
-  main { padding: 28px 40px; max-width: 1600px; margin: 0 auto; }
 
   .page { display: none; }
   .page.active { display: block; }
 
-  /* CARDS ROW */
+  /* ============================================
+     KPI GRID
+  ============================================ */
   .kpi-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
   }
 
   .kpi {
     background: var(--card);
     border: 1px solid var(--borda);
-    border-radius: 10px;
-    padding: 20px 22px;
+    border-radius: var(--radius);
+    padding: 14px 16px;
     position: relative;
     overflow: hidden;
     box-shadow: var(--shadow);
@@ -147,83 +165,87 @@
     content: '';
     position: absolute;
     top: 0; left: 0;
-    width: 4px;
-    height: 100%;
+    width: 4px; height: 100%;
     background: var(--accent);
-    border-radius: 10px 0 0 10px;
+    border-radius: var(--radius) 0 0 var(--radius);
   }
-
   .kpi.accent::after { background: var(--excelente); }
-  .kpi.warn::after { background: var(--regular); }
+  .kpi.warn::after   { background: var(--regular); }
   .kpi.danger::after { background: var(--critico); }
 
   .kpi .label {
-    font-size: 0.68rem;
+    font-size: 0.62rem;
     color: var(--texto2);
-    font-weight: 500;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 8px;
+    letter-spacing: 0.6px;
+    margin-bottom: 6px;
   }
 
   .kpi .value {
-    font-family: 'Inter', sans-serif;
-    font-size: 1.9rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--texto);
     line-height: 1;
   }
 
   .kpi .sub {
-    font-size: 0.68rem;
+    font-size: 0.62rem;
     color: var(--texto2);
-    margin-top: 5px;
+    margin-top: 4px;
   }
 
-  /* GRID 2 cols */
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-
-  /* PANEL */
+  /* ============================================
+     PANELS
+  ============================================ */
   .panel {
     background: var(--card);
     border: 1px solid var(--borda);
-    border-radius: 10px;
+    border-radius: var(--radius);
     overflow: hidden;
     box-shadow: var(--shadow);
+    margin-bottom: 12px;
   }
 
   .panel-header {
-    padding: 14px 20px;
+    padding: 12px 16px;
     border-bottom: 1px solid var(--borda);
+    background: var(--bg3);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--bg3);
+    flex-wrap: wrap;
+    gap: 4px;
   }
 
   .panel-header h3 {
-    font-family: 'Inter', sans-serif;
     font-size: 0.8rem;
     font-weight: 600;
     color: var(--texto);
-    letter-spacing: 0;
   }
 
-  .panel-body { padding: 20px; }
+  .panel-body { padding: 14px 16px; }
 
-  /* BAR CHART */
-  .bar-chart { display: flex; flex-direction: column; gap: 9px; }
+  /* ============================================
+     GRIDS — stack on mobile
+  ============================================ */
+  .grid-2 { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 12px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 12px; }
+
+  /* ============================================
+     BAR CHART
+  ============================================ */
+  .bar-chart { display: flex; flex-direction: column; gap: 8px; }
 
   .bar-row {
     display: grid;
-    grid-template-columns: 155px 1fr 72px;
+    grid-template-columns: 110px 1fr 56px;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
   }
 
   .bar-label {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     color: var(--texto2);
     text-align: right;
     white-space: nowrap;
@@ -233,11 +255,10 @@
   }
 
   .bar-track {
-    height: 22px;
+    height: 20px;
     background: var(--bg3);
     border-radius: 4px;
     overflow: hidden;
-    position: relative;
     border: 1px solid var(--borda);
   }
 
@@ -248,259 +269,248 @@
   }
 
   .bar-val {
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-weight: 600;
     color: var(--texto);
     text-align: right;
     font-variant-numeric: tabular-nums;
   }
 
-  /* RANKING BADGE */
+  /* ============================================
+     BADGES
+  ============================================ */
   .rank-badge {
     display: inline-block;
-    padding: 3px 10px;
+    padding: 2px 8px;
     border-radius: 5px;
-    font-size: 0.68rem;
+    font-size: 0.65rem;
     font-weight: 600;
-    font-family: 'Inter', sans-serif;
   }
 
   .rank-A { background: var(--excelente-bg); color: var(--excelente); border: 1px solid #BBF7D0; }
-  .rank-B { background: var(--bom-bg); color: var(--bom); border: 1px solid #BFDBFE; }
-  .rank-C { background: var(--regular-bg); color: var(--regular); border: 1px solid #FDE68A; }
-  .rank-D { background: var(--critico-bg); color: var(--critico); border: 1px solid #FECACA; }
-  .rank-X { background: var(--pendente-bg); color: var(--pendente); border: 1px solid var(--borda); }
+  .rank-B { background: var(--bom-bg);       color: var(--bom);       border: 1px solid #BFDBFE; }
+  .rank-C { background: var(--regular-bg);   color: var(--regular);   border: 1px solid #FDE68A; }
+  .rank-D { background: var(--critico-bg);   color: var(--critico);   border: 1px solid #FECACA; }
+  .rank-X { background: var(--pendente-bg);  color: var(--pendente);  border: 1px solid var(--borda); }
 
-  /* TABLE */
-  .data-table-wrap { overflow-x: auto; }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.78rem;
+  /* ============================================
+     TABLE — scrollable on mobile
+  ============================================ */
+  .data-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.74rem; }
 
   thead th {
     background: var(--bg3);
     color: var(--texto2);
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     text-transform: uppercase;
-    letter-spacing: 0.7px;
+    letter-spacing: 0.6px;
     font-weight: 600;
-    padding: 11px 14px;
+    padding: 10px 12px;
     text-align: left;
     border-bottom: 1px solid var(--borda2);
     white-space: nowrap;
     cursor: pointer;
     user-select: none;
+    position: sticky;
+    top: 0;
   }
-
   thead th:hover { color: var(--accent); }
 
-  tbody tr {
-    border-bottom: 1px solid var(--borda);
-    transition: background 0.1s;
-  }
-
+  tbody tr { border-bottom: 1px solid var(--borda); transition: background 0.1s; }
   tbody tr:hover { background: var(--bg3); }
-
-  tbody td {
-    padding: 10px 14px;
-    color: var(--texto);
-    white-space: nowrap;
-  }
+  tbody td { padding: 9px 12px; color: var(--texto); white-space: nowrap; }
 
   .num { text-align: right; font-variant-numeric: tabular-nums; }
 
-  /* GAUGE */
-  .gauge-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .gauge-item { text-align: center; }
-  .gauge-ring { width: 90px; height: 90px; margin: 0 auto 8px; }
-  .gauge-label { font-size: 0.65rem; color: var(--texto2); text-transform: uppercase; letter-spacing: 1px; }
-  .gauge-val { font-size: 1.1rem; font-weight: 700; color: var(--texto); }
-
-  /* STACKED BAR */
+  /* ============================================
+     STACKED BAR
+  ============================================ */
   .stacked-bar {
-    height: 18px;
+    height: 16px;
     display: flex;
-    border-radius: 5px;
+    border-radius: 4px;
     overflow: hidden;
-    margin-bottom: 6px;
     border: 1px solid var(--borda);
   }
-
   .sb-A { background: #16A34A; }
   .sb-B { background: #2563EB; }
   .sb-C { background: #D97706; }
   .sb-D { background: #DC2626; }
   .sb-X { background: #94A3B8; }
 
-  .legend-row {
-    display: flex;
-    gap: 14px;
-    flex-wrap: wrap;
-    font-size: 0.65rem;
-    color: var(--texto2);
-  }
-
-  .legend-item { display: flex; align-items: center; gap: 5px; }
-  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
-
-  /* FILTER BAR */
+  /* ============================================
+     FILTER BAR
+  ============================================ */
   .filter-bar {
     display: flex;
-    gap: 10px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-    align-items: center;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
   }
 
-  .filter-bar input, .filter-bar select {
+  .filter-bar input,
+  .filter-bar select {
+    width: 100%;
     background: var(--card);
     border: 1px solid var(--borda2);
-    border-radius: 7px;
+    border-radius: 8px;
     color: var(--texto);
-    padding: 8px 12px;
+    padding: 10px 12px;
     font-family: 'Inter', sans-serif;
-    font-size: 0.78rem;
+    font-size: 0.82rem;
     outline: none;
     transition: border-color 0.15s, box-shadow 0.15s;
-    box-shadow: var(--shadow);
+    -webkit-appearance: none;
   }
-
-  .filter-bar input:focus, .filter-bar select:focus {
+  .filter-bar input:focus,
+  .filter-bar select:focus {
     border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
   }
 
-  .filter-bar input { min-width: 220px; }
+  .count-badge { font-size: 0.72rem; color: var(--texto2); }
+  .count-badge span { color: var(--accent); font-weight: 700; }
 
-  .count-badge {
-    font-size: 0.72rem;
-    color: var(--texto2);
-    padding: 8px 0;
-  }
-
-  .count-badge span {
-    color: var(--accent);
-    font-weight: 700;
-  }
-
-  /* CULTIVAR CARD */
-  .cultivar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
-
-  .cultivar-card {
-    background: var(--card);
-    border: 1px solid var(--borda);
-    border-radius: 10px;
-    padding: 18px 20px;
-    transition: all 0.15s;
-    box-shadow: var(--shadow);
-  }
-
-  .cultivar-card:hover {
-    border-color: var(--accent-light);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-1px);
-  }
-
-  .cultivar-card h4 {
-    font-family: 'Inter', sans-serif;
-    font-size: 0.95rem;
-    font-weight: 700;
-    margin-bottom: 3px;
-    color: var(--texto);
-  }
-
-  .cultivar-card .kg-badge {
-    font-size: 0.68rem;
-    color: var(--texto2);
-    margin-bottom: 14px;
-    font-weight: 500;
-  }
-
-  .metric-row {
+  /* ============================================
+     CULTIVAR CARDS GRID
+  ============================================ */
+  #cultivar-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 12px;
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
-  .metric-box {
-    background: var(--bg3);
-    border: 1px solid var(--borda);
-    border-radius: 7px;
-    padding: 10px;
-  }
-
-  .metric-box .m-label {
-    font-size: 0.6rem;
-    color: var(--texto2);
-    text-transform: uppercase;
-    letter-spacing: 0.7px;
-    font-weight: 500;
-  }
-
-  .metric-box .m-val {
-    font-family: 'Inter', sans-serif;
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--texto);
-    margin-top: 2px;
-  }
-
-  .metric-box .m-val.good { color: var(--excelente); }
-  .metric-box .m-val.ok { color: var(--bom); }
-  .metric-box .m-val.warn { color: var(--regular); }
-  .metric-box .m-val.bad { color: var(--critico); }
-
-  /* progress mini */
-  .mini-progress { margin-top: 5px; height: 3px; background: var(--borda); border-radius: 2px; }
-  .mini-progress-fill { height: 100%; border-radius: 2px; background: var(--accent); }
-
-  /* scroll */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  /* ============================================
+     SCROLLBARS
+  ============================================ */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: var(--bg3); }
-  ::-webkit-scrollbar-thumb { background: var(--borda2); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb { background: var(--borda2); border-radius: 4px; }
 
-  /* Tooltip */
+  /* ============================================
+     MISC
+  ============================================ */
   .tooltip {
     position: fixed;
     background: #0F172A;
     border: 1px solid #334155;
     border-radius: 7px;
-    padding: 10px 14px;
-    font-size: 0.7rem;
+    padding: 8px 12px;
+    font-size: 0.68rem;
     color: #F1F5F9;
     pointer-events: none;
     z-index: 9999;
     display: none;
-    max-width: 200px;
+    max-width: 180px;
     box-shadow: var(--shadow-md);
   }
 
+  .legend-row { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.63rem; color: var(--texto2); }
+  .legend-item { display: flex; align-items: center; gap: 4px; }
+  .legend-dot { width: 9px; height: 9px; border-radius: 2px; }
+
   .section-title {
-    font-family: 'Inter', sans-serif;
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     font-weight: 600;
     color: var(--texto2);
     text-transform: uppercase;
-    letter-spacing: 1.2px;
-    margin-bottom: 14px;
-    padding-bottom: 8px;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
     border-bottom: 1px solid var(--borda);
   }
 
   code { font-family: 'IBM Plex Mono', monospace; }
 
-  @media (max-width: 900px) {
-    main { padding: 16px 20px; }
-    header { padding: 14px 20px; }
-    .tabs { padding: 0 20px; }
-    .kpi-grid { grid-template-columns: 1fr 1fr; }
-    .grid-2, .grid-3 { grid-template-columns: 1fr; }
-    .cultivar-grid { grid-template-columns: 1fr; }
-    .header-stats { display: none; }
+  /* ============================================
+     TABLET — 640px+
+  ============================================ */
+  @media (min-width: 640px) {
+    header { padding: 0 24px; }
+    .logo-area p { display: block; }
+    main { padding: 20px 24px; }
+    .tabs { padding: 0 12px; }
+    .kpi-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .filter-bar { flex-direction: row; flex-wrap: wrap; }
+    .filter-bar input { width: auto; min-width: 200px; flex: 1; }
+    .filter-bar select { width: auto; }
+    #cultivar-grid { grid-template-columns: repeat(2, 1fr); }
+    .bar-row { grid-template-columns: 130px 1fr 60px; }
+  }
+
+  /* ============================================
+     DESKTOP — 1024px+
+  ============================================ */
+  @media (min-width: 1024px) {
+    :root { --header-h: 68px; }
+    header { padding: 0 40px; }
+    .logo-area h1 { font-size: 1.2rem; }
+    main { padding: 28px 40px; }
+    .tabs { padding: 0 28px; }
+    .tab { padding: 14px 22px; }
+    .kpi-grid { grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 20px; }
+    .kpi { padding: 18px 20px; }
+    .kpi .value { font-size: 1.8rem; }
+    .grid-2 { grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .panel-header { padding: 14px 20px; }
+    .panel-body { padding: 18px 20px; }
+    .bar-row { grid-template-columns: 150px 1fr 68px; gap: 12px; }
+    .header-stats { display: flex; }
+    #cultivar-grid { grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 14px; }
+  }
+
+  /* ============================================
+     WIDE DESKTOP — 1280px+
+  ============================================ */
+  @media (min-width: 1280px) {
+    .bar-row { grid-template-columns: 160px 1fr 72px; }
+  }
+
+  /* ============================================
+     OVERVIEW MAIN GRID
+  ============================================ */
+  .ov-main-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  @media (min-width: 1024px) {
+    .ov-main-grid {
+      grid-template-columns: 1fr 320px;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+  }
+
+  /* ============================================
+     FOOTER RESPONSIVE
+  ============================================ */
+  footer {
+    padding: 10px 16px !important;
+    gap: 10px !important;
+    flex-wrap: wrap;
+  }
+
+  footer .footer-spacer { display: none; }
+
+  @media (min-width: 768px) {
+    footer { padding: 10px 40px !important; gap: 16px !important; }
+    footer .footer-spacer { display: inline; }
+  }
+
+  /* ============================================
+     LOTES TABLE — hide less-important cols on mobile
+  ============================================ */
+  @media (max-width: 639px) {
+    .col-hide-mobile { display: none !important; }
   }
 </style>
 
@@ -783,10 +793,10 @@
   <div class="page active" id="page-overview">
 
     <!-- KPI row -->
-    <div id="kpi-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px;"></div>
+    <div id="kpi-grid" class="kpi-grid" style="margin-bottom:16px;"></div>
 
-    <!-- Main content: table + donut side by side -->
-    <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;margin-bottom:16px;">
+    <!-- Main content: table + sidebar -->
+    <div class="ov-main-grid">
 
       <!-- Tabela de cultivares -->
       <div class="panel">
@@ -853,7 +863,7 @@
       </select>
       <div class="count-badge">Exibindo <span id="cv-count" style="color:var(--accent);font-weight:700;">—</span> cultivares</div>
     </div>
-    <div id="cultivar-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:16px;"></div>
+    <div id="cultivar-grid"></div>
   </div>
 
   <!-- LOTES PAGE -->
@@ -880,14 +890,14 @@
             <tr>
               <th onclick="sortTable('lote')">Lote</th>
               <th onclick="sortTable('cultivar')">Cultivar</th>
-              <th onclick="sortTable('categoria')">Cat.</th>
-              <th onclick="sortTable('peneira')">Pen.</th>
-              <th onclick="sortTable('umidade')" class="num">Umid. %</th>
-              <th onclick="sortTable('tz_viab')" class="num">TZ Viab.</th>
-              <th onclick="sortTable('tz_vigor')" class="num">TZ Vigor</th>
+              <th onclick="sortTable('categoria')" class="col-hide-mobile">Cat.</th>
+              <th onclick="sortTable('peneira')" class="col-hide-mobile">Pen.</th>
+              <th onclick="sortTable('umidade')" class="num col-hide-mobile">Umid. %</th>
+              <th onclick="sortTable('tz_viab')" class="num col-hide-mobile">TZ Viab.</th>
+              <th onclick="sortTable('tz_vigor')" class="num col-hide-mobile">TZ Vigor</th>
               <th onclick="sortTable('germ')" class="num">Germ. %</th>
               <th onclick="sortTable('vigor')" class="num">Vigor E.A. %</th>
-              <th onclick="sortTable('kg')" class="num">KG</th>
+              <th onclick="sortTable('kg')" class="num col-hide-mobile">KG</th>
               <th onclick="sortTable('ranking')">Ranking</th>
             </tr>
           </thead>
@@ -1340,16 +1350,16 @@ function renderLoteTable() {
   document.getElementById('lote-count').textContent = filteredLots.length;
   document.getElementById('lote-tbody').innerHTML = filteredLots.map(l => `
     <tr>
-      <td><code style="color:var(--verde-neon);font-size:0.7rem">${l.lote}</code></td>
-      <td>${l.cultivar}</td>
-      <td>${l.categoria}</td>
-      <td>${l.peneira}</td>
-      <td class="num">${l.umidade != null ? l.umidade.toFixed(2) : '—'}</td>
-      <td class="num" style="color:${colorTZ(l.tz_viab)}">${fmt(l.tz_viab)}</td>
-      <td class="num" style="color:${colorTZ(l.tz_vigor)}">${fmt(l.tz_vigor)}</td>
+      <td><code style="color:var(--accent);font-size:0.68rem;font-family:'IBM Plex Mono',monospace;">${l.lote}</code></td>
+      <td style="font-size:0.74rem;">${l.cultivar}</td>
+      <td class="col-hide-mobile">${l.categoria}</td>
+      <td class="col-hide-mobile">${l.peneira}</td>
+      <td class="num col-hide-mobile">${l.umidade != null ? l.umidade.toFixed(2) : '—'}</td>
+      <td class="num col-hide-mobile" style="color:${colorTZ(l.tz_viab)}">${fmt(l.tz_viab)}</td>
+      <td class="num col-hide-mobile" style="color:${colorTZ(l.tz_vigor)}">${fmt(l.tz_vigor)}</td>
       <td class="num" style="color:${colorGerm(l.germ)}">${fmt(l.germ)}</td>
       <td class="num" style="color:${colorVigor(l.vigor)}">${fmt(l.vigor)}</td>
-      <td class="num">${l.kg.toLocaleString('pt-BR')}</td>
+      <td class="num col-hide-mobile">${l.kg.toLocaleString('pt-BR')}</td>
       <td><span class="rank-badge rank-${l.ranking}">${l.ranking} — ${l.status}</span></td>
     </tr>
   `).join('');
@@ -1446,31 +1456,31 @@ buildLotes();
 buildRanking();
 </script>
 
-<footer style="background:#fff;border-top:1px solid #E2E8F0;padding:10px 40px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;font-size:0.62rem;color:#94A3B8;">
+<footer style="background:#fff;border-top:1px solid #E2E8F0;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:0.62rem;color:#94A3B8;">
   <span style="font-weight:700;color:#CBD5E1;text-transform:uppercase;letter-spacing:1px;">Parâmetros</span>
-  <span style="color:#E2E8F0;">·</span>
+  <span class="footer-spacer" style="color:#E2E8F0;">·</span>
   <span><b style="color:#64748B;">TZ Germ:</b>
     <span style="color:#16A34A;font-weight:600;">A≥95%</span> &nbsp;
     <span style="color:#2563EB;font-weight:600;">B 90–94%</span> &nbsp;
     <span style="color:#D97706;font-weight:600;">C≤89%</span>
   </span>
-  <span style="color:#E2E8F0;">·</span>
+  <span class="footer-spacer" style="color:#E2E8F0;">·</span>
   <span><b style="color:#64748B;">Germ. RP:</b>
     <span style="color:#16A34A;font-weight:600;">A≥95%</span> &nbsp;
     <span style="color:#2563EB;font-weight:600;">B 85–94%</span> &nbsp;
     <span style="color:#D97706;font-weight:600;">C 80–84%</span> &nbsp;
     <span style="color:#DC2626;font-weight:600;">D&lt;80%</span>
   </span>
-  <span style="color:#E2E8F0;">·</span>
+  <span class="footer-spacer" style="color:#E2E8F0;">·</span>
   <span><b style="color:#64748B;">Vigor E.A.:</b>
     <span style="color:#16A34A;font-weight:600;">A≥95%</span> &nbsp;
     <span style="color:#2563EB;font-weight:600;">B 85–94%</span> &nbsp;
     <span style="color:#D97706;font-weight:600;">C 80–84%</span> &nbsp;
     <span style="color:#DC2626;font-weight:600;">D&lt;80%</span>
   </span>
-  <span style="color:#E2E8F0;">·</span>
+  <span class="footer-spacer" style="color:#E2E8F0;">·</span>
   <span style="color:#94A3B8;">Status final = pior critério entre os três</span>
-  <span style="margin-left:auto;color:#CBD5E1;">Soja 25-26 · Análise de Sementes</span>
+  <span style="margin-left:auto;color:#CBD5E1;">Soja 25-26</span>
 </footer>
 
 </body>
