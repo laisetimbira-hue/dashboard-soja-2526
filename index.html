@@ -475,8 +475,157 @@
   }
 
   /* ============================================
-     OVERVIEW MAIN GRID
+     CULTIVAR CARD — mobile-first
   ============================================ */
+  .cv-card {
+    background: var(--card);
+    border: 1px solid var(--borda);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+
+  /* Header */
+  .cv-header {
+    background: #0F172A;
+    padding: 12px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .cv-name { font-weight: 700; font-size: 0.9rem; color: #fff; word-break: break-word; }
+  .cv-sub  { font-size: 0.6rem; color: #64748B; margin-top: 2px; }
+  .cv-pct-wrap { text-align: right; flex-shrink: 0; }
+  .cv-pct  { font-size: 1.25rem; font-weight: 800; line-height: 1; }
+  .cv-pct-label { font-size: 0.55rem; color: #64748B; }
+
+  /* Rank bar */
+  .cv-rankbar { display: flex; height: 5px; }
+
+  /* Body */
+  .cv-body { padding: 12px 14px; }
+
+  /* Metrics grid: 2x2 on mobile */
+  .cv-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .cv-metric-box {
+    background: var(--bg3);
+    border: 1px solid var(--borda);
+    border-radius: 7px;
+    padding: 8px;
+    text-align: center;
+  }
+  .cv-metric-label {
+    font-size: 0.58rem;
+    color: var(--texto2);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-weight: 500;
+  }
+  .cv-metric-val {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+
+  .cv-divider { border-top: 1px dashed var(--borda); margin-bottom: 10px; }
+
+  /* Bottom section: stacked on mobile */
+  .cv-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Lotes box */
+  .cv-lotes-box, .cv-pms-box {
+    background: var(--bg3);
+    border: 1px solid var(--borda);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .cv-box-title {
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: var(--texto2);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+  }
+
+  /* Lotes counter: 2x2 on mobile */
+  .cv-lotes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    text-align: center;
+  }
+  .cv-lote-item { padding: 4px 2px; }
+  .cv-lote-num  { font-size: 1.15rem; font-weight: 800; line-height: 1; }
+  .cv-lote-lbl  { font-size: 0.58rem; margin-top: 1px; }
+  .cv-lote-bags { font-size: 0.62rem; font-weight: 700; margin-top: 2px; }
+
+  .cv-aprov  .cv-lote-num, .cv-aprov  .cv-lote-lbl  { color: var(--excelente); }
+  .cv-aprov  .cv-lote-bags { color: var(--excelente); }
+  .cv-cond   .cv-lote-num, .cv-cond   .cv-lote-lbl  { color: #D97706; }
+  .cv-cond   .cv-lote-bags { color: #D97706; }
+  .cv-reprov .cv-lote-num, .cv-reprov .cv-lote-lbl  { color: var(--critico); }
+  .cv-reprov .cv-lote-bags { color: var(--critico); }
+  .cv-pend   .cv-lote-num, .cv-pend   .cv-lote-lbl, .cv-pend .cv-lote-bags { color: var(--texto2); }
+
+  /* PMS grid */
+  .cv-pms-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    text-align: center;
+  }
+  .cv-pms-pen { padding: 2px; }
+  .cv-pen-badge {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    border-radius: 3px;
+    padding: 1px 6px;
+    margin-bottom: 4px;
+  }
+  .cv-pen-p1 { background: #EFF6FF; color: #1D4ED8; }
+  .cv-pen-p2 { background: #F5F3FF; color: #6D28D9; }
+  .cv-pms-val  { font-size: 0.88rem; font-weight: 700; color: var(--texto); }
+  .cv-pms-bags { font-size: 0.78rem; font-weight: 700; }
+  .cv-bags-lbl { font-size: 0.6rem; font-weight: 400; color: var(--texto2); }
+
+  /* ---- TABLET 640px+ ---- */
+  @media (min-width: 640px) {
+    .cv-metrics { grid-template-columns: repeat(4, 1fr); }
+    .cv-bottom  { flex-direction: row; }
+    .cv-lotes-box { flex: 1.3; }
+    .cv-pms-box   { flex: 0.7; }
+    .cv-lotes-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  /* ---- DESKTOP 1024px+ ---- */
+  @media (min-width: 1024px) {
+    .cv-header  { padding: 14px 18px; }
+    .cv-body    { padding: 14px 18px; }
+    .cv-name    { font-size: 0.95rem; }
+    .cv-metrics { gap: 8px; margin-bottom: 12px; }
+    .cv-metric-box { padding: 10px; }
+    .cv-metric-val { font-size: 1.05rem; }
+    .cv-divider { margin-bottom: 12px; }
+    .cv-bottom  { gap: 10px; }
+    .cv-lotes-box, .cv-pms-box { padding: 10px 14px; }
+    .cv-lote-num  { font-size: 1.2rem; }
+    .cv-pms-val   { font-size: 0.9rem; }
+    .cv-pms-bags  { font-size: 0.8rem; }
+  }
+
+
   .ov-main-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -1242,22 +1391,22 @@ function filterCultivares() {
     const fn = v => v != null ? v.toFixed(1)+'g' : '—';
 
     return `
-    <div class="panel" style="overflow:hidden;">
+    <div class="cv-card">
 
       <!-- Cabeçalho -->
-      <div style="background:#0F172A;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;">
+      <div class="cv-header">
         <div>
-          <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:0.95rem;color:#fff;">${c.cultivar}</div>
-          <div style="font-size:0.62rem;color:#64748B;margin-top:2px;">${c.total_kg>0?(c.total_kg/1000).toFixed(0)+'t':''} · ${c.lotes} lotes · ${(pms.bags_total||0).toLocaleString('pt-BR')} bags</div>
+          <div class="cv-name">${c.cultivar}</div>
+          <div class="cv-sub">${c.total_kg>0?(c.total_kg/1000).toFixed(0)+'t · ':''} ${c.lotes} lotes · ${(pms.bags_total||0).toLocaleString('pt-BR')} bags</div>
         </div>
-        <div style="text-align:right;">
-          <div style="font-size:1.3rem;font-weight:800;font-family:'Inter',sans-serif;color:${apColor};">${pctAprov}%</div>
-          <div style="font-size:0.58rem;color:#64748B;">aprovados</div>
+        <div class="cv-pct-wrap">
+          <div class="cv-pct" style="color:${apColor};">${pctAprov}%</div>
+          <div class="cv-pct-label">aprovados</div>
         </div>
       </div>
 
       <!-- Barra de ranking -->
-      <div style="display:flex;height:5px;">
+      <div class="cv-rankbar">
         ${c.rank_A?`<div style="width:${barA}%;background:#16A34A;"></div>`:''}
         ${c.rank_B?`<div style="width:${barB}%;background:#2563EB;"></div>`:''}
         ${c.rank_C?`<div style="width:${barC}%;background:#D97706;"></div>`:''}
@@ -1265,68 +1414,67 @@ function filterCultivares() {
         ${c.rank_X?`<div style="width:${barX}%;background:#94A3B8;"></div>`:''}
       </div>
 
-      <div style="padding:14px 18px;">
+      <div class="cv-body">
 
-        <!-- Métricas de qualidade -->
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:12px;">
+        <!-- Métricas de qualidade: 2x2 no mobile, 4 colunas no desktop -->
+        <div class="cv-metrics">
           ${[
-            {label:'Germinação', val:c.germ_media,   color:colorGerm(c.germ_media)},
-            {label:'Vigor E.A.', val:c.vigor_media,  color:colorVigor(c.vigor_media)},
-            {label:'TZ Viab.',   val:c.tz_viab_media,color:colorTZ(c.tz_viab_media)},
+            {label:'Germinação', val:c.germ_media,    color:colorGerm(c.germ_media)},
+            {label:'Vigor E.A.', val:c.vigor_media,   color:colorVigor(c.vigor_media)},
+            {label:'TZ Viab.',   val:c.tz_viab_media, color:colorTZ(c.tz_viab_media)},
             {label:'TZ Vigor',   val:c.tz_vigor_media,color:colorTZ(c.tz_vigor_media)},
           ].map(m=>`
-            <div style="background:var(--bg3);border:1px solid var(--borda);border-radius:7px;padding:8px;text-align:center;">
-              <div style="font-size:0.58rem;color:var(--texto2);text-transform:uppercase;letter-spacing:0.5px;">${m.label}</div>
-              <div style="font-size:1rem;font-weight:700;font-family:'Inter',sans-serif;color:${m.color};margin-top:2px;">${m.val!=null?m.val+'%':'—'}</div>
+            <div class="cv-metric-box">
+              <div class="cv-metric-label">${m.label}</div>
+              <div class="cv-metric-val" style="color:${m.color};">${m.val!=null?m.val+'%':'—'}</div>
             </div>`).join('')}
         </div>
 
-        <!-- Divider -->
-        <div style="border-top:1px dashed var(--borda);margin-bottom:12px;"></div>
+        <div class="cv-divider"></div>
 
-        <!-- Lotes + PMS side by side -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <!-- Lotes: empilhados no mobile -->
+        <div class="cv-bottom">
 
-          <!-- Aprovação -->
-          <div style="background:var(--bg3);border:1px solid var(--borda);border-radius:8px;padding:10px 12px;">
-            <div style="font-size:0.6rem;font-weight:600;color:var(--texto2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Lotes</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;text-align:center;">
-              <div>
-                <div style="font-size:1.0rem;font-weight:800;font-family:'Inter',sans-serif;color:var(--excelente);">${aprov}</div>
-                <div style="font-size:0.55rem;color:var(--excelente);">Aprovados</div>
-                ${aprov>0 && bagsAprov>0 ? `<div style="font-size:0.6rem;font-weight:700;color:var(--excelente);margin-top:2px;">${bagsAprov.toLocaleString('pt-BR')} bags</div>` : ''}
+          <!-- Contadores de lotes -->
+          <div class="cv-lotes-box">
+            <div class="cv-box-title">Lotes</div>
+            <div class="cv-lotes-grid">
+              <div class="cv-lote-item cv-aprov">
+                <div class="cv-lote-num">${aprov}</div>
+                <div class="cv-lote-lbl">Aprovados</div>
+                ${aprov>0 && bagsAprov>0 ? `<div class="cv-lote-bags">${bagsAprov.toLocaleString('pt-BR')} bags</div>` : ''}
               </div>
-              <div>
-                <div style="font-size:1.0rem;font-weight:800;font-family:'Inter',sans-serif;color:${cond>0?'#D97706':'var(--texto2)'};">${cond}</div>
-                <div style="font-size:0.55rem;color:${cond>0?'#D97706':'var(--texto2)'};">Condicionais</div>
-                ${cond>0 && bagsCond>0 ? `<div style="font-size:0.6rem;font-weight:700;color:#D97706;margin-top:2px;">${bagsCond.toLocaleString('pt-BR')} bags</div>` : ''}
+              <div class="cv-lote-item cv-cond">
+                <div class="cv-lote-num">${cond}</div>
+                <div class="cv-lote-lbl">Condicionais</div>
+                ${cond>0 && bagsCond>0 ? `<div class="cv-lote-bags">${bagsCond.toLocaleString('pt-BR')} bags</div>` : ''}
               </div>
-              <div>
-                <div style="font-size:1.0rem;font-weight:800;font-family:'Inter',sans-serif;color:${reprov>0?'var(--critico)':'var(--texto2)'};">${reprov}</div>
-                <div style="font-size:0.55rem;color:${reprov>0?'var(--critico)':'var(--texto2)'};">Reprovados</div>
-                ${reprov>0 && bagsReprov>0 ? `<div style="font-size:0.6rem;font-weight:700;color:var(--critico);margin-top:2px;">${bagsReprov.toLocaleString('pt-BR')} bags</div>` : ''}
+              <div class="cv-lote-item cv-reprov">
+                <div class="cv-lote-num">${reprov}</div>
+                <div class="cv-lote-lbl">Reprovados</div>
+                ${reprov>0 && bagsReprov>0 ? `<div class="cv-lote-bags">${bagsReprov.toLocaleString('pt-BR')} bags</div>` : ''}
               </div>
-              <div>
-                <div style="font-size:1.0rem;font-weight:800;font-family:'Inter',sans-serif;color:var(--texto2);">${c.rank_X}</div>
-                <div style="font-size:0.55rem;color:var(--texto2);">Pendentes</div>
-                ${c.rank_X>0 && bagsPend>0 ? `<div style="font-size:0.6rem;font-weight:700;color:var(--texto2);margin-top:2px;">${bagsPend.toLocaleString('pt-BR')} bags</div>` : ''}
+              <div class="cv-lote-item cv-pend">
+                <div class="cv-lote-num">${c.rank_X}</div>
+                <div class="cv-lote-lbl">Pendentes</div>
+                ${c.rank_X>0 && bagsPend>0 ? `<div class="cv-lote-bags">${bagsPend.toLocaleString('pt-BR')} bags</div>` : ''}
               </div>
             </div>
           </div>
 
-          <!-- PMS e Bags -->
-          <div style="background:var(--bg3);border:1px solid var(--borda);border-radius:8px;padding:10px 12px;">
-            <div style="font-size:0.6rem;font-weight:600;color:var(--texto2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">PMS (A+B) · Bags</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
-              <div style="text-align:center;">
-                <div style="font-size:0.58rem;color:#1D4ED8;font-weight:600;background:#EFF6FF;border-radius:3px;padding:1px 4px;display:inline-block;margin-bottom:3px;">P1</div>
-                <div style="font-size:0.78rem;font-weight:700;color:var(--texto);">${fn(pms.pms_p1)}</div>
-                <div style="font-size:0.72rem;color:#1D4ED8;font-weight:700;">${(pms.bags_p1||0).toLocaleString('pt-BR')} <span style="font-size:0.58rem;font-weight:400;color:var(--texto2);">bags</span></div>
+          <!-- PMS e Bags por peneira -->
+          <div class="cv-pms-box">
+            <div class="cv-box-title">PMS (A+B) · Bags</div>
+            <div class="cv-pms-grid">
+              <div class="cv-pms-pen">
+                <span class="cv-pen-badge cv-pen-p1">P1</span>
+                <div class="cv-pms-val">${fn(pms.pms_p1)}</div>
+                <div class="cv-pms-bags" style="color:#1D4ED8;">${(pms.bags_p1||0).toLocaleString('pt-BR')} <span class="cv-bags-lbl">bags</span></div>
               </div>
-              <div style="text-align:center;">
-                <div style="font-size:0.58rem;color:#6D28D9;font-weight:600;background:#F5F3FF;border-radius:3px;padding:1px 4px;display:inline-block;margin-bottom:3px;">P2</div>
-                <div style="font-size:0.78rem;font-weight:700;color:var(--texto);">${fn(pms.pms_p2)}</div>
-                <div style="font-size:0.72rem;color:#6D28D9;font-weight:700;">${(pms.bags_p2||0).toLocaleString('pt-BR')} <span style="font-size:0.58rem;font-weight:400;color:var(--texto2);">bags</span></div>
+              <div class="cv-pms-pen">
+                <span class="cv-pen-badge cv-pen-p2">P2</span>
+                <div class="cv-pms-val">${fn(pms.pms_p2)}</div>
+                <div class="cv-pms-bags" style="color:#6D28D9;">${(pms.bags_p2||0).toLocaleString('pt-BR')} <span class="cv-bags-lbl">bags</span></div>
               </div>
             </div>
           </div>
