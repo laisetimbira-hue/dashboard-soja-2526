@@ -936,6 +936,7 @@
   <div class="tab active" onclick="showPage('overview')">Visão Geral</div>
   <div class="tab" onclick="showPage('cultivares')">Por Cultivar</div>
   <div class="tab" onclick="showPage('lotes')">Lotes Detalhados</div>
+  <div class="tab" onclick="showPage('beneficiamento')">Beneficiamento</div>
 </div>
 
 <main>
@@ -1083,6 +1084,40 @@
     </div>
   </div>
 
+  <!-- BENEFICIAMENTO PAGE -->
+  <div class="page" id="page-beneficiamento">
+
+    <!-- KPIs -->
+    <div id="benef-kpis" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px;"></div>
+
+    <!-- Tabela expansível -->
+    <div class="panel" style="margin-bottom:16px;">
+      <div class="panel-header">
+        <h3>📦 Produção por Cultivar</h3>
+        <div style="font-size:0.65rem;color:var(--texto2);">Clique no cultivar para ver detalhes por categoria e peneira</div>
+      </div>
+      <div class="data-table-wrap">
+        <table id="benef-table">
+          <thead>
+            <tr>
+              <th style="width:28px;"></th>
+              <th>Cultivar</th>
+              <th class="num">Bags P1</th>
+              <th class="num">Bags P2</th>
+              <th class="num">Total Bags</th>
+              <th class="num col-hide-mobile">KG P1</th>
+              <th class="num col-hide-mobile">KG P2</th>
+              <th class="num">Total KG</th>
+              <th class="num col-hide-mobile">Peso Médio / Bag</th>
+            </tr>
+          </thead>
+          <tbody id="benef-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
 </main>
 
 
@@ -1164,6 +1199,7 @@ function showPage(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   event.target.classList.add('active');
+  if (name === 'beneficiamento') buildBeneficiamento();
 }
 
 // ===================== OVERVIEW =====================
@@ -1622,6 +1658,160 @@ function buildRanking() {
         </div>
       </div>`).join('');
   }
+}
+
+
+// ===================== BENEFICIAMENTO DATA =====================
+const BENEF = [{"cultivar":"55I57RSF IPRO","bags_p1":287,"bags_p2":630,"bags_total":917,"kg_p1":268803,"kg_p2":721016,"kg_total":989819,"peso_medio":1088.5,"detail":[{"categoria":"C2","peneira":"P1","bags":216,"kg":205200},{"categoria":"C2","peneira":"P2","bags":464,"kg":528520},{"categoria":"S1","peneira":"P1","bags":71,"kg":63603},{"categoria":"S1","peneira":"P2","bags":166,"kg":192496}]},{"cultivar":"C2550E","bags_p1":482,"bags_p2":363,"bags_total":845,"kg_p1":362042,"kg_p2":360210,"kg_total":722252,"peso_medio":865.6,"detail":[{"categoria":"C2","peneira":"P1","bags":111,"kg":83701},{"categoria":"S1","peneira":"P1","bags":131,"kg":100699},{"categoria":"S1","peneira":"P2","bags":263,"kg":264808},{"categoria":"S2","peneira":"P1","bags":240,"kg":177642},{"categoria":"S2","peneira":"P2","bags":100,"kg":95402}]},{"cultivar":"56IX58RSF I2X","bags_p1":253,"bags_p2":450,"bags_total":703,"kg_p1":246925,"kg_p2":548571,"kg_total":795496,"peso_medio":1138.4,"detail":[{"categoria":"S1","peneira":"P1","bags":253,"kg":246925},{"categoria":"S1","peneira":"P2","bags":450,"kg":548571}]},{"cultivar":"C2530RR","bags_p1":283,"bags_p2":400,"bags_total":683,"kg_p1":225423,"kg_p2":417216,"kg_total":642639,"peso_medio":957.8,"detail":[{"categoria":"C2","peneira":"P1","bags":183,"kg":132686},{"categoria":"C2","peneira":"P2","bags":240,"kg":237878},{"categoria":"S1","peneira":"P1","bags":100,"kg":92737},{"categoria":"S1","peneira":"P2","bags":160,"kg":179338}]},{"cultivar":"C2560CE","bags_p1":196,"bags_p2":214,"bags_total":410,"kg_p1":201863,"kg_p2":262195,"kg_total":464058,"peso_medio":1136.8,"detail":[{"categoria":"C2","peneira":"P1","bags":54,"kg":58292},{"categoria":"C2","peneira":"P2","bags":94,"kg":116964},{"categoria":"S1","peneira":"P1","bags":142,"kg":143571},{"categoria":"S1","peneira":"P2","bags":120,"kg":145231}]},{"cultivar":"C2605 E","bags_p1":336,"bags_p2":60,"bags_total":396,"kg_p1":236328,"kg_p2":53700,"kg_total":290028,"peso_medio":737.2,"detail":[{"categoria":"C1","peneira":"P1","bags":336,"kg":236328},{"categoria":"C1","peneira":"P2","bags":60,"kg":53700}]},{"cultivar":"57K58RSF CE","bags_p1":176,"bags_p2":141,"bags_total":317,"kg_p1":158545,"kg_p2":151653,"kg_total":310198,"peso_medio":990.2,"detail":[{"categoria":"C2","peneira":"P1","bags":150,"kg":138220},{"categoria":"C2","peneira":"P2","bags":96,"kg":106948},{"categoria":"S1","peneira":"P1","bags":26,"kg":20325},{"categoria":"S1","peneira":"P2","bags":45,"kg":44705}]},{"cultivar":"55IX56RSF I2X","bags_p1":40,"bags_p2":272,"bags_total":312,"kg_p1":33420,"kg_p2":304192,"kg_total":337612,"peso_medio":1088.6,"detail":[{"categoria":"C1","peneira":"P1","bags":40,"kg":33420},{"categoria":"C1","peneira":"P2","bags":272,"kg":304192}]},{"cultivar":"C2575E","bags_p1":88,"bags_p2":177,"bags_total":265,"kg_p1":35737,"kg_p2":34537,"kg_total":70274,"peso_medio":341.6,"detail":[{"categoria":"C1","peneira":"P1","bags":76,"kg":24979},{"categoria":"C1","peneira":"P2","bags":169,"kg":26358},{"categoria":"S1","peneira":"P1","bags":12,"kg":10758},{"categoria":"S1","peneira":"P2","bags":8,"kg":8179}]},{"cultivar":"57K56RSF CE","bags_p1":120,"bags_p2":144,"bags_total":264,"kg_p1":101097,"kg_p2":146352,"kg_total":247449,"peso_medio":946.8,"detail":[{"categoria":"C1","peneira":"P1","bags":120,"kg":101097},{"categoria":"C1","peneira":"P2","bags":144,"kg":146352}]},{"cultivar":"57IX60RSF I2X","bags_p1":87,"bags_p2":160,"bags_total":247,"kg_p1":67710,"kg_p2":149200,"kg_total":216910,"peso_medio":880.8,"detail":[{"categoria":"S2","peneira":"P1","bags":87,"kg":67710},{"categoria":"S2","peneira":"P2","bags":160,"kg":149200}]},{"cultivar":"BMX ATIVA RR","bags_p1":105,"bags_p2":138,"bags_total":243,"kg_p1":79281,"kg_p2":132844,"kg_total":212125,"peso_medio":875.2,"detail":[{"categoria":"S2","peneira":"P1","bags":105,"kg":79281},{"categoria":"S2","peneira":"P2","bags":138,"kg":132844}]},{"cultivar":"C2535CE","bags_p1":67,"bags_p2":159,"bags_total":226,"kg_p1":55181,"kg_p2":159515,"kg_total":214696,"peso_medio":956.7,"detail":[{"categoria":"S1","peneira":"P1","bags":67,"kg":55181},{"categoria":"S1","peneira":"P2","bags":159,"kg":159515}]},{"cultivar":"50I52RSF IPRO","bags_p1":158,"bags_p2":48,"bags_total":206,"kg_p1":140069,"kg_p2":54168,"kg_total":194237,"peso_medio":949.4,"detail":[{"categoria":"S2","peneira":"P1","bags":158,"kg":140069},{"categoria":"S2","peneira":"P2","bags":48,"kg":54168}]},{"cultivar":"64IX66RSF I2X","bags_p1":120,"bags_p2":40,"bags_total":160,"kg_p1":80832,"kg_p2":37020,"kg_total":117852,"peso_medio":745.6,"detail":[{"categoria":"C2","peneira":"P1","bags":96,"kg":64704},{"categoria":"C2","peneira":"P2","bags":20,"kg":18510},{"categoria":"S1","peneira":"P1","bags":24,"kg":16128},{"categoria":"S1","peneira":"P2","bags":20,"kg":18510}]},{"cultivar":"64I61RSF IPRO","bags_p1":109,"bags_p2":32,"bags_total":141,"kg_p1":79956,"kg_p2":29664,"kg_total":109620,"peso_medio":788.8,"detail":[{"categoria":"C2","peneira":"P1","bags":109,"kg":79956},{"categoria":"C2","peneira":"P2","bags":32,"kg":29664}]},{"cultivar":"63E66RSF E","bags_p1":60,"bags_p2":60,"bags_total":120,"kg_p1":43770,"kg_p2":54990,"kg_total":98760,"peso_medio":823.0,"detail":[{"categoria":"C2","peneira":"P1","bags":60,"kg":43770},{"categoria":"C2","peneira":"P2","bags":60,"kg":54990}]},{"cultivar":"C2645CE","bags_p1":47,"bags_p2":13,"bags_total":60,"kg_p1":35861,"kg_p2":12948,"kg_total":48809,"peso_medio":840.7,"detail":[{"categoria":"C2","peneira":"P1","bags":47,"kg":35861},{"categoria":"C2","peneira":"P2","bags":13,"kg":12948}]}];
+
+// ===================== BENEFICIAMENTO =====================
+function buildBeneficiamento() {
+  const totalBags = BENEF.reduce((s,c)=>s+c.bags_total,0);
+  const totalKg   = BENEF.reduce((s,c)=>s+c.kg_total,0);
+  const totalP1   = BENEF.reduce((s,c)=>s+c.bags_p1,0);
+  const totalP2   = BENEF.reduce((s,c)=>s+c.bags_p2,0);
+
+  // KPIs
+  document.getElementById('benef-kpis').innerHTML = `
+    <div class="kpi accent" style="grid-column:1;">
+      <div class="label">Total Bags Beneficiadas</div>
+      <div class="value">${totalBags.toLocaleString('pt-BR')}</div>
+      <div class="sub">P1: ${totalP1.toLocaleString('pt-BR')} · P2: ${totalP2.toLocaleString('pt-BR')}</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Volume Total Beneficiado</div>
+      <div class="value">${(totalKg/1000000).toFixed(3).replace('.',',')} M kg</div>
+      <div class="sub">${totalKg.toLocaleString('pt-BR')} kg · ${BENEF.length} cultivares</div>
+    </div>`;
+
+  // ---- TABELA EXPANSÍVEL ----
+  const CAT_COLORS = {C1:'#7C3AED',C2:'#2563EB',S1:'#16A34A',S2:'#D97706'};
+  const CAT_BG     = {C1:'#F5F3FF',C2:'#EFF6FF',S1:'#F0FDF4',S2:'#FFFBEB'};
+  const CAT_BORDER = {C1:'#DDD6FE',C2:'#BFDBFE',S1:'#BBF7D0',S2:'#FDE68A'};
+
+  let rows = '';
+  BENEF.forEach((c, i) => {
+    const maxBags = Math.max(...BENEF.map(x=>x.bags_total));
+    const barW = (c.bags_p1/c.bags_total*100).toFixed(1);
+
+    rows += `
+      <tr class="benef-row" onclick="toggleBenef(${i})" style="cursor:pointer;">
+        <td style="text-align:center;color:var(--accent);font-size:0.8rem;user-select:none;">
+          <span id="benef-icon-${i}">▶</span>
+        </td>
+        <td style="font-weight:600;font-size:0.8rem;">${c.cultivar}</td>
+        <td class="num" style="color:#2563EB;font-weight:600;">${c.bags_p1.toLocaleString('pt-BR')}</td>
+        <td class="num" style="color:#7C3AED;font-weight:600;">${c.bags_p2.toLocaleString('pt-BR')}</td>
+        <td class="num" style="font-weight:800;color:var(--texto);">${c.bags_total.toLocaleString('pt-BR')}</td>
+        <td class="num col-hide-mobile" style="color:var(--texto2);font-size:0.75rem;">${c.kg_p1.toLocaleString('pt-BR')}</td>
+        <td class="num col-hide-mobile" style="color:var(--texto2);font-size:0.75rem;">${c.kg_p2.toLocaleString('pt-BR')}</td>
+        <td class="num" style="font-weight:700;">${(c.kg_total/1000).toFixed(1)}t</td>
+        <td class="num col-hide-mobile" style="color:var(--texto2);font-size:0.75rem;">${c.peso_medio!=null?c.peso_medio.toFixed(1)+' kg':'—'}</td>
+      </tr>
+      <tr id="benef-detail-${i}" style="display:none;background:var(--bg3);">
+        <td colspan="9" style="padding:0;">
+          <div style="padding:12px 20px 16px 44px;">
+            <div style="font-size:0.62rem;font-weight:700;color:var(--texto2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Detalhamento por Categoria e Peneira</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+              ${c.detail.map(d=>`
+                <div style="background:#fff;border:1px solid var(--borda);border-radius:8px;padding:10px 14px;min-width:120px;text-align:center;box-shadow:var(--shadow);">
+                  <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:6px;">
+                    <span style="background:${CAT_BG[d.categoria]};color:${CAT_COLORS[d.categoria]};border:1px solid ${CAT_BORDER[d.categoria]};border-radius:4px;padding:1px 7px;font-size:0.62rem;font-weight:700;">${d.categoria}</span>
+                    <span style="background:${d.peneira==='P1'?'#EFF6FF':'#F5F3FF'};color:${d.peneira==='P1'?'#2563EB':'#7C3AED'};border:1px solid ${d.peneira==='P1'?'#BFDBFE':'#DDD6FE'};border-radius:4px;padding:1px 7px;font-size:0.62rem;font-weight:700;">${d.peneira}</span>
+                  </div>
+                  <div style="font-size:1.3rem;font-weight:800;color:var(--texto);line-height:1;">${d.bags.toLocaleString('pt-BR')}</div>
+                  <div style="font-size:0.6rem;color:var(--texto2);margin-top:2px;">bags</div>
+                  <div style="font-size:0.72rem;font-weight:600;color:var(--texto2);margin-top:4px;">${(d.kg/1000).toFixed(1)}t</div>
+                </div>`).join('')}
+
+              <!-- Total card -->
+              <div style="background:#0F172A;border-radius:8px;padding:10px 14px;min-width:120px;text-align:center;">
+                <div style="font-size:0.6rem;color:#64748B;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Total</div>
+                <div style="font-size:1.3rem;font-weight:800;color:#fff;line-height:1;">${c.bags_total.toLocaleString('pt-BR')}</div>
+                <div style="font-size:0.6rem;color:#64748B;margin-top:2px;">bags</div>
+                <div style="font-size:0.72rem;font-weight:600;color:#94A3B8;margin-top:4px;">${(c.kg_total/1000).toFixed(1)}t</div>
+              </div>
+            </div>
+
+            <!-- Mini barra P1 vs P2 -->
+            <div style="margin-top:12px;max-width:400px;">
+              <div style="font-size:0.6rem;color:var(--texto2);margin-bottom:4px;display:flex;justify-content:space-between;">
+                <span style="color:#2563EB;">P1: ${c.bags_p1} bags (${(c.bags_p1/c.bags_total*100).toFixed(0)}%)</span>
+                <span style="color:#7C3AED;">P2: ${c.bags_p2} bags (${(c.bags_p2/c.bags_total*100).toFixed(0)}%)</span>
+              </div>
+              <div style="height:10px;display:flex;border-radius:5px;overflow:hidden;border:1px solid var(--borda);">
+                <div style="width:${(c.bags_p1/c.bags_total*100).toFixed(1)}%;background:#2563EB;"></div>
+                <div style="width:${(c.bags_p2/c.bags_total*100).toFixed(1)}%;background:#7C3AED;"></div>
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>`;
+  });
+
+  document.getElementById('benef-tbody').innerHTML = rows;
+
+  // ---- GRÁFICO PENEIRA ----
+  const maxBags = Math.max(...BENEF.map(c=>c.bags_total));
+  document.getElementById('benef-pen-chart').innerHTML = BENEF.map(c=>`
+    <div class="bar-row">
+      <div class="bar-label">${c.cultivar}</div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="flex:1;height:9px;background:var(--bg3);border-radius:3px;overflow:hidden;border:1px solid var(--borda);">
+            <div style="width:${(c.bags_p1/maxBags*100).toFixed(1)}%;height:100%;background:#2563EB;border-radius:2px;"></div>
+          </div>
+          <span style="font-size:0.62rem;color:#2563EB;font-weight:600;width:36px;text-align:right;">${c.bags_p1}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="flex:1;height:9px;background:var(--bg3);border-radius:3px;overflow:hidden;border:1px solid var(--borda);">
+            <div style="width:${(c.bags_p2/maxBags*100).toFixed(1)}%;height:100%;background:#7C3AED;border-radius:2px;"></div>
+          </div>
+          <span style="font-size:0.62rem;color:#7C3AED;font-weight:600;width:36px;text-align:right;">${c.bags_p2}</span>
+        </div>
+      </div>
+    </div>`).join('') +
+    `<div style="display:flex;gap:14px;margin-top:10px;font-size:0.62rem;color:var(--texto2);">
+      <span style="display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:10px;height:10px;background:#2563EB;border-radius:2px;"></span>P1</span>
+      <span style="display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:10px;height:10px;background:#7C3AED;border-radius:2px;"></span>P2</span>
+    </div>`;
+
+  // ---- GRÁFICO CATEGORIA ----
+  const allCats = ['C1','C2','S1','S2'];
+  const catColors = {C1:'#7C3AED',C2:'#2563EB',S1:'#16A34A',S2:'#D97706'};
+  const maxCatBags = Math.max(...BENEF.map(c => {
+    return Math.max(...allCats.map(cat => c.detail.filter(d=>d.categoria===cat).reduce((s,d)=>s+d.bags,0)));
+  }));
+
+  document.getElementById('benef-cat-chart').innerHTML =
+    `<div style="display:flex;flex-direction:column;gap:8px;padding:4px 0;">` +
+    BENEF.map(c => {
+      const catBags = {};
+      allCats.forEach(cat => catBags[cat] = c.detail.filter(d=>d.categoria===cat).reduce((s,d)=>s+d.bags,0));
+      const present = allCats.filter(cat=>catBags[cat]>0);
+      const total = present.reduce((s,cat)=>s+catBags[cat],0);
+      return `
+        <div style="display:grid;grid-template-columns:110px 1fr;align-items:center;gap:10px;">
+          <div style="font-size:0.65rem;color:var(--texto2);font-weight:500;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.cultivar}</div>
+          <div>
+            <div style="display:flex;height:18px;border-radius:4px;overflow:hidden;border:1px solid var(--borda);">
+              ${present.map(cat=>`<div style="width:${(catBags[cat]/total*100).toFixed(1)}%;background:${catColors[cat]};" title="${cat}: ${catBags[cat]} bags"></div>`).join('')}
+            </div>
+          </div>
+        </div>`;
+    }).join('') +
+    `</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:0.62rem;color:var(--texto2);margin-top:10px;padding:0 4px;">
+      ${allCats.map(cat=>`<span style="display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:10px;height:10px;background:${catColors[cat]};border-radius:2px;"></span>${cat}</span>`).join('')}
+    </div>`;
+}
+
+function toggleBenef(i) {
+  const detail = document.getElementById(`benef-detail-${i}`);
+  const icon   = document.getElementById(`benef-icon-${i}`);
+  const open   = detail.style.display === 'none';
+  detail.style.display = open ? 'table-row' : 'none';
+  icon.textContent = open ? '▼' : '▶';
 }
 
 
