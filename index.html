@@ -455,7 +455,7 @@
     main { padding: 28px 40px; }
     .tabs { padding: 0 28px; }
     .tab { padding: 14px 22px; }
-    .kpi-grid { grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 20px; }
+    .kpi-grid { grid-template-columns: repeat(6, 1fr); gap: 14px; margin-bottom: 20px; }
     .kpi { padding: 18px 20px; }
     .kpi .value { font-size: 1.8rem; }
     .grid-2 { grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -625,6 +625,64 @@
     .cv-pms-bags  { font-size: 0.8rem; }
   }
 
+  /* ============================================
+     GLOBAL SEARCH
+  ============================================ */
+  .global-search-wrap { display: none; }
+  .mobile-search-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 1rem;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (min-width: 768px) {
+    .global-search-wrap { display: block; }
+    .mobile-search-btn  { display: none; }
+  }
+
+  .gs-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--borda);
+    transition: background 0.1s;
+    color: var(--texto);
+  }
+  .gs-item:last-child { border-bottom: none; }
+  .gs-item:hover { background: var(--bg3); }
+  .gs-badge {
+    font-size: 0.58rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .gs-main { font-size: 0.78rem; font-weight: 600; color: var(--texto); }
+  .gs-sub  { font-size: 0.65rem; color: var(--texto2); margin-top: 1px; }
+  .gs-section {
+    padding: 6px 14px 4px;
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--borda);
+  }
+  .gs-empty { padding: 20px; text-align: center; font-size: 0.78rem; color: var(--texto2); }
 
   .ov-main-grid {
     display: grid;
@@ -916,6 +974,35 @@
     <h1>🌱 SOJA 25-26</h1>
     <p>Análise de Qualidade de Sementes — Safra 2025/2026</p>
   </div>
+
+  <!-- BUSCA GLOBAL — centro do header (desktop) -->
+  <div class="global-search-wrap" id="global-search-wrap">
+    <div style="position:relative;">
+      <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:0.85rem;color:#475569;pointer-events:none;">🔍</span>
+      <input
+        id="global-input"
+        type="text"
+        placeholder="Buscar lote ou cultivar..."
+        autocomplete="off"
+        oninput="globalSearch()"
+        onfocus="globalSearch()"
+        onkeydown="globalKeydown(event)"
+        style="width:260px;padding:8px 12px 8px 32px;background:rgba(255,255,255,0.08);
+               border:1px solid rgba(255,255,255,0.15);border-radius:8px;
+               color:#fff;font-family:'Inter',sans-serif;font-size:0.8rem;outline:none;
+               transition:all 0.2s;caret-color:#60A5FA;"
+        onfocusin="this.style.background='rgba(255,255,255,0.13)';this.style.borderColor='rgba(96,165,250,0.5)';this.style.width='320px';"
+        onfocusout="this.style.background='rgba(255,255,255,0.08)';this.style.borderColor='rgba(255,255,255,0.15)';this.style.width='260px';">
+      <!-- Dropdown resultados -->
+      <div id="global-dropdown" style="display:none;position:absolute;top:calc(100% + 8px);left:0;width:360px;
+           background:#fff;border:1px solid var(--borda);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.15);
+           z-index:9999;overflow:hidden;max-height:420px;overflow-y:auto;"></div>
+    </div>
+  </div>
+
+  <!-- Ícone busca mobile -->
+  <button class="mobile-search-btn" onclick="openMobileSearch()" title="Buscar">🔍</button>
+
   <div class="header-stats">
     <div class="h-stat">
       <div class="val" id="h-kg">—</div>
@@ -931,6 +1018,24 @@
     </div>
   </div>
 </header>
+
+<!-- BUSCA MOBILE OVERLAY -->
+<div id="mobile-search-overlay" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.5);" onclick="closeMobileSearch()"></div>
+<div id="mobile-search-panel" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;
+     background:#0F172A;padding:12px 16px;border-bottom:1px solid #1E293B;box-shadow:0 4px 20px rgba(0,0,0,0.4);">
+  <div style="display:flex;gap:8px;align-items:center;">
+    <div style="position:relative;flex:1;">
+      <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:0.85rem;color:#475569;">🔍</span>
+      <input id="mobile-global-input" type="text" placeholder="Buscar lote ou cultivar..."
+        autocomplete="off" oninput="globalSearchMobile()" onkeydown="globalKeydown(event)"
+        style="width:100%;padding:10px 12px 10px 32px;background:rgba(255,255,255,0.1);
+               border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;
+               font-family:'Inter',sans-serif;font-size:0.9rem;outline:none;caret-color:#60A5FA;">
+    </div>
+    <button onclick="closeMobileSearch()" style="background:none;border:none;color:#64748B;font-size:1.2rem;cursor:pointer;padding:4px;">✕</button>
+  </div>
+  <div id="mobile-global-dropdown" style="margin-top:8px;max-height:60vh;overflow-y:auto;border-radius:8px;overflow:hidden;"></div>
+</div>
 
 <div class="tabs">
   <div class="tab active" onclick="showPage('overview')">Visão Geral</div>
@@ -1211,6 +1316,15 @@ function buildOverview() {
 
   // KPIs
   const kpiColor = pctAprov >= 80 ? '' : pctAprov >= 60 ? 'warn' : 'danger';
+  // Best cultivar: highest approval % with at least 3 lotes and volume > 0
+  const bestCv = SUMMARY
+    .filter(c => c.lotes >= 3 && c.total_kg > 0)
+    .map(c => ({
+      ...c,
+      pctAprov: c.lotes ? Math.round((c.rank_A+c.rank_B)/c.lotes*100) : 0
+    }))
+    .sort((a,b) => b.pctAprov - a.pctAprov || b.total_kg - a.total_kg)[0];
+
   document.getElementById('kpi-grid').innerHTML = `
     <div class="kpi accent">
       <div class="label">Volume Total</div>
@@ -1236,6 +1350,13 @@ function buildOverview() {
       <div class="label">Taxa de Aprovação</div>
       <div class="value" style="font-size:1.6rem;color:${pctAprov>=80?'var(--excelente)':pctAprov>=60?'var(--regular)':'var(--critico)'}">${pctAprov}%</div>
       <div class="sub">${aprovados} apr. · ${reprovados} rep.</div>
+    </div>
+    <div class="kpi" onclick="goToCultivar('${bestCv?.cultivar||''}')"
+      style="cursor:pointer;border-color:#FDE68A;background:linear-gradient(135deg,#FFFBEB,#FEF9E7);position:relative;overflow:hidden;">
+      <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,#F59E0B,#D97706);border-radius:10px 0 0 10px;"></div>
+      <div class="label" style="color:#92400E;">⭐ Destaque da Safra</div>
+      <div class="value" style="font-size:1.1rem;color:#92400E;font-weight:800;letter-spacing:-0.5px;line-height:1.2;margin-top:2px;">${bestCv?.cultivar||'—'}</div>
+      <div class="sub" style="color:#B45309;margin-top:5px;">${bestCv?bestCv.pctAprov+'% aprov. · '+bestCv.lotes+' lotes · '+(bestCv.total_kg/1000).toFixed(0)+'t':'—'}</div>
     </div>
   `;
 
@@ -1815,6 +1936,144 @@ function toggleBenef(i) {
   icon.textContent = open ? '▼' : '▶';
 }
 
+
+// ===================== GLOBAL SEARCH =====================
+const RANK_COLOR = {A:'#16A34A',B:'#2563EB',C:'#D97706',D:'#DC2626',X:'#94A3B8'};
+const RANK_BG    = {A:'#F0FDF4',B:'#EFF6FF',C:'#FFFBEB',D:'#FEF2F2',X:'#F8FAFC'};
+
+function buildSearchResults(q) {
+  if (!q || q.length < 2) return '';
+
+  const ql = q.toLowerCase();
+
+  // Match cultivares
+  const cvMatches = SUMMARY.filter(c => c.cultivar.toLowerCase().includes(ql)).slice(0, 4);
+
+  // Match lotes
+  const lotMatches = LOTS.filter(l =>
+    l.lote.toLowerCase().includes(ql) ||
+    l.cultivar.toLowerCase().includes(ql)
+  ).slice(0, 6);
+
+  if (!cvMatches.length && !lotMatches.length) {
+    return `<div class="gs-empty">Nenhum resultado para "<b>${q}</b>"</div>`;
+  }
+
+  let html = '';
+
+  if (cvMatches.length) {
+    html += `<div class="gs-section">🌱 Cultivares</div>`;
+    html += cvMatches.map(c => {
+      const aprov = c.rank_A + c.rank_B;
+      const pct   = c.lotes ? Math.round(aprov/c.lotes*100) : 0;
+      const col   = pct===100?'#16A34A':pct>=70?'#2563EB':pct>=50?'#D97706':'#DC2626';
+      return `
+        <div class="gs-item" onclick="goToCultivar('${c.cultivar}')">
+          <span class="gs-badge" style="background:#F1F5F9;color:#475569;">CV</span>
+          <div>
+            <div class="gs-main">${c.cultivar}</div>
+            <div class="gs-sub">${c.lotes} lotes · ${c.total_kg>0?(c.total_kg/1000).toFixed(0)+'t':'—'} · <span style="color:${col};font-weight:600;">${pct}% aprovados</span></div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  if (lotMatches.length) {
+    html += `<div class="gs-section">📦 Lotes</div>`;
+    html += lotMatches.map(l => `
+      <div class="gs-item" onclick="goToLote('${l.lote}')">
+        <span class="gs-badge" style="background:${RANK_BG[l.ranking]};color:${RANK_COLOR[l.ranking]};">${l.ranking}</span>
+        <div>
+          <div class="gs-main" style="font-family:'IBM Plex Mono',monospace;">${l.lote}</div>
+          <div class="gs-sub">${l.cultivar} · ${l.peneira} · ${l.status} · ${l.bags} bags</div>
+        </div>
+      </div>`).join('');
+  }
+
+  return html;
+}
+
+function globalSearch() {
+  const q  = document.getElementById('global-input').value.trim();
+  const dd = document.getElementById('global-dropdown');
+  const html = buildSearchResults(q);
+  if (!html) { dd.style.display = 'none'; return; }
+  dd.innerHTML = html;
+  dd.style.display = 'block';
+}
+
+function globalSearchMobile() {
+  const q  = document.getElementById('mobile-global-input').value.trim();
+  const dd = document.getElementById('mobile-global-dropdown');
+  const html = buildSearchResults(q);
+  if (!html) { dd.innerHTML = ''; return; }
+  dd.innerHTML = `<div style="background:#fff;border-radius:8px;overflow:hidden;">${html}</div>`;
+}
+
+function globalKeydown(e) {
+  if (e.key === 'Escape') {
+    closeGlobalSearch();
+    closeMobileSearch();
+  }
+}
+
+function closeGlobalSearch() {
+  const dd = document.getElementById('global-dropdown');
+  if (dd) dd.style.display = 'none';
+  const inp = document.getElementById('global-input');
+  if (inp) { inp.value = ''; inp.blur(); }
+}
+
+function openMobileSearch() {
+  document.getElementById('mobile-search-panel').style.display = 'block';
+  document.getElementById('mobile-search-overlay').style.display = 'block';
+  setTimeout(() => document.getElementById('mobile-global-input').focus(), 100);
+}
+
+function closeMobileSearch() {
+  document.getElementById('mobile-search-panel').style.display = 'none';
+  document.getElementById('mobile-search-overlay').style.display = 'none';
+  document.getElementById('mobile-global-input').value = '';
+  document.getElementById('mobile-global-dropdown').innerHTML = '';
+}
+
+function goToCultivar(name) {
+  closeGlobalSearch();
+  closeMobileSearch();
+  // Switch to cultivares tab
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-cultivares').classList.add('active');
+  document.querySelectorAll('.tab')[1].classList.add('active');
+  // Set filter and render
+  document.getElementById('cv-search').value = name;
+  filterCultivares();
+  // Scroll to top
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function goToLote(lote) {
+  closeGlobalSearch();
+  closeMobileSearch();
+  // Switch to lotes tab
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-lotes').classList.add('active');
+  document.querySelectorAll('.tab')[2].classList.add('active');
+  // Set filter and render
+  document.getElementById('lote-search').value = lote;
+  filterLotes();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('global-search-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    const dd = document.getElementById('global-dropdown');
+    if (dd) dd.style.display = 'none';
+  }
+});
 
 // ===================== INIT =====================
 buildOverview();
