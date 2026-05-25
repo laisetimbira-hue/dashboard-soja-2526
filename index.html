@@ -1072,9 +1072,9 @@
 
 <div class="tabs">
   <div class="tab active" onclick="showPage('overview')">Visão Geral</div>
+  <div class="tab" onclick="showPage('beneficiamento')">Beneficiamento</div>
   <div class="tab" onclick="showPage('cultivares')">Por Cultivar</div>
   <div class="tab" onclick="showPage('lotes')">Lotes Detalhados</div>
-  <div class="tab" onclick="showPage('beneficiamento')">Beneficiamento</div>
 </div>
 
 <main>
@@ -2073,27 +2073,22 @@ function closeMobileSearch() {
 function goToCultivar(name) {
   closeGlobalSearch();
   closeMobileSearch();
-  // Switch to cultivares tab
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('page-cultivares').classList.add('active');
-  document.querySelectorAll('.tab')[1].classList.add('active');
-  // Set filter and render
+  document.querySelectorAll('.tab')[2].classList.add('active');
   document.getElementById('cv-search').value = name;
   filterCultivares();
-  // Scroll to top
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
 function goToLote(lote) {
   closeGlobalSearch();
   closeMobileSearch();
-  // Switch to lotes tab
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('page-lotes').classList.add('active');
-  document.querySelectorAll('.tab')[2].classList.add('active');
-  // Set filter and render
+  document.querySelectorAll('.tab')[3].classList.add('active');
   document.getElementById('lote-search').value = lote;
   filterLotes();
   window.scrollTo({top:0, behavior:'smooth'});
