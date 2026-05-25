@@ -1881,7 +1881,9 @@ function filterBenef() {
             <div style="font-size:0.9rem;font-weight:700;color:var(--texto);">${(c.kg_total/1000).toFixed(1)}t</div>
           </div>
           <!-- Ícone expand -->
-          <div id="benef-icon-${i}" style="font-size:0.75rem;color:var(--accent);font-weight:700;width:20px;text-align:center;">▶</div>
+          <div id="benef-icon-${i}" style="color:var(--accent);width:20px;text-align:center;flex-shrink:0;transition:transform 0.2s;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </div>
         </div>
       </div>
 
@@ -1966,7 +1968,7 @@ function toggleBenef(i) {
   const icon   = document.getElementById(`benef-icon-${i}`);
   const open   = detail.style.display === 'none';
   detail.style.display = open ? 'block' : 'none';
-  icon.textContent = open ? '▼' : '▶';
+  icon.style.transform = open ? 'rotate(90deg)' : 'rotate(0deg)';
 }
 
 
