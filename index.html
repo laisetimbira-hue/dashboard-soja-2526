@@ -2,7 +2,9 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Análise de Sementes Soja 25-26</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -46,7 +48,7 @@
   ============================================ */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 0; }
 
   body {
     background: var(--bg);
@@ -56,6 +58,8 @@
     line-height: 1.5;
     min-height: 100vh;
     overflow-x: hidden;
+    /* Garante que começa no topo */
+    scroll-behavior: auto;
   }
 
   /* ============================================
@@ -65,13 +69,17 @@
     background: #0F172A;
     border-bottom: 3px solid var(--accent);
     padding: 0 16px;
-    height: var(--header-h);
+    min-height: 56px;
+    height: auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 10px;
     position: sticky;
     top: 0;
     z-index: 200;
+    -webkit-position: sticky;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
 
   .logo-area h1 {
@@ -109,8 +117,9 @@
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    position: -webkit-sticky;
     position: sticky;
-    top: var(--header-h);
+    top: 59px;
     z-index: 190;
     padding: 0 4px;
   }
@@ -899,6 +908,12 @@
   }
 
   /* Hide dashboard while on login */
+  body.locked {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    top: 0;
+  }
   body.locked > *:not(#login-screen) {
     visibility: hidden;
     pointer-events: none;
@@ -949,9 +964,14 @@
     const input = document.getElementById('pw-input');
     const error = document.getElementById('login-error');
     if (input.value === SENHA) {
-      // Acesso liberado
       document.getElementById('login-screen').style.display = 'none';
       document.body.classList.remove('locked');
+      // Força scroll para o topo imediatamente após login
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      setTimeout(() => window.scrollTo(0, 0), 50);
+      setTimeout(() => window.scrollTo(0, 0), 150);
     } else {
       // Acesso negado
       input.classList.add('error');
