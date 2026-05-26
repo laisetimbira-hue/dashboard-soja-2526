@@ -7,6 +7,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Análise de Sementes Soja 25-26</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
   /* ============================================
      DESIGN TOKENS
@@ -635,6 +638,50 @@
   }
 
   /* ============================================
+     MAPA DE CAMPOS
+  ============================================ */
+  #map-container { z-index: 1; }
+  .leaflet-container { font-family: 'Inter', sans-serif !important; }
+  .leaflet-popup-content-wrapper {
+    border-radius: 12px !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18) !important;
+    padding: 0 !important;
+    overflow: hidden;
+    border: none !important;
+  }
+  .leaflet-popup-content { margin: 0 !important; width: auto !important; min-width: 280px; max-width: 340px; }
+  .leaflet-popup-tip-container { display: none; }
+  .leaflet-popup-close-button {
+    top: 10px !important; right: 12px !important;
+    color: #94A3B8 !important; font-size: 18px !important;
+    z-index: 10;
+  }
+
+  .mapa-select {
+    background: #fff;
+    border: 1px solid var(--borda2);
+    border-radius: 7px;
+    color: var(--texto);
+    padding: 8px 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    outline: none;
+    transition: border-color 0.15s;
+    -webkit-appearance: none;
+  }
+  .mapa-select:focus { border-color: var(--accent); }
+
+  #page-mapa.drag-over { outline: 3px dashed var(--accent); outline-offset: -8px; }
+
+  @media (min-width: 640px) {
+    #mapa-kpis { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 1024px) {
+    #mapa-kpis { grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    #map-container { height: 560px; }
+  }
+
+  /* ============================================
      GLOBAL SEARCH
   ============================================ */
   .global-search-wrap { display: none; }
@@ -1072,6 +1119,7 @@
 
 <div class="tabs">
   <div class="tab active" onclick="showPage('overview')">Visão Geral</div>
+  <div class="tab" onclick="requestMapaAccess()">Mapa de Campos</div>
   <div class="tab" onclick="showPage('beneficiamento')">Beneficiamento</div>
   <div class="tab" onclick="showPage('cultivares')">Por Cultivar</div>
   <div class="tab" onclick="showPage('lotes')">Lotes Detalhados</div>
@@ -1241,6 +1289,54 @@
 
   </div>
 
+  <!-- MAPA DE CAMPOS PAGE -->
+  <div class="page" id="page-mapa">
+
+    <!-- Filtros bar -->
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px;">
+      <select id="mapa-filter-cultivar" onchange="applyMapaFilters()" class="mapa-select">
+        <option value="">Todos os cultivares</option>
+      </select>
+      <select id="mapa-filter-municipio" onchange="applyMapaFilters()" class="mapa-select">
+        <option value="">Todos os municípios</option>
+      </select>
+      <select id="mapa-filter-safra" onchange="applyMapaFilters()" class="mapa-select">
+        <option value="">Todas as safras</option>
+      </select>
+      <select id="mapa-filter-status" onchange="applyMapaFilters()" class="mapa-select">
+        <option value="">Todos os status</option>
+        <option value="Aprovado">Aprovado</option>
+        <option value="Inscrito">Inscrito</option>
+        <option value="Cancelado">Cancelado</option>
+        <option value="Denegado">Denegado</option>
+      </select>
+      <div id="csv-status" style="font-size:0.72rem;color:var(--texto2);margin-left:4px;"></div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div id="mapa-kpis" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;"></div>
+
+    <!-- Mapa -->
+    <div class="panel" style="overflow:hidden;position:relative;margin-bottom:12px;">
+      <div id="map-container" style="height:500px;width:100%;"></div>
+      <!-- Legenda -->
+      <div style="position:absolute;bottom:16px;left:16px;z-index:999;background:rgba(255,255,255,0.96);
+           border:1px solid var(--borda);border-radius:8px;padding:10px 14px;box-shadow:var(--shadow-md);font-size:0.68rem;pointer-events:none;">
+        <div style="font-weight:700;color:var(--texto);margin-bottom:6px;font-size:0.7rem;">Status SIGEF</div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;align-items:center;gap:7px;"><div style="width:11px;height:11px;border-radius:50%;background:#16A34A;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></div>Aprovado</div>
+          <div style="display:flex;align-items:center;gap:7px;"><div style="width:11px;height:11px;border-radius:50%;background:#2563EB;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></div>Inscrito</div>
+          <div style="display:flex;align-items:center;gap:7px;"><div style="width:11px;height:11px;border-radius:50%;background:#DC2626;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></div>Cancelado/Denegado</div>
+          <div style="display:flex;align-items:center;gap:7px;"><div style="width:11px;height:11px;border-radius:50%;background:#94A3B8;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></div>Sem status</div>
+        </div>
+      </div>
+      <!-- Contador -->
+      <div id="mapa-count" style="position:absolute;top:12px;left:12px;z-index:999;background:rgba(15,23,42,0.85);
+           color:#fff;border-radius:7px;padding:6px 12px;font-size:0.72rem;font-weight:600;pointer-events:none;backdrop-filter:blur(4px);"></div>
+    </div>
+
+  </div>
+
 </main>
 
 
@@ -1321,6 +1417,12 @@ function showPage(name) {
   document.getElementById('page-' + name).classList.add('active');
   event.target.classList.add('active');
   if (name === 'beneficiamento') buildBeneficiamento();
+  if (name === 'mapa') {
+    setTimeout(() => {
+      initMapa();
+      mapaMap && mapaMap.invalidateSize();
+    }, 80);
+  }
 }
 
 // ===================== OVERVIEW =====================
@@ -1972,61 +2074,226 @@ function toggleBenef(i) {
 }
 
 
-// ===================== GLOBAL SEARCH =====================
-const RANK_COLOR = {A:'#16A34A',B:'#2563EB',C:'#D97706',D:'#DC2626',X:'#94A3B8'};
-const RANK_BG    = {A:'#F0FDF4',B:'#EFF6FF',C:'#FFFBEB',D:'#FEF2F2',X:'#F8FAFC'};
+// ===================== MAPA DE CAMPOS =====================
+let mapaMap = null;
+let mapaMarkers = [];
+let mapaFiltered = [];
 
-function buildSearchResults(q) {
-  if (!q || q.length < 2) return '';
+const CAMPOS_SIGEF = [{"campo_id":"727341","numero":"PORONGOS","nome_campo":"AGRÍCOLA CERINI","produtor":"RAUL BASSO","cooperado":"JACKSON BERTICELLI CERINI","municipio":"Tio Hugo","uf":"RS","cultivar":"C2615CE","safra":"2026/2026","categoria":"C2","hectares":70.0,"latitude":-28.637056,"longitude":-52.620917,"prod_estimada_ton":280.0,"prod_bruta_ton":null,"data_plantio":"2026-02-12","data_colheita":"nan","status":"Inscrito"},{"campo_id":"730048","numero":"GIOVELLI 2645","nome_campo":"SEMENTE GIOVELLI","produtor":"RAUL BASSO","cooperado":"Regis Augusto Giovelli","municipio":"Rolador","uf":"RS","cultivar":"C2645CE","safra":"2026/2026","categoria":"C1","hectares":50.0,"latitude":-28.309278,"longitude":-54.823528,"prod_estimada_ton":200.0,"prod_bruta_ton":null,"data_plantio":"2026-02-02","data_colheita":"nan","status":"Inscrito"},{"campo_id":"730049","numero":"TARSO HOLDEFER","nome_campo":"SANTA BARBARA DO SUL","produtor":"RAUL BASSO","cooperado":"Cerenna Agroindustrial Ltda - S.L.","municipio":"Santa Bárbara do Sul","uf":"RS","cultivar":"56IX58RSF I2X","safra":"2026/2026","categoria":"S1","hectares":60.0,"latitude":-28.443472,"longitude":-53.391833,"prod_estimada_ton":224.0,"prod_bruta_ton":null,"data_plantio":"2026-01-31","data_colheita":"nan","status":"Inscrito"},{"campo_id":"730054","numero":"GIOVELLI BATALHA","nome_campo":"SEMENTE GIOVELLI","produtor":"RAUL BASSO","cooperado":"Regis Augusto Giovelli","municipio":"Rolador","uf":"RS","cultivar":"68K66RSF CE","safra":"2026/2026","categoria":"C1","hectares":30.0,"latitude":-28.258722,"longitude":-54.774944,"prod_estimada_ton":120.0,"prod_bruta_ton":null,"data_plantio":"2026-02-01","data_colheita":"nan","status":"Inscrito"},{"campo_id":"730056","numero":"CASA - BIACHINI","nome_campo":"BIACHINNI","produtor":"RAUL BASSO","cooperado":"BIACHINNI","municipio":"Entre Rios do Sul","uf":"RS","cultivar":"C2615CE","safra":"2026/2026","categoria":"C2","hectares":80.0,"latitude":-27.532444,"longitude":-52.789028,"prod_estimada_ton":320.0,"prod_bruta_ton":null,"data_plantio":"2026-03-09","data_colheita":"nan","status":"Inscrito"},{"campo_id":"706839","numero":"6S","nome_campo":"FAZENDA SANTO AMARO","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Muitos Capões","uf":"RS","cultivar":"C2575E","safra":"2025/2026","categoria":"C1","hectares":24.0,"latitude":-28.3665,"longitude":-51.150139,"prod_estimada_ton":96.0,"prod_bruta_ton":82.74,"data_plantio":"2025-11-25","data_colheita":"31/03/2026","status":"Aprovado"},{"campo_id":"706850","numero":"1","nome_campo":"FAZENDA SANTO AMARO","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Muitos Capões","uf":"RS","cultivar":"C2535CE","safra":"2025/2026","categoria":"C1","hectares":39.0,"latitude":-28.37975,"longitude":-51.083083,"prod_estimada_ton":156.0,"prod_bruta_ton":116.34,"data_plantio":"2025-11-29","data_colheita":"06/04/2026","status":"Aprovado"},{"campo_id":"706860","numero":"3","nome_campo":"FAZENDA SANTO AMARO","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Muitos Capões","uf":"RS","cultivar":"C2535CE","safra":"2025/2026","categoria":"S1","hectares":11.0,"latitude":-28.386694,"longitude":-51.083028,"prod_estimada_ton":44.0,"prod_bruta_ton":null,"data_plantio":"2025-12-20","data_colheita":"nan","status":"Inscrito"},{"campo_id":"706872","numero":"MM","nome_campo":"FAZENDA SANTO AMARO","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Muitos Capões","uf":"RS","cultivar":"C2550E","safra":"2025/2026","categoria":"C2","hectares":52.0,"latitude":-28.380722,"longitude":-51.094056,"prod_estimada_ton":208.0,"prod_bruta_ton":145.83,"data_plantio":"2025-12-19","data_colheita":"21/04/2026","status":"Aprovado"},{"campo_id":"706930","numero":"VB+9S","nome_campo":"FAZENDA SANTO AMARO","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Muitos Capões","uf":"RS","cultivar":"57K56RSF CE","safra":"2025/2026","categoria":"C1","hectares":63.0,"latitude":-28.35,"longitude":-51.149361,"prod_estimada_ton":252.0,"prod_bruta_ton":243.94,"data_plantio":"2025-12-05","data_colheita":"30/04/2026","status":"Aprovado"},{"campo_id":"706940","numero":"1S","nome_campo":"FAZENDA SANTO AMARO","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Muitos Capões","uf":"RS","cultivar":"57K56RSF CE","safra":"2025/2026","categoria":"C1","hectares":22.0,"latitude":-28.355528,"longitude":-51.142194,"prod_estimada_ton":88.0,"prod_bruta_ton":null,"data_plantio":"2025-12-03","data_colheita":"nan","status":"Inscrito"},{"campo_id":"706952","numero":"15","nome_campo":"FAZENDA SANTO AMARO","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Muitos Capões","uf":"RS","cultivar":"C2535CE","safra":"2025/2026","categoria":"S1","hectares":83.0,"latitude":-28.388333,"longitude":-51.08925,"prod_estimada_ton":332.0,"prod_bruta_ton":null,"data_plantio":"2025-11-27","data_colheita":"nan","status":"Inscrito"},{"campo_id":"706963","numero":"5","nome_campo":"FAZENDA SANTO AMARO","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Muitos Capões","uf":"RS","cultivar":"55IX56RSF I2X","safra":"2025/2026","categoria":"C1","hectares":50.0,"latitude":-28.39725,"longitude":-51.085306,"prod_estimada_ton":200.0,"prod_bruta_ton":null,"data_plantio":"2025-12-07","data_colheita":"nan","status":"Inscrito"},{"campo_id":"706979","numero":"14","nome_campo":"FAZENDA SANTO AMARO","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Muitos Capões","uf":"RS","cultivar":"55IX56RSF I2X","safra":"2025/2026","categoria":"S1","hectares":37.0,"latitude":-28.368,"longitude":-51.055917,"prod_estimada_ton":148.0,"prod_bruta_ton":null,"data_plantio":"2025-12-12","data_colheita":"nan","status":"Inscrito"},{"campo_id":"706999","numero":"17","nome_campo":"FAZENDA SANTO AMARO","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Muitos Capões","uf":"RS","cultivar":"55IX56RSF I2X","safra":"2025/2026","categoria":"S1","hectares":58.0,"latitude":-28.366694,"longitude":-51.060306,"prod_estimada_ton":232.0,"prod_bruta_ton":null,"data_plantio":"2025-12-12","data_colheita":"nan","status":"Inscrito"},{"campo_id":"707721","numero":"BOA VISTA","nome_campo":"FAZENDA SANTO AMARO","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Muitos Capões","uf":"RS","cultivar":"55IX56RSF I2X","safra":"2025/2026","categoria":"C1","hectares":54.0,"latitude":-28.354194,"longitude":-51.132528,"prod_estimada_ton":216.0,"prod_bruta_ton":200.44,"data_plantio":"2025-12-01","data_colheita":"22/04/2026","status":"Aprovado"},{"campo_id":"709314","numero":"DIREITA","nome_campo":"FAZENDA ESMERALDA","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Esmeralda","uf":"RS","cultivar":"55I57RSF IPRO","safra":"2025/2026","categoria":"C2","hectares":160.0,"latitude":-28.062556,"longitude":-51.147028,"prod_estimada_ton":640.0,"prod_bruta_ton":null,"data_plantio":"2025-12-15","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709455","numero":"SUZIN DIREITA","nome_campo":"FAZENDA ESMERALDA","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Esmeralda","uf":"RS","cultivar":"56IX58RSF I2X","safra":"2025/2026","categoria":"S1","hectares":125.0,"latitude":-28.123056,"longitude":-51.126944,"prod_estimada_ton":500.0,"prod_bruta_ton":null,"data_plantio":"2025-12-02","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709468","numero":"SEDE 2 DIR. C1","nome_campo":"FAZENDA ESMERALDA","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Esmeralda","uf":"RS","cultivar":"C2575E","safra":"2025/2026","categoria":"C1","hectares":50.0,"latitude":-28.132222,"longitude":-51.155556,"prod_estimada_ton":200.0,"prod_bruta_ton":null,"data_plantio":"2025-12-06","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709475","numero":"SEDE 2 DIR S1","nome_campo":"FAZENDA ESMERALDA","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Esmeralda","uf":"RS","cultivar":"C2575E","safra":"2025/2026","categoria":"S1","hectares":150.0,"latitude":-28.128889,"longitude":-51.151111,"prod_estimada_ton":600.0,"prod_bruta_ton":null,"data_plantio":"2025-12-06","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709479","numero":"SEDE 1","nome_campo":"FAZENDA ESMERALDA","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Esmeralda","uf":"RS","cultivar":"C2550E","safra":"2025/2026","categoria":"S2","hectares":99.0,"latitude":-28.122111,"longitude":-51.144944,"prod_estimada_ton":396.0,"prod_bruta_ton":null,"data_plantio":"2025-12-10","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709481","numero":"CAMÉLIA","nome_campo":"FAZENDA ESMERALDA","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Esmeralda","uf":"RS","cultivar":"C2550E","safra":"2025/2026","categoria":"S2","hectares":81.0,"latitude":-28.136472,"longitude":-51.142306,"prod_estimada_ton":324.0,"prod_bruta_ton":null,"data_plantio":"2025-12-10","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709488","numero":"PEZÃO 1","nome_campo":"FAZENDA ESMERALDA","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Esperança do Sul","uf":"RS","cultivar":"56IX58RSF I2X","safra":"2025/2026","categoria":"S1","hectares":252.0,"latitude":-28.130556,"longitude":-51.125,"prod_estimada_ton":1008.0,"prod_bruta_ton":null,"data_plantio":"2025-12-26","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709496","numero":"GELSON P","nome_campo":"FAZENDA ESMERALDA","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Esmeralda","uf":"RS","cultivar":"C2530RR","safra":"2025/2026","categoria":"C2","hectares":70.0,"latitude":-28.110278,"longitude":-51.209722,"prod_estimada_ton":280.0,"prod_bruta_ton":208.54,"data_plantio":"2025-12-10","data_colheita":"19/03/2026","status":"Aprovado"},{"campo_id":"709502","numero":"GUAMIRIM","nome_campo":"FAZENDA ESMERALDA","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Esmeralda","uf":"RS","cultivar":"C2550E","safra":"2025/2026","categoria":"S2","hectares":78.0,"latitude":-28.166389,"longitude":-51.156944,"prod_estimada_ton":312.0,"prod_bruta_ton":null,"data_plantio":"2025-11-24","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709556","numero":"CERENNA","nome_campo":"PINHEIRO MARCADO","produtor":"RAUL BASSO","cooperado":"Cerenna Agroindustrial Ltda - S.L.","municipio":"Saldanha Marinho","uf":"RS","cultivar":"57IX60RSF I2X","safra":"2025/2026","categoria":"S2","hectares":94.0,"latitude":-28.311722,"longitude":-53.050556,"prod_estimada_ton":376.0,"prod_bruta_ton":null,"data_plantio":"2025-11-30","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709563","numero":"LEONIR PAGLIARINI","nome_campo":"PINHEIRO MARCADO","produtor":"RAUL BASSO","cooperado":"Cerenna Agroindustrial Ltda - S.L.","municipio":"Carazinho","uf":"RS","cultivar":"57IX60RSF I2X","safra":"2025/2026","categoria":"S2","hectares":20.0,"latitude":-28.326722,"longitude":-53.059,"prod_estimada_ton":80.0,"prod_bruta_ton":null,"data_plantio":"2025-11-29","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709566","numero":"ALVINA KNOPP","nome_campo":"FAZ. DAS AMORAS","produtor":"RAUL BASSO","cooperado":"Cerenna Agroindustrial Ltda - S.L.","municipio":"Almirante Tamandaré do Sul","uf":"RS","cultivar":"BMX ATIVA RR","safra":"2025/2026","categoria":"S2","hectares":58.0,"latitude":-28.216,"longitude":-52.850528,"prod_estimada_ton":232.0,"prod_bruta_ton":null,"data_plantio":"2025-11-30","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709569","numero":"MARCIO DANIELLI","nome_campo":"LOC. RODEIO BONITO","produtor":"RAUL BASSO","cooperado":"Cerenna Agroindustrial Ltda - S.L.","municipio":"Santo Antônio do Planalto","uf":"RS","cultivar":"BMX ATIVA RR","safra":"2025/2026","categoria":"S2","hectares":25.0,"latitude":-28.390333,"longitude":-52.760472,"prod_estimada_ton":100.0,"prod_bruta_ton":null,"data_plantio":"2025-11-30","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709571","numero":"MARCIO DANIELLI 2","nome_campo":"LOC. RODEIO BONITO","produtor":"RAUL BASSO","cooperado":"Cerenna Agroindustrial Ltda - S.L.","municipio":"Santo Antônio do Planalto","uf":"RS","cultivar":"BMX ATIVA RR","safra":"2025/2026","categoria":"S2","hectares":26.0,"latitude":-28.387667,"longitude":-52.750889,"prod_estimada_ton":104.0,"prod_bruta_ton":null,"data_plantio":"2025-11-30","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709576","numero":"CERENNA C2506E","nome_campo":"PINHEIRO MARCADO","produtor":"RAUL BASSO","cooperado":"Cerenna Agroindustrial Ltda - Giac.","municipio":"Saldanha Marinho","uf":"RS","cultivar":"C2605E","safra":"2025/2026","categoria":"C1","hectares":100.0,"latitude":-28.358778,"longitude":-53.099389,"prod_estimada_ton":400.0,"prod_bruta_ton":null,"data_plantio":"2025-11-23","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709583","numero":"CERENNA C2600","nome_campo":"PINHEIRO MARCADO","produtor":"RAUL BASSO","cooperado":"Cerenna Agroindustrial Ltda - S.L.","municipio":"Carazinho","uf":"RS","cultivar":"C2600IPRO","safra":"2025/2026","categoria":"C2","hectares":75.0,"latitude":-28.313639,"longitude":-53.029306,"prod_estimada_ton":300.0,"prod_bruta_ton":null,"data_plantio":"2025-12-13","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709586","numero":"ALVARO ADAMY","nome_campo":"PASSO DO PORTÃO","produtor":"RAUL BASSO","cooperado":"Cerenna Agroindustrial Ltda - S.L.","municipio":"Soledade","uf":"RS","cultivar":"C2600IPRO","safra":"2025/2026","categoria":"S1","hectares":100.0,"latitude":-28.700694,"longitude":-52.393111,"prod_estimada_ton":400.0,"prod_bruta_ton":null,"data_plantio":"2025-12-16","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709606","numero":"SEDE PAGANELLA","nome_campo":"FAZ. DO LEÃO","produtor":"RAUL BASSO","cooperado":"Dante Paganela","municipio":"Vacaria","uf":"RS","cultivar":"57K58RSF CE","safra":"2025/2026","categoria":"C2","hectares":60.0,"latitude":-28.191111,"longitude":-51.061667,"prod_estimada_ton":240.0,"prod_bruta_ton":null,"data_plantio":"2025-11-22","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709613","numero":"FRADE","nome_campo":"FAZ. DO LEÃO","produtor":"RAUL BASSO","cooperado":"Dante Paganela","municipio":"Esmeralda","uf":"RS","cultivar":"C2560CE","safra":"2025/2026","categoria":"C2","hectares":86.0,"latitude":-28.164444,"longitude":-51.071389,"prod_estimada_ton":344.0,"prod_bruta_ton":304.02,"data_plantio":"2025-11-29","data_colheita":"10/04/2026","status":"Aprovado"},{"campo_id":"709619","numero":"GRANJA","nome_campo":"FAZ. DO LEÃO","produtor":"RAUL BASSO","cooperado":"Dante Paganela","municipio":"Vacaria","uf":"RS","cultivar":"55I57RSF IPRO","safra":"2025/2026","categoria":"C2","hectares":78.0,"latitude":-28.196944,"longitude":-51.041667,"prod_estimada_ton":312.0,"prod_bruta_ton":245.5,"data_plantio":"2025-12-07","data_colheita":"28/04/2026","status":"Aprovado"},{"campo_id":"709636","numero":"ESCOLINHA","nome_campo":"FAZ. DO LEÃO","produtor":"RAUL BASSO","cooperado":"Dante Paganela","municipio":"Esmeralda","uf":"RS","cultivar":"C2550E","safra":"2025/2026","categoria":"C2","hectares":75.0,"latitude":-28.196111,"longitude":-51.068333,"prod_estimada_ton":300.0,"prod_bruta_ton":null,"data_plantio":"2025-12-08","data_colheita":"nan","status":"Denegado"},{"campo_id":"709641","numero":"ESCOLINHA","nome_campo":"FAZ. DO LEÃO","produtor":"RAUL BASSO","cooperado":"Dante Paganela","municipio":"Esmeralda","uf":"RS","cultivar":"C2550E","safra":"2025/2026","categoria":"C2","hectares":75.0,"latitude":-28.196111,"longitude":-51.068333,"prod_estimada_ton":300.0,"prod_bruta_ton":270.3,"data_plantio":"2025-11-30","data_colheita":"22/03/2026","status":"Aprovado"},{"campo_id":"709645","numero":"HF","nome_campo":"FAZ. DO LEÃO","produtor":"RAUL BASSO","cooperado":"Dante Paganela","municipio":"Esmeralda","uf":"RS","cultivar":"50I52RSF IPRO","safra":"2025/2026","categoria":"S2","hectares":75.0,"latitude":-28.171389,"longitude":-51.071944,"prod_estimada_ton":300.0,"prod_bruta_ton":93.67,"data_plantio":"2025-12-12","data_colheita":"25/03/2026","status":"Aprovado"},{"campo_id":"709656","numero":"PINHEIRO SECO","nome_campo":"FAZ. DO LEÃO","produtor":"RAUL BASSO","cooperado":"Dante Paganela","municipio":"Vacaria","uf":"RS","cultivar":"55I57RSF IPRO","safra":"2025/2026","categoria":"S1","hectares":40.0,"latitude":-28.161111,"longitude":-51.038333,"prod_estimada_ton":160.0,"prod_bruta_ton":135.43,"data_plantio":"2025-11-25","data_colheita":"01/04/2026","status":"Aprovado"},{"campo_id":"709662","numero":"ESTRADA","nome_campo":"FAZ. DO LEÃO","produtor":"RAUL BASSO","cooperado":"Dante Paganela","municipio":"Vacaria","uf":"RS","cultivar":"56IX58RSF I2X","safra":"2025/2026","categoria":"S1","hectares":179.0,"latitude":-28.169167,"longitude":-51.032694,"prod_estimada_ton":716.0,"prod_bruta_ton":null,"data_plantio":"2025-12-17","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709686","numero":"ESTRADA LUCAS","nome_campo":"FAZ. DO SOCORRO","produtor":"RAUL BASSO","cooperado":"FABIANO PAGANELLA","municipio":"Vacaria","uf":"RS","cultivar":"50I52RSF IPRO","safra":"2025/2026","categoria":"S2","hectares":25.0,"latitude":-28.423611,"longitude":-50.760833,"prod_estimada_ton":100.0,"prod_bruta_ton":60.63,"data_plantio":"2025-11-27","data_colheita":"21/03/2026","status":"Aprovado"},{"campo_id":"709692","numero":"ATRAS DA CASA","nome_campo":"FAZ. DO SOCORRO","produtor":"RAUL BASSO","cooperado":"FABIANO PAGANELLA","municipio":"Vacaria","uf":"RS","cultivar":"50I52RSF IPRO","safra":"2025/2026","categoria":"S2","hectares":45.0,"latitude":-28.422778,"longitude":-50.753889,"prod_estimada_ton":180.0,"prod_bruta_ton":null,"data_plantio":"2025-11-23","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709698","numero":"FRUTIROL","nome_campo":"FAZ. DO SOCORRO","produtor":"RAUL BASSO","cooperado":"FABIANO PAGANELLA","municipio":"Vacaria","uf":"RS","cultivar":"57K58RSF CE","safra":"2025/2026","categoria":"S1","hectares":32.0,"latitude":-28.432222,"longitude":-50.766667,"prod_estimada_ton":128.0,"prod_bruta_ton":null,"data_plantio":"2025-11-29","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709721","numero":"DARCI","nome_campo":"FAZ. DO SOCORRO","produtor":"RAUL BASSO","cooperado":"FABIANO PAGANELLA","municipio":"Vacaria","uf":"RS","cultivar":"57K58RSF CE","safra":"2025/2026","categoria":"S1","hectares":22.0,"latitude":-28.428889,"longitude":-50.745278,"prod_estimada_ton":88.0,"prod_bruta_ton":null,"data_plantio":"2025-11-24","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709732","numero":"SEDE FERNANDO","nome_campo":"FAZ. DO SOCORRO","produtor":"RAUL BASSO","cooperado":"FABIANO PAGANELLA","municipio":"Vacaria","uf":"RS","cultivar":"57K58RSF CE","safra":"2025/2026","categoria":"S1","hectares":28.0,"latitude":-28.4275,"longitude":-50.733889,"prod_estimada_ton":112.0,"prod_bruta_ton":null,"data_plantio":"2025-11-29","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709744","numero":"BRONCA","nome_campo":"FAZ. DO SOCORRO","produtor":"RAUL BASSO","cooperado":"FABIANO PAGANELLA","municipio":"Vacaria","uf":"RS","cultivar":"55I57RSF IPRO","safra":"2025/2026","categoria":"S1","hectares":72.0,"latitude":-28.413889,"longitude":-50.773889,"prod_estimada_ton":288.0,"prod_bruta_ton":null,"data_plantio":"2025-12-03","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709747","numero":"DIVISA FERNANDA","nome_campo":"FAZ. DO SOCORRO","produtor":"RAUL BASSO","cooperado":"FABIANO PAGANELLA","municipio":"Vacaria","uf":"RS","cultivar":"56IX58RSF I2X","safra":"2025/2026","categoria":"S1","hectares":37.0,"latitude":-28.423333,"longitude":-50.766111,"prod_estimada_ton":148.0,"prod_bruta_ton":null,"data_plantio":"2025-12-03","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709764","numero":"LEMOS SS","nome_campo":"FAZ. SÃO MARCOS","produtor":"RAUL BASSO","cooperado":"CEZAR CAUDURO","municipio":"Vacaria","uf":"RS","cultivar":"C2550E","safra":"2025/2026","categoria":"S1","hectares":55.0,"latitude":-28.139167,"longitude":-51.033611,"prod_estimada_ton":220.0,"prod_bruta_ton":null,"data_plantio":"2025-11-25","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709767","numero":"BARRO PRETO","nome_campo":"FAZ. SÃO MARCOS","produtor":"RAUL BASSO","cooperado":"CEZAR CAUDURO","municipio":"Vacaria","uf":"RS","cultivar":"C2550E","safra":"2025/2026","categoria":"S1","hectares":110.0,"latitude":-28.062778,"longitude":-50.995833,"prod_estimada_ton":440.0,"prod_bruta_ton":255.24,"data_plantio":"2025-11-16","data_colheita":"22/03/2026","status":"Aprovado"},{"campo_id":"709772","numero":"CENTO CINQUENTA CAUDURO","nome_campo":"FAZ. SÃO MARCOS","produtor":"RAUL BASSO","cooperado":"CEZAR CAUDURO","municipio":"Vacaria","uf":"RS","cultivar":"C2560CE","safra":"2025/2026","categoria":"S1","hectares":33.0,"latitude":-28.15275,"longitude":-51.03325,"prod_estimada_ton":132.0,"prod_bruta_ton":127.85,"data_plantio":"2025-12-03","data_colheita":"14/04/2026","status":"Aprovado"},{"campo_id":"709778","numero":"TAIPA","nome_campo":"FAZ. SÃO MARCOS","produtor":"RAUL BASSO","cooperado":"CEZAR CAUDURO","municipio":"Vacaria","uf":"RS","cultivar":"53IX55RSF I2X","safra":"2025/2026","categoria":"S1","hectares":65.0,"latitude":-28.116667,"longitude":-51.025,"prod_estimada_ton":260.0,"prod_bruta_ton":null,"data_plantio":"2025-12-03","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709780","numero":"ACAMPAMENTO","nome_campo":"FAZ. SÃO MARCOS","produtor":"RAUL BASSO","cooperado":"CEZAR CAUDURO","municipio":"Vacaria","uf":"RS","cultivar":"56IX58RSF I2X","safra":"2025/2026","categoria":"S1","hectares":132.0,"latitude":-28.1275,"longitude":-51.018056,"prod_estimada_ton":528.0,"prod_bruta_ton":null,"data_plantio":"2025-12-11","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709785","numero":"LAVOURA DA FRENTE","nome_campo":"FAZ. SÃO MARCOS","produtor":"RAUL BASSO","cooperado":"CEZAR CAUDURO","municipio":"Vacaria","uf":"RS","cultivar":"56IX58RSF I2X","safra":"2025/2026","categoria":"S1","hectares":105.0,"latitude":-28.153333,"longitude":-51.022222,"prod_estimada_ton":420.0,"prod_bruta_ton":null,"data_plantio":"2025-12-08","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709790","numero":"PERUQUIN","nome_campo":"FAZ. SÃO MARCOS","produtor":"RAUL BASSO","cooperado":"Alaor Scariot","municipio":"Vacaria","uf":"RS","cultivar":"50I52RSF IPRO","safra":"2025/2026","categoria":"S2","hectares":26.0,"latitude":-28.139167,"longitude":-50.966111,"prod_estimada_ton":104.0,"prod_bruta_ton":107.75,"data_plantio":"2025-11-25","data_colheita":"17/03/2026","status":"Aprovado"},{"campo_id":"709795","numero":"PERUQUIN 02","nome_campo":"FAZ. SÃO MARCOS","produtor":"RAUL BASSO","cooperado":"Alaor Scariot","municipio":"Vacaria","uf":"RS","cultivar":"50I52RSF IPRO","safra":"2025/2026","categoria":"S2","hectares":24.0,"latitude":-28.131667,"longitude":-50.965,"prod_estimada_ton":96.0,"prod_bruta_ton":116.44,"data_plantio":"2025-11-25","data_colheita":"18/03/2026","status":"Aprovado"},{"campo_id":"709798","numero":"PERUQUIN 03","nome_campo":"FAZ. SÃO MARCOS","produtor":"RAUL BASSO","cooperado":"Alaor Scariot","municipio":"Vacaria","uf":"RS","cultivar":"50I52RSF IPRO","safra":"2025/2026","categoria":"S2","hectares":28.0,"latitude":-28.124444,"longitude":-50.964444,"prod_estimada_ton":112.0,"prod_bruta_ton":null,"data_plantio":"2025-11-24","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709802","numero":"CASTELINHO","nome_campo":"FAZ. SÃO MARCOS","produtor":"RAUL BASSO","cooperado":"Alaor Scariot","municipio":"Capão Bonito do Sul","uf":"RS","cultivar":"55I57RSF IPRO","safra":"2025/2026","categoria":"S1","hectares":13.0,"latitude":-28.304167,"longitude":-51.466667,"prod_estimada_ton":52.0,"prod_bruta_ton":null,"data_plantio":"2025-11-24","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709808","numero":"ISMAEL PEDAÇEIRA 01","nome_campo":"FAZ. SÃO MARCOS","produtor":"RAUL BASSO","cooperado":"Alaor Scariot","municipio":"Capão Bonito do Sul","uf":"RS","cultivar":"55I57RSF IPRO","safra":"2025/2026","categoria":"S1","hectares":12.0,"latitude":-28.301389,"longitude":-51.445556,"prod_estimada_ton":48.0,"prod_bruta_ton":null,"data_plantio":"2025-11-25","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709812","numero":"ISMAEL PEDAÇEIRA 02","nome_campo":"FAZ. SÃO MARCOS","produtor":"RAUL BASSO","cooperado":"Alaor Scariot","municipio":"Capão Bonito do Sul","uf":"RS","cultivar":"55I57RSF IPRO","safra":"2025/2026","categoria":"S1","hectares":8.0,"latitude":-28.288056,"longitude":-51.441111,"prod_estimada_ton":32.0,"prod_bruta_ton":null,"data_plantio":"2025-11-25","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709818","numero":"ISMAEL POÇO","nome_campo":"FAZ. SÃO MARCOS","produtor":"RAUL BASSO","cooperado":"Alaor Scariot","municipio":"Capão Bonito do Sul","uf":"RS","cultivar":"55I57RSF IPRO","safra":"2025/2026","categoria":"S1","hectares":18.0,"latitude":-28.274167,"longitude":-51.439444,"prod_estimada_ton":72.0,"prod_bruta_ton":null,"data_plantio":"2025-11-27","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709830","numero":"ISMAEL 1","nome_campo":"FAZ. SÃO MARCOS","produtor":"RAUL BASSO","cooperado":"JARBAS SUTIL","municipio":"Capão Bonito do Sul","uf":"RS","cultivar":"55I57RSF IPRO","safra":"2025/2026","categoria":"S1","hectares":46.0,"latitude":-28.2725,"longitude":-51.445833,"prod_estimada_ton":184.0,"prod_bruta_ton":null,"data_plantio":"2025-11-28","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709910","numero":"ISMAEL 03","nome_campo":"FAZ. SÃO MARCOS","produtor":"RAUL BASSO","cooperado":"JARBAS SUTIL","municipio":"Capão Bonito do Sul","uf":"RS","cultivar":"55I57RSF IPRO","safra":"2025/2026","categoria":"S1","hectares":50.0,"latitude":-28.265,"longitude":-51.445833,"prod_estimada_ton":200.0,"prod_bruta_ton":null,"data_plantio":"0025-12-21","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709914","numero":"FIDELCIO","nome_campo":"FAZ. SÃO MARCOS","produtor":"RAUL BASSO","cooperado":"JARBAS SUTIL","municipio":"Lagoa Vermelha","uf":"RS","cultivar":"55I57RSF IPRO","safra":"2025/2026","categoria":"S1","hectares":27.0,"latitude":-28.304444,"longitude":-51.411111,"prod_estimada_ton":108.0,"prod_bruta_ton":null,"data_plantio":"2025-11-29","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709918","numero":"DARCI","nome_campo":"FAZ. SÃO MARCOS","produtor":"RAUL BASSO","cooperado":"JARBAS SUTIL","municipio":"Capão Bonito do Sul","uf":"RS","cultivar":"55I57RSF IPRO","safra":"2025/2026","categoria":"S1","hectares":16.0,"latitude":-28.317222,"longitude":-51.215833,"prod_estimada_ton":64.0,"prod_bruta_ton":null,"data_plantio":"2025-11-29","data_colheita":"nan","status":"Inscrito"},{"campo_id":"709937","numero":"ALHO","nome_campo":"FAZ. DO ESPETO","produtor":"RAUL BASSO","cooperado":"GILNEI RISSARDI","municipio":"Muitos Capões","uf":"RS","cultivar":"56IX58RSF I2X","safra":"2025/2026","categoria":"S1","hectares":135.0,"latitude":-28.4075,"longitude":-51.135833,"prod_estimada_ton":540.0,"prod_bruta_ton":528.09,"data_plantio":"2025-12-04","data_colheita":"23/04/2026","status":"Aprovado"},{"campo_id":"709965","numero":"220","nome_campo":"FAZ. DO ESPETO","produtor":"RAUL BASSO","cooperado":"GILNEI RISSARDI","municipio":"Muitos Capões","uf":"RS","cultivar":"C2550E","safra":"2025/2026","categoria":"S1","hectares":88.0,"latitude":-28.412778,"longitude":-51.090556,"prod_estimada_ton":372.0,"prod_bruta_ton":215.52,"data_plantio":"2025-11-27","data_colheita":"16/03/2026","status":"Aprovado"},{"campo_id":"709981","numero":"220","nome_campo":"FAZ. DO ESPETO","produtor":"RAUL BASSO","cooperado":"GILBERTO RISSARDI","municipio":"Vacaria","uf":"RS","cultivar":"C2550E","safra":"2025/2026","categoria":"S2","hectares":132.0,"latitude":-28.422972,"longitude":-51.086361,"prod_estimada_ton":528.0,"prod_bruta_ton":228.67,"data_plantio":"2025-11-27","data_colheita":"17/03/2026","status":"Aprovado"},{"campo_id":"710011","numero":"FELIPE+ELI+PONTE","nome_campo":"FAZ. DO ESPETO","produtor":"RAUL BASSO","cooperado":"GILBERTO RISSARDI","municipio":"Muitos Capões","uf":"RS","cultivar":"55I57RSF IPRO","safra":"2025/2026","categoria":"S1","hectares":115.0,"latitude":-28.404167,"longitude":-51.09,"prod_estimada_ton":460.0,"prod_bruta_ton":null,"data_plantio":"2025-11-24","data_colheita":"nan","status":"Inscrito"},{"campo_id":"710019","numero":"FRUTAL","nome_campo":"FAZ. DO ESPETO","produtor":"RAUL BASSO","cooperado":"GILBERTO RISSARDI","municipio":"Muitos Capões","uf":"RS","cultivar":"55I57RSF IPRO","safra":"2025/2026","categoria":"S1","hectares":95.0,"latitude":-28.403056,"longitude":-51.099167,"prod_estimada_ton":380.0,"prod_bruta_ton":309.66,"data_plantio":"2025-12-06","data_colheita":"20/04/2026","status":"Aprovado"},{"campo_id":"710342","numero":"PIVO CARLOS 02","nome_campo":"FAZ. TRÊS IRMÃOS","produtor":"RAUL BASSO","cooperado":"Valdinei Donato","municipio":"São Francisco de Assis","uf":"RS","cultivar":"64IX66RSF I2X","safra":"2025/2026","categoria":"C2","hectares":29.0,"latitude":-29.386028,"longitude":-55.18975,"prod_estimada_ton":116.0,"prod_bruta_ton":null,"data_plantio":"2025-11-15","data_colheita":"nan","status":"Inscrito"},{"campo_id":"710345","numero":"CARLOS SEQUEIRO","nome_campo":"FAZ. TRÊS IRMÃOS","produtor":"RAUL BASSO","cooperado":"Valdinei Donato","municipio":"São Francisco de Assis","uf":"RS","cultivar":"64IX66RSF I2X","safra":"2025/2026","categoria":"S1","hectares":35.0,"latitude":-29.389611,"longitude":-55.195917,"prod_estimada_ton":140.0,"prod_bruta_ton":null,"data_plantio":"2025-11-15","data_colheita":"nan","status":"Inscrito"},{"campo_id":"710348","numero":"BORDAS PIVO CARLOS","nome_campo":"FAZ. TRÊS IRMÃOS","produtor":"RAUL BASSO","cooperado":"Valdinei Donato","municipio":"São Francisco de Assis","uf":"RS","cultivar":"64IX66RSF I2X","safra":"2025/2026","categoria":"S1","hectares":15.0,"latitude":-29.377667,"longitude":-55.197167,"prod_estimada_ton":60.0,"prod_bruta_ton":null,"data_plantio":"2025-11-16","data_colheita":"nan","status":"Inscrito"},{"campo_id":"710358","numero":"CAMBAÍ 9","nome_campo":"Faz. Rincão da Cruz","produtor":"RAUL BASSO","cooperado":"Valdinei Donato","municipio":"São Nicolau","uf":"RS","cultivar":"64I61RSF IPRO","safra":"2025/2026","categoria":"C2","hectares":98.0,"latitude":-28.166917,"longitude":-55.265778,"prod_estimada_ton":392.0,"prod_bruta_ton":null,"data_plantio":"2025-11-20","data_colheita":"nan","status":"Inscrito"},{"campo_id":"710384","numero":"CAMBAI 12","nome_campo":"Faz. Rincão da Cruz","produtor":"RAUL BASSO","cooperado":"Valdinei Donato","municipio":"São Nicolau","uf":"RS","cultivar":"63E66RSF E","safra":"2025/2026","categoria":"C2","hectares":71.0,"latitude":-28.249472,"longitude":-55.271944,"prod_estimada_ton":284.0,"prod_bruta_ton":null,"data_plantio":"2025-11-20","data_colheita":"nan","status":"Inscrito"},{"campo_id":"710390","numero":"PIVO 29","nome_campo":"Faz. Rincão da Cruz","produtor":"RAUL BASSO","cooperado":"Valdinei Donato","municipio":"São Nicolau","uf":"RS","cultivar":"63E66RSF E","safra":"2025/2026","categoria":"C2","hectares":11.0,"latitude":-28.250361,"longitude":-55.254944,"prod_estimada_ton":44.0,"prod_bruta_ton":null,"data_plantio":"2025-11-25","data_colheita":"nan","status":"Inscrito"},{"campo_id":"710393","numero":"PIVO 18","nome_campo":"Faz. Rincão da Cruz","produtor":"RAUL BASSO","cooperado":"Valdinei Donato","municipio":"São Nicolau","uf":"RS","cultivar":"C2645CE","safra":"2025/2026","categoria":"C2","hectares":25.0,"latitude":-28.243806,"longitude":-55.254611,"prod_estimada_ton":100.0,"prod_bruta_ton":null,"data_plantio":"2025-11-24","data_colheita":"nan","status":"Inscrito"},{"campo_id":"710411","numero":"PIVÔ GUSTO E FORA","nome_campo":"Regis Augusto Giovelli","produtor":"RAUL BASSO","cooperado":"Regis Augusto Giovelli","municipio":"Rolador","uf":"RS","cultivar":"64IX62RSF I2X","safra":"2025/2026","categoria":"C2","hectares":72.0,"latitude":-28.266556,"longitude":-54.790472,"prod_estimada_ton":288.0,"prod_bruta_ton":null,"data_plantio":"2025-11-21","data_colheita":"nan","status":"Inscrito"},{"campo_id":"710424","numero":"GRANJA 1","nome_campo":"Fazenda do Lagoão","produtor":"RAUL BASSO","cooperado":"Agropecuária Fazenda do Lagoão Ltda.","municipio":"Vacaria","uf":"RS","cultivar":"55I57RSF IPRO","safra":"2025/2026","categoria":"S1","hectares":120.0,"latitude":-28.451389,"longitude":-51.095,"prod_estimada_ton":480.0,"prod_bruta_ton":437.55,"data_plantio":"2025-11-26","data_colheita":"16/04/2026","status":"Aprovado"},{"campo_id":"710438","numero":"ENCRUZILHADA","nome_campo":"Fazenda do Lagoão","produtor":"RAUL BASSO","cooperado":"Agropecuária Fazenda do Lagoão Ltda.","municipio":"Vacaria","uf":"RS","cultivar":"55IX56RSF I2X","safra":"2025/2026","categoria":"S1","hectares":42.0,"latitude":-28.455278,"longitude":-51.085556,"prod_estimada_ton":168.0,"prod_bruta_ton":136.74,"data_plantio":"2025-12-08","data_colheita":"23/04/2026","status":"Aprovado"},{"campo_id":"710441","numero":"GRANJA 2","nome_campo":"Fazenda do Lagoão","produtor":"RAUL BASSO","cooperado":"Agropecuária Fazenda do Lagoão Ltda.","municipio":"Vacaria","uf":"RS","cultivar":"53IX55RSF I2X","safra":"2025/2026","categoria":"S1","hectares":51.0,"latitude":-28.445278,"longitude":-51.093056,"prod_estimada_ton":204.0,"prod_bruta_ton":34.28,"data_plantio":"2025-12-16","data_colheita":"29/04/2026","status":"Aprovado"},{"campo_id":"710481","numero":"REGIS","nome_campo":"Faz. Guaviroba","produtor":"RAUL BASSO","cooperado":"REGIZ MILCZAREK","municipio":"Esmeralda","uf":"RS","cultivar":"C2550E","safra":"2025/2026","categoria":"S1","hectares":31.0,"latitude":-28.123056,"longitude":-51.164167,"prod_estimada_ton":124.0,"prod_bruta_ton":null,"data_plantio":"2025-10-21","data_colheita":"nan","status":"Inscrito"},{"campo_id":"710487","numero":"PASSO","nome_campo":"Faz. Guaviroba","produtor":"RAUL BASSO","cooperado":"REGIZ MILCZAREK","municipio":"Esmeralda","uf":"RS","cultivar":"C2550E","safra":"2025/2026","categoria":"S1","hectares":42.0,"latitude":-28.128611,"longitude":-51.185,"prod_estimada_ton":168.0,"prod_bruta_ton":null,"data_plantio":"2025-11-30","data_colheita":"nan","status":"Inscrito"},{"campo_id":"710493","numero":"RANCHINHO","nome_campo":"RANCHINHO","produtor":"RAUL BASSO","cooperado":"Luis Antônio Gargione","municipio":"Monte Alegre dos Campos","uf":"RS","cultivar":"55I57RSF IPRO","safra":"2025/2026","categoria":"C2","hectares":90.0,"latitude":-28.635833,"longitude":-50.716944,"prod_estimada_ton":360.0,"prod_bruta_ton":257.06,"data_plantio":"2025-11-25","data_colheita":"02/04/2026","status":"Aprovado"},{"campo_id":"710501","numero":"FLORES","nome_campo":"POMAR DAS FLORES","produtor":"RAUL BASSO","cooperado":"Luis Antônio Gargione","municipio":"Monte Alegre dos Campos","uf":"RS","cultivar":"55I57RSF IPRO","safra":"2025/2026","categoria":"S1","hectares":130.0,"latitude":-28.609167,"longitude":-50.784722,"prod_estimada_ton":520.0,"prod_bruta_ton":139.59,"data_plantio":"2025-11-25","data_colheita":"06/05/2026","status":"Aprovado"},{"campo_id":"710505","numero":"CARNEIRO","nome_campo":"BANHADO SECO","produtor":"RAUL BASSO","cooperado":"Luis Antônio Gargione","municipio":"Muitos Capões","uf":"RS","cultivar":"55I57RSF IPRO","safra":"2025/2026","categoria":"S1","hectares":42.0,"latitude":-28.219167,"longitude":-51.119167,"prod_estimada_ton":168.0,"prod_bruta_ton":110.57,"data_plantio":"2025-12-22","data_colheita":"07/05/2026","status":"Aprovado"},{"campo_id":"710508","numero":"CASA 02","nome_campo":"BANHADO SECO","produtor":"RAUL BASSO","cooperado":"Luis Antônio Gargione","municipio":"Muitos Capões","uf":"RS","cultivar":"C2550E","safra":"2025/2026","categoria":"S1","hectares":72.0,"latitude":-28.226111,"longitude":-51.121111,"prod_estimada_ton":288.0,"prod_bruta_ton":null,"data_plantio":"2025-11-24","data_colheita":"nan","status":"Inscrito"},{"campo_id":"710627","numero":"ROSSI","nome_campo":"BANHADO SECO","produtor":"RAUL BASSO","cooperado":"Luis Antônio Gargione","municipio":"Muitos Capões","uf":"RS","cultivar":"C2550E","safra":"2025/2026","categoria":"C2","hectares":40.0,"latitude":-28.431667,"longitude":-51.118889,"prod_estimada_ton":160.0,"prod_bruta_ton":null,"data_plantio":"2025-12-17","data_colheita":"nan","status":"Inscrito"},{"campo_id":"710636","numero":"CAMPO DA VÉIA","nome_campo":"POMAR DAS FLORES","produtor":"RAUL BASSO","cooperado":"Luis Antônio Gargione","municipio":"Monte Alegre dos Campos","uf":"RS","cultivar":"C2575E","safra":"2025/2026","categoria":"C1","hectares":56.0,"latitude":-28.603333,"longitude":-50.781389,"prod_estimada_ton":224.0,"prod_bruta_ton":122.95,"data_plantio":"2025-11-27","data_colheita":"14/05/2026","status":"Aprovado"},{"campo_id":"710663","numero":"PAMPILHO","nome_campo":"Petra Agrícola","produtor":"RAUL BASSO","cooperado":"SIMÃO AGROINDUSTRIAL LTDA","municipio":"Dom Pedrito","uf":"RS","cultivar":"63E66RSF E","safra":"2025/2026","categoria":"C2","hectares":45.4,"latitude":-31.263833,"longitude":-54.879889,"prod_estimada_ton":181.6,"prod_bruta_ton":null,"data_plantio":"2025-11-25","data_colheita":"nan","status":"Inscrito"},{"campo_id":"710674","numero":"EUCALIPTOS","nome_campo":"Petra Agrícola","produtor":"RAUL BASSO","cooperado":"SIMÃO AGROINDUSTRIAL LTDA","municipio":"Dom Pedrito","uf":"RS","cultivar":"63E66RSF E","safra":"2025/2026","categoria":"S1","hectares":95.1,"latitude":-31.288389,"longitude":-54.882722,"prod_estimada_ton":380.4,"prod_bruta_ton":null,"data_plantio":"2025-11-20","data_colheita":"nan","status":"Inscrito"},{"campo_id":"710685","numero":"MANGUEIRAS E PISTA","nome_campo":"Petra Agrícola","produtor":"RAUL BASSO","cooperado":"SIMÃO AGROINDUSTRIAL LTDA","municipio":"Dom Pedrito","uf":"RS","cultivar":"63E66RSF E","safra":"2025/2026","categoria":"S1","hectares":220.7,"latitude":-31.314333,"longitude":-54.864917,"prod_estimada_ton":882.8,"prod_bruta_ton":null,"data_plantio":"2025-12-08","data_colheita":"nan","status":"Inscrito"},{"campo_id":"710693","numero":"SANTA PLÁCIDA","nome_campo":"SANTA PLÁCIA","produtor":"RAUL BASSO","cooperado":"SIMÃO AGROINDUSTRIAL LTDA","municipio":"Dom Pedrito","uf":"RS","cultivar":"64I61RSF IPRO","safra":"2025/2026","categoria":"S1","hectares":170.4,"latitude":-31.340944,"longitude":-54.900111,"prod_estimada_ton":681.6,"prod_bruta_ton":null,"data_plantio":"2025-12-08","data_colheita":"nan","status":"Inscrito"},{"campo_id":"710715","numero":"AZEVÉM","nome_campo":"SANTA HONORINA","produtor":"RAUL BASSO","cooperado":"SIMÃO AGROINDUSTRIAL LTDA","municipio":"Dom Pedrito","uf":"RS","cultivar":"6968 RSF","safra":"2025/2026","categoria":"C2","hectares":113.1,"latitude":-31.366417,"longitude":-54.855028,"prod_estimada_ton":452.4,"prod_bruta_ton":null,"data_plantio":"2025-11-24","data_colheita":"nan","status":"Inscrito"},{"campo_id":"710732","numero":"AZEVÉM S1","nome_campo":"SANTA HONORINA","produtor":"RAUL BASSO","cooperado":"SIMÃO AGROINDUSTRIAL LTDA","municipio":"Dom Pedrito","uf":"RS","cultivar":"6968 RSF","safra":"2025/2026","categoria":"S1","hectares":400.0,"latitude":-31.365861,"longitude":-54.847611,"prod_estimada_ton":1600.0,"prod_bruta_ton":null,"data_plantio":"2025-11-24","data_colheita":"nan","status":"Inscrito"},{"campo_id":"710796","numero":"P4","nome_campo":"SANTA PEPITA","produtor":"RAUL BASSO","cooperado":"SIMÃO AGROINDUSTRIAL LTDA","municipio":"Dom Pedrito","uf":"RS","cultivar":"64IX66RSF I2X","safra":"2025/2026","categoria":"S1","hectares":164.7,"latitude":-31.388111,"longitude":-54.762306,"prod_estimada_ton":658.8,"prod_bruta_ton":null,"data_plantio":"2025-11-25","data_colheita":"nan","status":"Inscrito"},{"campo_id":"710804","numero":"CASAS","nome_campo":"SANTA PEPITA","produtor":"RAUL BASSO","cooperado":"SIMÃO AGROINDUSTRIAL LTDA","municipio":"Dom Pedrito","uf":"RS","cultivar":"64IX66RSF I2X","safra":"2025/2026","categoria":"C2","hectares":50.1,"latitude":-31.366639,"longitude":-54.725528,"prod_estimada_ton":200.4,"prod_bruta_ton":null,"data_plantio":"2025-12-09","data_colheita":"nan","status":"Inscrito"},{"campo_id":"710817","numero":"VÁRZEA E FRENTE GESIEL","nome_campo":"SANTA PEPITA","produtor":"RAUL BASSO","cooperado":"SIMÃO AGROINDUSTRIAL LTDA","municipio":"Dom Feliciano","uf":"RS","cultivar":"64IX66RSF I2X","safra":"2025/2026","categoria":"S1","hectares":95.0,"latitude":-31.375944,"longitude":-54.714889,"prod_estimada_ton":380.0,"prod_bruta_ton":null,"data_plantio":"2025-12-10","data_colheita":"nan","status":"Inscrito"},{"campo_id":"710888","numero":"TREVO 2645","nome_campo":"TREVO","produtor":"RAUL BASSO","cooperado":"SIMÃO AGROINDUSTRIAL LTDA","municipio":"Dom Pedrito","uf":"RS","cultivar":"C2645CE","safra":"2025/2026","categoria":"C2","hectares":59.0,"latitude":-31.279,"longitude":-54.728083,"prod_estimada_ton":236.0,"prod_bruta_ton":null,"data_plantio":"2025-11-25","data_colheita":"nan","status":"Inscrito"},{"campo_id":"711008","numero":"BEIRA GARRA","nome_campo":"TREVO","produtor":"RAUL BASSO","cooperado":"SIMÃO AGROINDUSTRIAL LTDA","municipio":"Dom Pedrito","uf":"RS","cultivar":"97Y70CE","safra":"2025/2026","categoria":"S1","hectares":97.2,"latitude":-31.270194,"longitude":-54.725111,"prod_estimada_ton":388.8,"prod_bruta_ton":null,"data_plantio":"2025-11-25","data_colheita":"nan","status":"Inscrito"},{"campo_id":"711016","numero":"DIVISA 2645","nome_campo":"TREVO","produtor":"RAUL BASSO","cooperado":"SIMÃO AGROINDUSTRIAL LTDA","municipio":"Dom Pedrito","uf":"RS","cultivar":"97Y70CE","safra":"2025/2026","categoria":"S1","hectares":98.5,"latitude":-31.281472,"longitude":-54.732611,"prod_estimada_ton":394.0,"prod_bruta_ton":null,"data_plantio":"2025-11-26","data_colheita":"nan","status":"Inscrito"},{"campo_id":"711026","numero":"BARRAGENS E VÁRZEA","nome_campo":"TREVO","produtor":"RAUL BASSO","cooperado":"SIMÃO AGROINDUSTRIAL LTDA","municipio":"Dom Pedrito","uf":"RS","cultivar":"97Y70CE","safra":"2025/2026","categoria":"S1","hectares":254.8,"latitude":-31.279389,"longitude":-54.71475,"prod_estimada_ton":1019.2,"prod_bruta_ton":null,"data_plantio":"2025-11-23","data_colheita":"nan","status":"Inscrito"},{"campo_id":"711039","numero":"TAIPAS","nome_campo":"ESTÂNCIA NOVA","produtor":"RAUL BASSO","cooperado":"SIMÃO AGROINDUSTRIAL LTDA","municipio":"Dom Pedrito","uf":"RS","cultivar":"97Y70CE","safra":"2025/2026","categoria":"C2","hectares":67.0,"latitude":-31.311528,"longitude":-54.733139,"prod_estimada_ton":268.0,"prod_bruta_ton":null,"data_plantio":"2025-11-24","data_colheita":"nan","status":"Inscrito"},{"campo_id":"711097","numero":"CHIMARRÃO C2","nome_campo":"CHIMARRÃO","produtor":"RAUL BASSO","cooperado":"SIMÃO AGROINDUSTRIAL LTDA","municipio":"Bagé","uf":"RS","cultivar":"C2615CE","safra":"2025/2026","categoria":"C2","hectares":113.0,"latitude":-31.37325,"longitude":-54.191111,"prod_estimada_ton":450.0,"prod_bruta_ton":null,"data_plantio":"2025-12-07","data_colheita":"nan","status":"Inscrito"},{"campo_id":"711106","numero":"CHIMARRÃO S1","nome_campo":"CHIMARRÃO","produtor":"RAUL BASSO","cooperado":"SIMÃO AGROINDUSTRIAL LTDA","municipio":"Bagé","uf":"RS","cultivar":"C2615CE","safra":"2025/2026","categoria":"S1","hectares":187.0,"latitude":-31.368694,"longitude":-54.185778,"prod_estimada_ton":748.0,"prod_bruta_ton":null,"data_plantio":"2025-11-25","data_colheita":"nan","status":"Inscrito"},{"campo_id":"711389","numero":"PEDRAS","nome_campo":"FAZ. DO SOCORRO","produtor":"RAUL BASSO","cooperado":"FABIANO PAGANELLA","municipio":"Vacaria","uf":"RS","cultivar":"57K58RSF CE","safra":"2025/2026","categoria":"S1","hectares":37.5,"latitude":-28.431111,"longitude":-50.7425,"prod_estimada_ton":150.0,"prod_bruta_ton":null,"data_plantio":"2025-11-27","data_colheita":"nan","status":"Inscrito"},{"campo_id":"711394","numero":"CENTO CINQUENTA","nome_campo":"FAZ. SÃO MARCOS","produtor":"RAUL BASSO","cooperado":"Alaor Scariot","municipio":"Vacaria","uf":"RS","cultivar":"C2560CE","safra":"2025/2026","categoria":"S1","hectares":50.0,"latitude":-28.155278,"longitude":-51.036389,"prod_estimada_ton":200.0,"prod_bruta_ton":257.82,"data_plantio":"2025-11-28","data_colheita":"14/04/2026","status":"Aprovado"},{"campo_id":"711400","numero":"GRANJA 4","nome_campo":"Fazenda do Lagoão","produtor":"RAUL BASSO","cooperado":"Agropecuária Fazenda do Lagoão Ltda.","municipio":"Vacaria","uf":"RS","cultivar":"56IX58RSF I2X","safra":"2025/2026","categoria":"S2","hectares":44.0,"latitude":-28.4475,"longitude":-51.083611,"prod_estimada_ton":176.0,"prod_bruta_ton":166.19,"data_plantio":"2025-12-06","data_colheita":"22/04/2026","status":"Inscrito"},{"campo_id":"711410","numero":"DONA CLODI","nome_campo":"FAZENDA DO LOUREIRO","produtor":"RAUL BASSO","cooperado":"RICIERI SOLDATELI","municipio":"Bom Jesus","uf":"RS","cultivar":"C2530RR","safra":"2025/2026","categoria":"S1","hectares":74.0,"latitude":-28.649528,"longitude":-50.593528,"prod_estimada_ton":296.0,"prod_bruta_ton":62.26,"data_plantio":"2025-11-30","data_colheita":"24/03/2026","status":"Aprovado"},{"campo_id":"711414","numero":"MARQUINHOS","nome_campo":"FAZ. BOA VISTA","produtor":"RAUL BASSO","cooperado":"RICIERI SOLDATELI","municipio":"Muitos Capões","uf":"RS","cultivar":"C2530RR","safra":"2025/2026","categoria":"S1","hectares":140.0,"latitude":-28.549167,"longitude":-51.180194,"prod_estimada_ton":560.0,"prod_bruta_ton":486.04,"data_plantio":"2025-11-30","data_colheita":"28/03/2026","status":"Aprovado"},{"campo_id":"711552","numero":"BECKER","nome_campo":"Regis Augusto Giovelli","produtor":"RAUL BASSO","cooperado":"Regis Augusto Giovelli","municipio":"Rolador","uf":"RS","cultivar":"65I65RSF IPRO","safra":"2025/2026","categoria":"C2","hectares":77.0,"latitude":-28.27475,"longitude":-54.761056,"prod_estimada_ton":308.0,"prod_bruta_ton":null,"data_plantio":"2025-12-19","data_colheita":"nan","status":"Inscrito"},{"campo_id":"711556","numero":"SEDE 2 DIR","nome_campo":"FAZENDA ESMERALDA","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Esmeralda","uf":"RS","cultivar":"57K56RSF CE","safra":"2025/2026","categoria":"C1","hectares":7.0,"latitude":-28.131389,"longitude":-51.140556,"prod_estimada_ton":28.0,"prod_bruta_ton":null,"data_plantio":"2025-12-06","data_colheita":"nan","status":"Inscrito"},{"campo_id":"711566","numero":"PEZÃO 1","nome_campo":"FAZENDA ESMERALDA","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Esmeralda","uf":"RS","cultivar":"C2535CE","safra":"2025/2026","categoria":"C1","hectares":17.0,"latitude":-28.12375,"longitude":-51.127917,"prod_estimada_ton":68.0,"prod_bruta_ton":null,"data_plantio":"2025-12-12","data_colheita":"nan","status":"Inscrito"},{"campo_id":"711892","numero":"LAGOA AZUL","nome_campo":"FAZ. DO SOCORRO","produtor":"RAUL BASSO","cooperado":"FABIANO PAGANELLA","municipio":"Vacaria","uf":"RS","cultivar":"56IX58RSF I2X","safra":"2025/2026","categoria":"S2","hectares":60.0,"latitude":-28.178389,"longitude":-51.061639,"prod_estimada_ton":240.0,"prod_bruta_ton":null,"data_plantio":"2025-12-19","data_colheita":"nan","status":"Inscrito"},{"campo_id":"712937","numero":"NERI 1","nome_campo":"FAZENDA SANTO AMARO","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Muitos Capões","uf":"RS","cultivar":"56IX58RSF I2X","safra":"2025/2026","categoria":"S2","hectares":20.0,"latitude":-28.306917,"longitude":-51.099528,"prod_estimada_ton":80.0,"prod_bruta_ton":null,"data_plantio":"2025-12-26","data_colheita":"nan","status":"Inscrito"},{"campo_id":"712942","numero":"NERI 5","nome_campo":"FAZENDA SANTO AMARO","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Muitos Capões","uf":"RS","cultivar":"56IX58RSF I2X","safra":"2025/2026","categoria":"S2","hectares":18.0,"latitude":-28.304472,"longitude":-51.095861,"prod_estimada_ton":72.0,"prod_bruta_ton":null,"data_plantio":"2025-12-26","data_colheita":"nan","status":"Inscrito"},{"campo_id":"712959","numero":"19","nome_campo":"FAZENDA SANTO AMARO","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Muitos Capões","uf":"RS","cultivar":"56IX58RSF I2X","safra":"2025/2026","categoria":"S2","hectares":39.0,"latitude":-28.380861,"longitude":-51.0545,"prod_estimada_ton":156.0,"prod_bruta_ton":null,"data_plantio":"2025-12-26","data_colheita":"nan","status":"Inscrito"},{"campo_id":"712984","numero":"GELSON P","nome_campo":"FAZENDA ESMERALDA","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Esmeralda","uf":"RS","cultivar":"C2530RR","safra":"2025/2026","categoria":"C2","hectares":130.0,"latitude":-28.113611,"longitude":-51.214167,"prod_estimada_ton":520.0,"prod_bruta_ton":346.06,"data_plantio":"2025-12-16","data_colheita":"19/03/2026","status":"Inscrito"},{"campo_id":"712994","numero":"EVA+DELMAR","nome_campo":"FAZENDA ESMERALDA","produtor":"RAUL BASSO","cooperado":"RAUL BASSO","municipio":"Esmeralda","uf":"RS","cultivar":"53IX55RSF I2X","safra":"2025/2026","categoria":"C2","hectares":110.0,"latitude":-28.070556,"longitude":-51.121111,"prod_estimada_ton":350.0,"prod_bruta_ton":null,"data_plantio":"2025-12-16","data_colheita":"nan","status":"Inscrito"},{"campo_id":"728276","numero":"GRANJA 3","nome_campo":"Fazenda do Lagoão","produtor":"RAUL BASSO","cooperado":"Agropecuária Fazenda do Lagoão Ltda.","municipio":"Vacaria","uf":"RS","cultivar":"56IX58RSF I2X","safra":"2025/2026","categoria":"S2","hectares":83.0,"latitude":-28.439722,"longitude":-51.088611,"prod_estimada_ton":332.0,"prod_bruta_ton":null,"data_plantio":"2025-12-30","data_colheita":"nan","status":"Inscrito"}];
 
-  const ql = q.toLowerCase();
+function campoColor(c) {
+  if (c.status === 'Aprovado')  return '#16A34A';
+  if (c.status === 'Inscrito')  return '#2563EB';
+  if (c.status === 'Cancelado' || c.status === 'Denegado') return '#DC2626';
+  return '#94A3B8';
+}
 
-  // Match cultivares
-  const cvMatches = SUMMARY.filter(c => c.cultivar.toLowerCase().includes(ql)).slice(0, 4);
+function buildPopupHTML(c) {
+  const sColor = campoColor(c);
+  const sBg = c.status==='Aprovado'?'#F0FDF4':c.status==='Inscrito'?'#EFF6FF':
+              (c.status==='Cancelado'||c.status==='Denegado')?'#FEF2F2':'#F8FAFC';
 
-  // Match lotes
-  const lotMatches = LOTS.filter(l =>
-    l.lote.toLowerCase().includes(ql) ||
-    l.cultivar.toLowerCase().includes(ql)
-  ).slice(0, 6);
-
-  if (!cvMatches.length && !lotMatches.length) {
-    return `<div class="gs-empty">Nenhum resultado para "<b>${q}</b>"</div>`;
+  function row(icon, lbl, val, color) {
+    color = color || '#0F172A';
+    if (!val || val === 'null' || val === '—') return '';
+    return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #F1F5F9;">' +
+      '<span style="font-size:0.8rem;width:16px;text-align:center;flex-shrink:0;">' + icon + '</span>' +
+      '<span style="font-size:0.68rem;color:#64748B;flex:1;">' + lbl + '</span>' +
+      '<span style="font-size:0.72rem;font-weight:600;color:' + color + ';">' + val + '</span></div>';
   }
 
-  let html = '';
-
-  if (cvMatches.length) {
-    html += `<div class="gs-section">🌱 Cultivares</div>`;
-    html += cvMatches.map(c => {
-      const aprov = c.rank_A + c.rank_B;
-      const pct   = c.lotes ? Math.round(aprov/c.lotes*100) : 0;
-      const col   = pct===100?'#16A34A':pct>=70?'#2563EB':pct>=50?'#D97706':'#DC2626';
-      return `
-        <div class="gs-item" onclick="goToCultivar('${c.cultivar}')">
-          <span class="gs-badge" style="background:#F1F5F9;color:#475569;">CV</span>
-          <div>
-            <div class="gs-main">${c.cultivar}</div>
-            <div class="gs-sub">${c.lotes} lotes · ${c.total_kg>0?(c.total_kg/1000).toFixed(0)+'t':'—'} · <span style="color:${col};font-weight:600;">${pct}% aprovados</span></div>
-          </div>
-        </div>`;
-    }).join('');
+  function bar(lbl, pct, color) {
+    var w = Math.min(100, Math.max(0, pct));
+    return '<div style="margin-bottom:6px;">' +
+      '<div style="display:flex;justify-content:space-between;font-size:0.65rem;margin-bottom:3px;">' +
+      '<span style="color:#64748B;">' + lbl + '</span>' +
+      '<span style="font-weight:700;color:' + color + ';">' + pct.toFixed(1) + '%</span></div>' +
+      '<div style="height:6px;background:#F1F5F9;border-radius:3px;overflow:hidden;">' +
+      '<div style="width:' + w + '%;height:100%;background:' + color + ';border-radius:3px;"></div></div></div>';
   }
 
-  if (lotMatches.length) {
-    html += `<div class="gs-section">📦 Lotes</div>`;
-    html += lotMatches.map(l => `
-      <div class="gs-item" onclick="goToLote('${l.lote}')">
-        <span class="gs-badge" style="background:${RANK_BG[l.ranking]};color:${RANK_COLOR[l.ranking]};">${l.ranking}</span>
-        <div>
-          <div class="gs-main" style="font-family:'IBM Plex Mono',monospace;">${l.lote}</div>
-          <div class="gs-sub">${l.cultivar} · ${l.peneira} · ${l.status} · ${l.bags} bags</div>
-        </div>
-      </div>`).join('');
+  var eficiencia = (c.prod_estimada_ton && c.prod_bruta_ton)
+    ? (c.prod_bruta_ton / c.prod_estimada_ton * 100) : null;
+  var efCol = eficiencia ? (eficiencia>=90?'#16A34A':eficiencia>=75?'#D97706':'#DC2626') : '#94A3B8';
+
+  var html = '<div style="font-family:Inter,sans-serif;overflow:hidden;border-radius:12px;">';
+
+  // Header
+  html += '<div style="background:#0F172A;padding:14px 16px 12px;">';
+  html += '<div style="font-weight:800;font-size:0.9rem;color:#fff;line-height:1.2;">' + (c.nome_campo||'—') + (c.numero ? ' <span style="font-size:0.72rem;color:#94A3B8;font-weight:400;">— ' + c.numero.trim() + '</span>' : '') + '</div>';
+  html += '<div style="font-size:0.62rem;color:#64748B;margin-top:3px;">' + (c.municipio||'') + ' · ' + (c.uf||'') + ' · ' + (c.safra||'') + '</div>';
+  html += '<div style="margin-top:8px;">';
+  html += '<span style="background:' + sBg + ';color:' + sColor + ';border:1px solid ' + sColor + '33;border-radius:5px;padding:2px 9px;font-size:0.65rem;font-weight:700;">' + (c.status||'—') + '</span>';
+  if (c.categoria) html += '<span style="background:#F1F5F9;color:#475569;border-radius:4px;padding:2px 7px;font-size:0.62rem;margin-left:4px;">' + c.categoria + '</span>';
+  html += '</div></div>';
+
+  // Body
+  html += '<div style="padding:12px 14px;">';
+  html += row('🌱', 'Cultivar', c.cultivar, '#2563EB');
+  html += row('📐', 'Área', c.hectares ? c.hectares + ' ha' : null);
+  html += row('👤', 'Produtor', c.produtor);
+  html += row('📅', 'Plantio', c.data_plantio);
+  html += row('📅', 'Colheita', c.data_colheita);
+
+  if (c.prod_estimada_ton || c.prod_bruta_ton) {
+    html += '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #F1F5F9;">';
+    html += '<div style="font-size:0.6rem;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Produção</div>';
+    html += row('🎯', 'Estimada', c.prod_estimada_ton ? c.prod_estimada_ton.toFixed(1)+'t' : null);
+    html += row('🌾', 'Colhida', c.prod_bruta_ton ? c.prod_bruta_ton.toFixed(1)+'t' : null,
+                c.prod_bruta_ton && c.prod_estimada_ton && c.prod_bruta_ton>=c.prod_estimada_ton*0.9?'#16A34A':'#D97706');
+    if (eficiencia !== null) html += bar('Eficiência', eficiencia, efCol);
+    html += '</div>';
   }
 
+  html += '</div></div>';
   return html;
 }
+
+function initMapa() {
+  if (mapaMap) return;
+
+  mapaMap = L.map('map-container', {
+    center: [-29.5, -53.0],
+    zoom: 7,
+    zoomControl: false,
+    preferCanvas: true,
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap',
+    maxZoom: 19,
+  }).addTo(mapaMap);
+
+  L.control.zoom({ position: 'topright' }).addTo(mapaMap);
+
+  mapaFiltered = CAMPOS_SIGEF.slice();
+  populateMapaFilters();
+  renderMapaCampos();
+  renderMapaKPIs();
+  renderMapaCharts();
+}
+
+function renderMapaCampos() {
+  mapaMarkers.forEach(function(m) { mapaMap.removeLayer(m); });
+  mapaMarkers = [];
+
+  var cnt = document.getElementById('mapa-count');
+  if (cnt) cnt.textContent = mapaFiltered.length + ' campo' + (mapaFiltered.length !== 1 ? 's' : '');
+
+  mapaFiltered.forEach(function(c) {
+    if (!c.latitude || !c.longitude) return;
+
+    var color  = campoColor(c);
+    var radius = Math.max(9, Math.min(20, (c.hectares || 30) / 5));
+
+    var marker = L.circleMarker([c.latitude, c.longitude], {
+      radius: radius,
+      fillColor: color,
+      color: '#fff',
+      weight: 2.5,
+      opacity: 1,
+      fillOpacity: 0.88,
+    }).addTo(mapaMap);
+
+    marker.on('mouseover', function() {
+      this.setStyle({ weight: 4, fillOpacity: 1 });
+      this.bringToFront();
+    });
+    marker.on('mouseout', function() {
+      this.setStyle({ weight: 2.5, fillOpacity: 0.88 });
+    });
+    marker.on('click', function() {
+      L.popup({
+        maxWidth: 340,
+        minWidth: 280,
+        closeButton: true,
+        autoPanPadding: [20, 20],
+      })
+      .setLatLng([c.latitude, c.longitude])
+      .setContent(buildPopupHTML(c))
+      .openOn(mapaMap);
+      mapaMap.panTo([c.latitude, c.longitude], { animate: true, duration: 0.4 });
+    });
+
+    mapaMarkers.push(marker);
+  });
+}
+
+function renderMapaKPIs() {
+  var d = mapaFiltered;
+  var totalHa   = d.reduce(function(s,c){return s+(c.hectares||0);}, 0);
+  var totalProd = d.reduce(function(s,c){return s+(c.prod_bruta_ton||0);}, 0);
+  var aprovados = d.filter(function(c){return c.status==='Aprovado';}).length;
+  var cultivares= new Set(d.map(function(c){return c.cultivar;}).filter(Boolean)).size;
+
+  document.getElementById('mapa-kpis').innerHTML =
+    '<div class="kpi accent">' +
+      '<div class="label">Total de Campos</div>' +
+      '<div class="value" style="font-size:1.6rem;">' + d.length + '</div>' +
+      '<div class="sub">' + totalHa.toFixed(0) + ' ha mapeados</div></div>' +
+    '<div class="kpi">' +
+      '<div class="label">Aprovados</div>' +
+      '<div class="value" style="font-size:1.6rem;color:var(--excelente);">' + aprovados + '</div>' +
+      '<div class="sub">' + (d.length?Math.round(aprovados/d.length*100):0) + '% do total</div></div>' +
+    '<div class="kpi">' +
+      '<div class="label">Produção Bruta</div>' +
+      '<div class="value" style="font-size:1.6rem;">' + totalProd.toFixed(0) + 't</div>' +
+      '<div class="sub">Total colhido</div></div>' +
+    '<div class="kpi">' +
+      '<div class="label">Cultivares</div>' +
+      '<div class="value" style="font-size:1.6rem;">' + cultivares + '</div>' +
+      '<div class="sub">Variedades no mapa</div></div>';
+}
+
+function renderMapaCharts() {
+  var d = mapaFiltered.filter(function(c){return c.prod_bruta_ton;});
+  var bars = document.getElementById('mapa-bars');
+  if (!d.length) { bars.innerHTML = '<div style="color:var(--texto2);font-size:0.78rem;text-align:center;padding:8px;">Sem dados de produção disponíveis</div>'; return; }
+
+  var sorted = d.slice().sort(function(a,b){return (b.prod_bruta_ton||0)-(a.prod_bruta_ton||0);}).slice(0,15);
+  var maxP = Math.max.apply(null, sorted.map(function(c){return c.prod_bruta_ton||0;}));
+
+  bars.innerHTML = sorted.map(function(c) {
+    var w = maxP ? (c.prod_bruta_ton/maxP*100).toFixed(1) : 0;
+    return '<div style="display:grid;grid-template-columns:160px 1fr 60px;align-items:center;gap:10px;">' +
+      '<div style="text-align:right;overflow:hidden;">' + '<div style="font-size:0.65rem;color:var(--texto);font-weight:600;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;">' + ((c.numero||'').trim() || c.nome_campo) + '</div>' + '<div style="font-size:0.58rem;color:var(--texto2);white-space:nowrap;text-overflow:ellipsis;overflow:hidden;">' + (c.cultivar||'') + '</div></div>' +
+      '<div style="background:var(--bg3);border-radius:4px;overflow:hidden;height:18px;border:1px solid var(--borda);">' +
+      '<div style="width:' + w + '%;height:100%;background:' + campoColor(c) + ';border-radius:3px;"></div></div>' +
+      '<div style="font-size:0.68rem;font-weight:600;text-align:right;">' + c.prod_bruta_ton.toFixed(1) + 't</div></div>';
+  }).join('');
+}
+
+function populateMapaFilters() {
+  function opts(arr, elId, label) {
+    var sel = document.getElementById(elId);
+    if (!sel) return;
+    sel.innerHTML = '<option value="">' + label + '</option>' +
+      arr.map(function(v){return '<option value="'+v+'">'+v+'</option>';}).join('');
+  }
+  var cvs = Array.from(new Set(CAMPOS_SIGEF.map(function(c){return c.cultivar;}).filter(Boolean))).sort();
+  var mus = Array.from(new Set(CAMPOS_SIGEF.map(function(c){return c.municipio;}).filter(Boolean))).sort();
+  var sfs = Array.from(new Set(CAMPOS_SIGEF.map(function(c){return c.safra;}).filter(Boolean))).sort();
+  opts(cvs, 'mapa-filter-cultivar', 'Todos os cultivares');
+  opts(mus, 'mapa-filter-municipio', 'Todos os municípios');
+  opts(sfs, 'mapa-filter-safra', 'Todas as safras');
+}
+
+function applyMapaFilters() {
+  var cv = document.getElementById('mapa-filter-cultivar').value;
+  var mu = document.getElementById('mapa-filter-municipio').value;
+  var sf = document.getElementById('mapa-filter-safra').value;
+  var st = document.getElementById('mapa-filter-status').value;
+  mapaFiltered = CAMPOS_SIGEF.filter(function(c) {
+    return (!cv || c.cultivar===cv) && (!mu || c.municipio===mu) &&
+           (!sf || c.safra===sf) && (!st || c.status===st);
+  });
+  renderMapaCampos();
+  renderMapaKPIs();
+  renderMapaCharts();
+}
+
+function setupMapaDragDrop() {} // kept for compatibility
+
 
 function globalSearch() {
   const q  = document.getElementById('global-input').value.trim();
@@ -2110,8 +2377,7 @@ buildOverview();
 buildCultivares();
 buildLotes();
 buildRanking();
-buildLotes();
-buildRanking();
+setupMapaDragDrop();
 </script>
 
 <footer style="background:#fff;border-top:1px solid #E2E8F0;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:0.62rem;color:#94A3B8;">
@@ -2139,6 +2405,153 @@ buildRanking();
   <span style="color:#94A3B8;">Status final = pior critério entre os três</span>
   <span style="margin-left:auto;color:#CBD5E1;">Soja 25-26 · <span style="color:#94A3B8;">Atualizado em 25/05/2026</span></span>
 </footer>
+
+<!-- ========== MAPA ACCESS MODAL ========== -->
+<div id="mapa-modal-overlay" style="display:none;position:fixed;inset:0;z-index:99990;
+     background:rgba(10,16,30,0.75);backdrop-filter:blur(4px);
+     align-items:center;justify-content:center;">
+  <div id="mapa-modal-box" style="
+       background:#fff;border-radius:16px;padding:36px 32px 28px;
+       width:100%;max-width:360px;margin:20px;
+       box-shadow:0 24px 64px rgba(0,0,0,0.25);
+       animation:modalIn 0.2s ease;position:relative;">
+
+    <!-- Lock icon -->
+    <div style="text-align:center;margin-bottom:18px;">
+      <div style="display:inline-flex;align-items:center;justify-content:center;
+           width:52px;height:52px;border-radius:14px;background:#0F172A;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+             fill="none" stroke="#60A5FA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-bottom:6px;font-weight:700;font-size:1.1rem;color:#0F172A;">Acesso Restrito</div>
+    <div style="text-align:center;font-size:0.75rem;color:#64748B;margin-bottom:24px;">Mapa de Campos — apenas gestores</div>
+
+    <label style="display:block;font-size:0.68rem;font-weight:600;color:#64748B;
+           text-transform:uppercase;letter-spacing:0.8px;margin-bottom:7px;">Senha</label>
+    <div style="position:relative;margin-bottom:10px;">
+      <input id="mapa-pw-input" type="password" placeholder="Digite a senha..."
+        autocomplete="off"
+        onkeydown="if(event.key==='Enter') checkMapaPassword()"
+        style="width:100%;padding:11px 42px 11px 14px;border:1.5px solid #E2E8F0;border-radius:9px;
+               font-family:'Inter',sans-serif;font-size:0.88rem;color:#0F172A;outline:none;
+               transition:border-color 0.15s;box-sizing:border-box;">
+      <button onclick="toggleMapaPw()" tabindex="-1"
+        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+               background:none;border:none;cursor:pointer;color:#94A3B8;padding:0;line-height:1;">
+        <svg id="mapa-eye-icon" xmlns="http://www.w3.org/2000/svg" width="17" height="17"
+             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
+    </div>
+
+    <div id="mapa-pw-error" style="display:none;font-size:0.72rem;color:#DC2626;
+         background:#FEF2F2;border:1px solid #FECACA;border-radius:7px;
+         padding:8px 12px;margin-bottom:10px;text-align:center;">
+      ❌ Senha incorreta. Tente novamente.
+    </div>
+
+    <button onclick="checkMapaPassword()"
+      style="width:100%;background:#0F172A;color:#fff;border:none;border-radius:9px;
+             padding:12px;font-family:'Inter',sans-serif;font-size:0.88rem;font-weight:600;
+             cursor:pointer;transition:background 0.15s;margin-top:4px;"
+      onmouseover="this.style.background='#1E293B'" onmouseout="this.style.background='#0F172A'">
+      Entrar →
+    </button>
+
+    <button onclick="closeMapaModal()"
+      style="width:100%;background:none;border:none;color:#94A3B8;font-size:0.75rem;
+             cursor:pointer;margin-top:12px;font-family:'Inter',sans-serif;padding:4px;">
+      Cancelar
+    </button>
+  </div>
+</div>
+
+<style>
+@keyframes modalIn {
+  from { opacity:0; transform:scale(0.95) translateY(8px); }
+  to   { opacity:1; transform:scale(1)    translateY(0); }
+}
+#mapa-pw-input:focus { border-color:#2563EB; box-shadow:0 0 0 3px rgba(37,99,235,0.1); }
+#mapa-pw-input.error { border-color:#DC2626; animation:shake 0.35s ease; }
+</style>
+
+<script>
+// ===== MAPA ACCESS CONTROL =====
+const MAP_PASSWORD = 'mapa2026';
+let mapaUnlocked = false;
+
+function requestMapaAccess() {
+  if (mapaUnlocked) {
+    // Already unlocked — go straight in
+    activateMapaTab();
+    return;
+  }
+  // Show modal
+  const overlay = document.getElementById('mapa-modal-overlay');
+  overlay.style.display = 'flex';
+  document.getElementById('mapa-pw-error').style.display = 'none';
+  document.getElementById('mapa-pw-input').value = '';
+  document.getElementById('mapa-pw-input').classList.remove('error');
+  setTimeout(() => document.getElementById('mapa-pw-input').focus(), 80);
+}
+
+function checkMapaPassword() {
+  const input = document.getElementById('mapa-pw-input');
+  const error = document.getElementById('mapa-pw-error');
+  if (input.value === MAP_PASSWORD) {
+    mapaUnlocked = true;
+    closeMapaModal();
+    activateMapaTab();
+  } else {
+    error.style.display = 'block';
+    input.classList.add('error');
+    input.value = '';
+    input.focus();
+    setTimeout(() => input.classList.remove('error'), 400);
+  }
+}
+
+function closeMapaModal() {
+  document.getElementById('mapa-modal-overlay').style.display = 'none';
+}
+
+function activateMapaTab() {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-mapa').classList.add('active');
+  // Highlight the mapa tab (second tab, index 1)
+  const tabs = document.querySelectorAll('.tab');
+  tabs[1].classList.add('active');
+  setTimeout(() => {
+    initMapa();
+    mapaMap && mapaMap.invalidateSize();
+  }, 80);
+}
+
+function toggleMapaPw() {
+  const input = document.getElementById('mapa-pw-input');
+  const icon  = document.getElementById('mapa-eye-icon');
+  const showing = input.type === 'text';
+  input.type = showing ? 'password' : 'text';
+  icon.innerHTML = showing
+    ? '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'
+    : '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+  input.focus();
+}
+
+// Close modal clicking overlay
+document.getElementById('mapa-modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeMapaModal();
+});
+</script>
 
 </body>
 </html>
