@@ -1294,6 +1294,9 @@
 
     <!-- Filtros bar -->
     <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px;">
+      <select id="mapa-filter-campo" onchange="applyMapaFilters()" class="mapa-select">
+        <option value="">Todos os campos</option>
+      </select>
       <select id="mapa-filter-cultivar" onchange="applyMapaFilters()" class="mapa-select">
         <option value="">Todos os cultivares</option>
       </select>
@@ -2273,9 +2276,16 @@ function populateMapaFilters() {
   var cvs = Array.from(new Set(CAMPOS_SIGEF.map(function(c){return c.cultivar;}).filter(Boolean))).sort();
   var mus = Array.from(new Set(CAMPOS_SIGEF.map(function(c){return c.municipio;}).filter(Boolean))).sort();
   var sfs = Array.from(new Set(CAMPOS_SIGEF.map(function(c){return c.safra;}).filter(Boolean))).sort();
-  opts(cvs, 'mapa-filter-cultivar', 'Todos os cultivares');
-  opts(mus, 'mapa-filter-municipio', 'Todos os municípios');
-  opts(sfs, 'mapa-filter-safra', 'Todas as safras');
+  // Campo: "NUMERO — FAZENDA" for each field
+  var campos = CAMPOS_SIGEF.map(function(c){
+    var n = (c.numero||'').trim();
+    var f = (c.nome_campo||'').trim();
+    return n ? n + ' — ' + f : f;
+  }).filter(Boolean).sort();
+  opts(campos, 'mapa-filter-campo', 'Todos os campos');
+  opts(cvs,    'mapa-filter-cultivar', 'Todos os cultivares');
+  opts(mus,    'mapa-filter-municipio', 'Todos os municípios');
+  opts(sfs,    'mapa-filter-safra', 'Todas as safras');
 }
 
 function applyMapaFilters() {
@@ -2283,9 +2293,20 @@ function applyMapaFilters() {
   var mu = document.getElementById('mapa-filter-municipio').value;
   var sf = document.getElementById('mapa-filter-safra').value;
   var st = document.getElementById('mapa-filter-status').value;
+  var ca = document.getElementById('mapa-filter-campo').value;
+
   mapaFiltered = CAMPOS_SIGEF.filter(function(c) {
-    return (!cv || c.cultivar===cv) && (!mu || c.municipio===mu) &&
-           (!sf || c.safra===sf) && (!st || c.status===st);
+    if (cv && c.cultivar !== cv) return false;
+    if (mu && c.municipio !== mu) return false;
+    if (sf && c.safra !== sf) return false;
+    if (st && c.status !== st) return false;
+    if (ca) {
+      var n = (c.numero||'').trim();
+      var f = (c.nome_campo||'').trim();
+      var label = n ? n + ' — ' + f : f;
+      if (label !== ca) return false;
+    }
+    return true;
   });
   renderMapaCampos();
   renderMapaKPIs();
