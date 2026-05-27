@@ -1213,9 +1213,9 @@
               <th onclick="sortTable('tz_vigor')" class="num col-hide-mobile">TZ Vigor</th>
               <th onclick="sortTable('germ')" class="num">Germ. %</th>
               <th onclick="sortTable('vigor')" class="num">Vigor E.A. %</th>
-              <th onclick="sortTable('pms_etq')" class="num col-hide-mobile">PMS (g)</th>
-              <th onclick="sortTable('peso_bag')" class="num col-hide-mobile">Peso Bag</th>
-              <th onclick="sortTable('sementes_m')" class="num col-hide-mobile">Sem. (M)</th>
+              <th onclick="sortTable('pms_etq')" class="num">PMS (g)</th>
+              <th onclick="sortTable('peso_bag')" class="num">Peso Bag</th>
+              <th onclick="sortTable('sementes_m')" class="num">Sem. (M)</th>
               <th onclick="sortTable('kg')" class="num col-hide-mobile">KG</th>
               <th onclick="sortTable('ranking')">Ranking</th>
               <th style="width:32px;" title="Tetrazólio">TZ</th>
@@ -1806,9 +1806,9 @@ function renderLoteTable() {
       <td class="num col-hide-mobile" style="color:${colorTZ(l.tz_vigor)}">${fmt(l.tz_vigor)}</td>
       <td class="num" style="color:${colorGerm(l.germ)}">${fmt(l.germ)}</td>
       <td class="num" style="color:${colorVigor(l.vigor)}">${fmt(l.vigor)}</td>
-      <td class="num col-hide-mobile">${l.pms_etq != null ? l.pms_etq+'g' : '—'}</td>
-      <td class="num col-hide-mobile">${l.peso_bag != null ? l.peso_bag.toLocaleString('pt-BR')+'kg' : '—'}</td>
-      <td class="num col-hide-mobile" style="color:${l.sementes_m!=null?(l.sementes_m>=5?'var(--bom)':'var(--texto)'):'var(--texto2)'};">${l.sementes_m != null ? l.sementes_m+'M' : '—'}</td>
+      <td class="num">${l.pms_etq != null ? l.pms_etq+'g' : '—'}</td>
+      <td class="num">${l.peso_bag != null ? l.peso_bag.toLocaleString('pt-BR')+'kg' : '—'}</td>
+      <td class="num" style="color:${l.sementes_m!=null?(l.sementes_m>=5?'var(--bom)':'var(--texto)'):'var(--texto2)'};">${l.sementes_m != null ? l.sementes_m+'M' : '—'}</td>
       <td class="num col-hide-mobile">${l.kg.toLocaleString('pt-BR')}</td>
       <td><span class="rank-badge rank-${l.ranking}">${l.ranking === 'C' ? 'C — Condicional' : l.ranking + ' — ' + l.status}</span></td>
       <td style="padding:6px 8px;text-align:center;">
