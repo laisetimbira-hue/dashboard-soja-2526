@@ -1097,7 +1097,6 @@
   <div class="tab" onclick="showPage('beneficiamento')">Beneficiamento</div>
   <div class="tab" onclick="showPage('cultivares')">Por Cultivar</div>
   <div class="tab" onclick="showPage('lotes')">Lotes Detalhados</div>
-  <div class="tab" onclick="requestDiagAccess()">Diagnóstico</div>
 </div>
 
 <main>
@@ -1320,18 +1319,6 @@
 
   </div>
 
-  <!-- DIAGNÓSTICO DA SAFRA PAGE -->
-  <div class="page" id="page-diag">
-    <div class="filter-bar" style="margin-bottom:16px;">
-      <select id="diag-filter-cultivar" onchange="filterDiag()" class="mapa-select" style="min-width:220px;">
-        <option value="">Todos os cultivares</option>
-      </select>
-      <div class="count-badge">Exibindo <span id="diag-count" style="color:var(--accent);font-weight:700;">—</span> cultivares</div>
-    </div>
-    <div id="diag-global"></div>
-    <div style="font-size:0.65rem;font-weight:700;color:var(--texto2);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Diagnóstico por Cultivar</div>
-    <div id="diag-cultivares"></div>
-  </div>
 
 </main>
 
