@@ -1088,6 +1088,23 @@
       <div class="lbl">Cultivares</div>
     </div>
   </div>
+
+  <!-- Botão Sair -->
+  <button onclick="doLogout()" title="Sair"
+    style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);
+           border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#94A3B8;
+           padding:7px 14px;cursor:pointer;font-family:'Barlow',sans-serif;
+           font-size:0.82rem;font-weight:600;transition:all 0.15s;white-space:nowrap;"
+    onmouseover="this.style.background='rgba(220,38,38,0.15)';this.style.borderColor='rgba(220,38,38,0.4)';this.style.color='#FCA5A5';"
+    onmouseout="this.style.background='rgba(255,255,255,0.06)';this.style.borderColor='rgba(255,255,255,0.12)';this.style.color='#94A3B8';">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+      <polyline points="16 17 21 12 16 7"/>
+      <line x1="21" y1="12" x2="9" y2="12"/>
+    </svg>
+    Sair
+  </button>
 </header>
 
 <!-- BUSCA MOBILE OVERLAY -->
@@ -2777,6 +2794,16 @@ window.addEventListener('load', function() {
   var dmo = document.getElementById('diag-modal-overlay');
   if (dmo) dmo.addEventListener('click', function(e) { if (e.target === this) this.style.display = 'none'; });
 });
+
+function doLogout() {
+  document.body.classList.add('locked');
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('pw-input').value = '';
+  mapaUnlocked = false;
+  diagUnlocked = false;
+  window.scrollTo(0, 0);
+  setTimeout(() => document.getElementById('pw-input').focus(), 100);
+}
 
 buildOverview();
 buildCultivares();
