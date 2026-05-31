@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Análise de Sementes Soja 25-26</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>AGROBASE — Gestão de Qualidade</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -15,6 +15,9 @@
      DESIGN TOKENS
   ============================================ */
   :root {
+    --font-head: 'Barlow Condensed', sans-serif;
+    --font-body: 'Barlow', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
     --accent: #2563EB;
     --accent-light: #3B82F6;
     --accent-dim: rgba(37,99,235,0.12);
@@ -56,8 +59,8 @@
   body {
     background: var(--bg);
     color: var(--texto);
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
+    font-family: var(--font-body);
+    font-size: 16px;
     line-height: 1.5;
     min-height: 100vh;
     overflow-x: hidden;
@@ -87,14 +90,14 @@
 
   .logo-area h1 {
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: 1.05rem;
     color: #fff;
     letter-spacing: -0.3px;
     white-space: nowrap;
   }
 
   .logo-area p {
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     color: #64748B;
     margin-top: 1px;
     display: none; /* hidden on mobile */
@@ -106,8 +109,8 @@
   }
 
   .h-stat { text-align: right; }
-  .h-stat .val { font-size: 1.1rem; font-weight: 700; color: #fff; }
-  .h-stat .lbl { font-size: 0.58rem; color: #64748B; text-transform: uppercase; letter-spacing: 1px; }
+  .h-stat .val { font-size: 1.2rem; font-weight: 700; color: #fff; }
+  .h-stat .lbl { font-size: 0.68rem; color: #64748B; text-transform: uppercase; letter-spacing: 1px; }
 
   /* ============================================
      TABS — horizontal scroll on mobile
@@ -131,8 +134,10 @@
   .tab {
     flex: 0 0 auto;
     padding: 13px 18px;
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: 0.95rem;
+    font-weight: 700;
+    font-family: var(--font-head);
+    letter-spacing: 0.5px;
     color: var(--texto2);
     cursor: pointer;
     border-bottom: 2px solid transparent;
@@ -188,7 +193,7 @@
   .kpi.danger::after { background: var(--critico); }
 
   .kpi .label {
-    font-size: 0.62rem;
+    font-size: 0.72rem;
     color: var(--texto2);
     font-weight: 600;
     text-transform: uppercase;
@@ -197,14 +202,16 @@
   }
 
   .kpi .value {
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: 1.8rem;
+    font-weight: 800;
     color: var(--texto);
     line-height: 1;
+    font-family: var(--font-head);
+    letter-spacing: -0.5px;
   }
 
   .kpi .sub {
-    font-size: 0.62rem;
+    font-size: 0.72rem;
     color: var(--texto2);
     margin-top: 4px;
   }
@@ -233,9 +240,12 @@
   }
 
   .panel-header h3 {
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: 0.95rem;
+    font-weight: 700;
     color: var(--texto);
+    font-family: var(--font-head);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
   }
 
   .panel-body { padding: 14px 16px; }
@@ -259,7 +269,7 @@
   }
 
   .bar-label {
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     color: var(--texto2);
     text-align: right;
     white-space: nowrap;
@@ -283,7 +293,7 @@
   }
 
   .bar-val {
-    font-size: 0.68rem;
+    font-size: 0.78rem;
     font-weight: 600;
     color: var(--texto);
     text-align: right;
@@ -297,7 +307,7 @@
     display: inline-block;
     padding: 2px 8px;
     border-radius: 5px;
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     font-weight: 600;
   }
 
@@ -320,7 +330,7 @@
   thead th {
     background: var(--bg3);
     color: var(--texto2);
-    font-size: 0.62rem;
+    font-size: 0.72rem;
     text-transform: uppercase;
     letter-spacing: 0.6px;
     font-weight: 600;
@@ -375,8 +385,8 @@
     border-radius: 8px;
     color: var(--texto);
     padding: 10px 12px;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.82rem;
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.92rem;
     outline: none;
     transition: border-color 0.15s, box-shadow 0.15s;
     -webkit-appearance: none;
@@ -387,7 +397,7 @@
     box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
   }
 
-  .count-badge { font-size: 0.72rem; color: var(--texto2); }
+  .count-badge { font-size: 0.82rem; color: var(--texto2); }
   .count-badge span { color: var(--accent); font-weight: 700; }
 
   /* ============================================
@@ -415,7 +425,7 @@
     border: 1px solid #334155;
     border-radius: 7px;
     padding: 8px 12px;
-    font-size: 0.68rem;
+    font-size: 0.78rem;
     color: #F1F5F9;
     pointer-events: none;
     z-index: 9999;
@@ -429,7 +439,7 @@
   .legend-dot { width: 9px; height: 9px; border-radius: 2px; }
 
   .section-title {
-    font-size: 0.68rem;
+    font-size: 0.78rem;
     font-weight: 600;
     color: var(--texto2);
     text-transform: uppercase;
@@ -461,15 +471,18 @@
      DESKTOP — 1024px+
   ============================================ */
   @media (min-width: 1024px) {
-    :root { --header-h: 68px; }
+    :root {
+    --font-head: 'Barlow Condensed', sans-serif;
+    --font-body: 'Barlow', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace; --header-h: 68px; }
     header { padding: 0 40px; }
-    .logo-area h1 { font-size: 1.2rem; }
+    .logo-area h1 { font-size: 1.35rem; }
     main { padding: 28px 40px; }
     .tabs { padding: 0 28px; }
     .tab { padding: 14px 22px; }
     .kpi-grid { grid-template-columns: repeat(6, 1fr); gap: 14px; margin-bottom: 20px; }
     .kpi { padding: 18px 20px; }
-    .kpi .value { font-size: 1.8rem; }
+    .kpi .value { font-size: 2.0rem; }
     .grid-2 { grid-template-columns: 1fr 1fr; gap: 16px; }
     .grid-3 { grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
     .panel-header { padding: 14px 20px; }
@@ -533,7 +546,7 @@
     text-align: center;
   }
   .cv-metric-label {
-    font-size: 0.58rem;
+    font-size: 0.68rem;
     color: var(--texto2);
     text-transform: uppercase;
     letter-spacing: 0.4px;
@@ -579,8 +592,8 @@
   }
   .cv-lote-item { padding: 4px 2px; }
   .cv-lote-num  { font-size: 1.15rem; font-weight: 800; line-height: 1; }
-  .cv-lote-lbl  { font-size: 0.58rem; margin-top: 1px; }
-  .cv-lote-bags { font-size: 0.62rem; font-weight: 700; margin-top: 2px; }
+  .cv-lote-lbl  { font-size: 0.68rem; margin-top: 1px; }
+  .cv-lote-bags { font-size: 0.72rem; font-weight: 700; margin-top: 2px; }
 
   .cv-aprov  .cv-lote-num, .cv-aprov  .cv-lote-lbl  { color: var(--excelente); }
   .cv-aprov  .cv-lote-bags { color: var(--excelente); }
@@ -608,8 +621,8 @@
   }
   .cv-pen-p1 { background: #EFF6FF; color: #1D4ED8; }
   .cv-pen-p2 { background: #F5F3FF; color: #6D28D9; }
-  .cv-pms-val  { font-size: 0.88rem; font-weight: 700; color: var(--texto); }
-  .cv-pms-bags { font-size: 0.78rem; font-weight: 700; }
+  .cv-pms-val  { font-size: 0.98rem; font-weight: 700; color: var(--texto); }
+  .cv-pms-bags { font-size: 0.88rem; font-weight: 700; }
   .cv-bags-lbl { font-size: 0.6rem; font-weight: 400; color: var(--texto2); }
 
   /* ---- TABLET 640px+ ---- */
@@ -625,14 +638,14 @@
   @media (min-width: 1024px) {
     .cv-header  { padding: 14px 18px; }
     .cv-body    { padding: 14px 18px; }
-    .cv-name    { font-size: 0.95rem; }
+    .cv-name    { font-size: 1.05rem; }
     .cv-metrics { gap: 8px; margin-bottom: 12px; }
     .cv-metric-box { padding: 10px; }
-    .cv-metric-val { font-size: 1.05rem; }
+    .cv-metric-val { font-size: 1.15rem; }
     .cv-divider { margin-bottom: 12px; }
     .cv-bottom  { gap: 10px; }
     .cv-lotes-box, .cv-pms-box { padding: 10px 14px; }
-    .cv-lote-num  { font-size: 1.2rem; }
+    .cv-lote-num  { font-size: 1.35rem; }
     .cv-pms-val   { font-size: 0.9rem; }
     .cv-pms-bags  { font-size: 0.8rem; }
   }
@@ -641,7 +654,7 @@
      MAPA DE CAMPOS
   ============================================ */
   #map-container { z-index: 1; }
-  .leaflet-container { font-family: 'Inter', sans-serif !important; }
+  .leaflet-container { font-family: 'Barlow', sans-serif !important; }
   .leaflet-popup-content-wrapper {
     border-radius: 12px !important;
     box-shadow: 0 8px 32px rgba(0,0,0,0.18) !important;
@@ -663,8 +676,8 @@
     border-radius: 7px;
     color: var(--texto);
     padding: 8px 12px;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.78rem;
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.88rem;
     outline: none;
     transition: border-color 0.15s;
     -webkit-appearance: none;
@@ -718,7 +731,7 @@
   .gs-item:last-child { border-bottom: none; }
   .gs-item:hover { background: var(--bg3); }
   .gs-badge {
-    font-size: 0.58rem;
+    font-size: 0.68rem;
     font-weight: 700;
     padding: 2px 7px;
     border-radius: 4px;
@@ -726,11 +739,11 @@
     flex-shrink: 0;
     margin-top: 2px;
   }
-  .gs-main { font-size: 0.78rem; font-weight: 600; color: var(--texto); }
-  .gs-sub  { font-size: 0.65rem; color: var(--texto2); margin-top: 1px; }
+  .gs-main { font-size: 0.88rem; font-weight: 600; color: var(--texto); }
+  .gs-sub  { font-size: 0.75rem; color: var(--texto2); margin-top: 1px; }
   .gs-section {
     padding: 6px 14px 4px;
-    font-size: 0.58rem;
+    font-size: 0.68rem;
     font-weight: 700;
     color: #94A3B8;
     text-transform: uppercase;
@@ -738,7 +751,7 @@
     background: var(--bg3);
     border-bottom: 1px solid var(--borda);
   }
-  .gs-empty { padding: 20px; text-align: center; font-size: 0.78rem; color: var(--texto2); }
+  .gs-empty { padding: 20px; text-align: center; font-size: 0.88rem; color: var(--texto2); }
 
   .ov-main-grid {
     display: grid;
@@ -787,9 +800,10 @@
     z-index: 99999;
     background: linear-gradient(135deg, #0a0f1e 0%, #0f172a 50%, #0d1a2e 100%);
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Barlow', sans-serif;
   }
 
   #login-screen::before {
@@ -820,7 +834,7 @@
     background: rgba(37,99,235,0.15);
     border: 1px solid rgba(37,99,235,0.3);
     color: #60A5FA;
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -830,7 +844,7 @@
   }
 
   .login-title {
-    font-size: 1.6rem;
+    font-size: 1.8rem;
     font-weight: 800;
     color: #F1F5F9;
     line-height: 1.2;
@@ -839,7 +853,7 @@
   }
 
   .login-subtitle {
-    font-size: 0.78rem;
+    font-size: 0.88rem;
     color: #475569;
     margin-bottom: 36px;
   }
@@ -865,9 +879,9 @@
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 10px;
     padding: 14px 48px 14px 16px;
-    font-size: 0.95rem;
+    font-size: 1.05rem;
     color: #F1F5F9;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Barlow', sans-serif;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
     box-sizing: border-box;
@@ -920,7 +934,7 @@
     border: 1px solid rgba(220,38,38,0.25);
     border-radius: 8px;
     padding: 10px 14px;
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     color: #FCA5A5;
     margin-bottom: 16px;
     text-align: center;
@@ -935,7 +949,7 @@
     font-size: 0.9rem;
     font-weight: 700;
     color: #fff;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Barlow', sans-serif;
     cursor: pointer;
     transition: opacity 0.2s, transform 0.1s;
     letter-spacing: 0.3px;
@@ -971,11 +985,14 @@
 
 <!-- ========== LOGIN SCREEN ========== -->
 <div id="login-screen">
+  <div style="text-align:center;margin-bottom:28px;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:4.5rem;line-height:0.9;letter-spacing:-2px;color:#38BDF8;text-transform:uppercase;">AGRO<br>BASE</div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;letter-spacing:4px;color:#64748B;text-transform:uppercase;margin-top:10px;">GESTÃO DE QUALIDADE</div>
+  </div>
   <div class="login-box">
 
     <div class="login-badge">🌱 Acesso Restrito</div>
-    <div class="login-title">Dashboard<br>Safra Soja 25/26</div>
-    <div class="login-subtitle">Análise de Qualidade de Sementes — Safra 2025/2026</div>
+    <div class="login-subtitle">Análise de Sementes de Soja — Safra 2025/2026</div>
 
     <label class="login-label" for="pw-input">Senha de acesso</label>
     <div class="login-input-wrap">
@@ -1051,8 +1068,8 @@
 
 <header>
   <div class="logo-area">
-    <h1>🌱 SOJA 25-26</h1>
-    <p>Análise de Qualidade de Sementes — Safra 2025/2026</p>
+    <h1 style="font-family:'Barlow Condensed',sans-serif;font-weight:800;letter-spacing:-1px;font-size:1.55rem;color:#38BDF8;text-transform:uppercase;">AGROBASE</h1>
+    <p style="font-family:'IBM Plex Mono',monospace;font-size:0.68rem;letter-spacing:2px;color:#475569;text-transform:uppercase;">GESTÃO DE QUALIDADE</p>
   </div>
 
   <!-- BUSCA GLOBAL — centro do header (desktop) -->
@@ -1079,14 +1096,14 @@
      background:#0F172A;padding:12px 16px;border-bottom:1px solid #1E293B;box-shadow:0 4px 20px rgba(0,0,0,0.4);">
   <div style="display:flex;gap:8px;align-items:center;">
     <div style="position:relative;flex:1;">
-      <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:0.85rem;color:#475569;">🔍</span>
+      <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:0.95rem;color:#475569;">🔍</span>
       <input id="mobile-global-input" type="text" placeholder="Buscar lote ou cultivar..."
         autocomplete="off" oninput="globalSearchMobile()" onkeydown="globalKeydown(event)"
         style="width:100%;padding:10px 12px 10px 32px;background:rgba(255,255,255,0.1);
                border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;
-               font-family:'Inter',sans-serif;font-size:0.9rem;outline:none;caret-color:#60A5FA;">
+               font-family:'Barlow',sans-serif;font-size:0.9rem;outline:none;caret-color:#60A5FA;">
     </div>
-    <button onclick="closeMobileSearch()" style="background:none;border:none;color:#64748B;font-size:1.2rem;cursor:pointer;padding:4px;">✕</button>
+    <button onclick="closeMobileSearch()" style="background:none;border:none;color:#64748B;font-size:1.35rem;cursor:pointer;padding:4px;">✕</button>
   </div>
   <div id="mobile-global-dropdown" style="margin-top:8px;max-height:60vh;overflow-y:auto;border-radius:8px;overflow:hidden;"></div>
 </div>
@@ -1114,7 +1131,7 @@
       <div class="panel">
         <div class="panel-header">
           <h3>📋 Resumo por Cultivar</h3>
-          <div style="font-size:0.65rem;color:var(--texto2);">ordenado por volume</div>
+          <div style="font-size:0.75rem;color:var(--texto2);">ordenado por volume</div>
         </div>
         <div class="data-table-wrap">
           <table id="ov-table">
@@ -1244,7 +1261,7 @@
     <div class="panel" style="margin-bottom:20px;">
       <div class="panel-header">
         <h3>🏆 Ranking Geral por Cultivar</h3>
-        <div style="font-size:0.65rem;color:var(--texto2);">Ordenado por qualidade TZ + Germinação</div>
+        <div style="font-size:0.75rem;color:var(--texto2);">Ordenado por qualidade TZ + Germinação</div>
       </div>
       <div class="panel-body">
         <div id="ranking-table-container"></div>
@@ -1310,7 +1327,7 @@
         <option value="Cancelado">Cancelado</option>
         <option value="Denegado">Denegado</option>
       </select>
-      <div id="csv-status" style="font-size:0.72rem;color:var(--texto2);margin-left:4px;"></div>
+      <div id="csv-status" style="font-size:0.82rem;color:var(--texto2);margin-left:4px;"></div>
     </div>
 
     <!-- KPI Cards -->
@@ -1321,7 +1338,7 @@
       <div id="map-container" style="height:500px;width:100%;"></div>
       <!-- Legenda -->
       <div style="position:absolute;bottom:16px;left:16px;z-index:999;background:rgba(255,255,255,0.96);
-           border:1px solid var(--borda);border-radius:8px;padding:10px 14px;box-shadow:var(--shadow-md);font-size:0.68rem;pointer-events:none;">
+           border:1px solid var(--borda);border-radius:8px;padding:10px 14px;box-shadow:var(--shadow-md);font-size:0.78rem;pointer-events:none;">
         <div style="font-weight:700;color:var(--texto);margin-bottom:6px;font-size:0.7rem;">Status SIGEF</div>
         <div style="display:flex;flex-direction:column;gap:5px;">
           <div style="display:flex;align-items:center;gap:7px;"><div style="width:11px;height:11px;border-radius:50%;background:#16A34A;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></div>Colhido</div>
@@ -1332,7 +1349,7 @@
       </div>
       <!-- Contador -->
       <div id="mapa-count" style="position:absolute;top:12px;left:12px;z-index:999;background:rgba(15,23,42,0.85);
-           color:#fff;border-radius:7px;padding:6px 12px;font-size:0.72rem;font-weight:600;pointer-events:none;backdrop-filter:blur(4px);"></div>
+           color:#fff;border-radius:7px;padding:6px 12px;font-size:0.82rem;font-weight:600;pointer-events:none;backdrop-filter:blur(4px);"></div>
     </div>
 
   </div>
@@ -1466,34 +1483,34 @@ function buildOverview() {
   document.getElementById('kpi-grid').innerHTML = `
     <div class="kpi accent">
       <div class="label">Volume Total</div>
-      <div class="value" style="font-size:1.6rem;">${(totalKg/1000).toFixed(0)}t</div>
+      <div class="value" style="font-size:1.8rem;">${(totalKg/1000).toFixed(0)}t</div>
       <div class="sub">${totalKg.toLocaleString('pt-BR')} kg</div>
     </div>
     <div class="kpi">
       <div class="label">Lotes Analisados</div>
-      <div class="value" style="font-size:1.6rem;">${totalLotes}</div>
+      <div class="value" style="font-size:1.8rem;">${totalLotes}</div>
       <div class="sub">${SUMMARY.length} cultivares</div>
     </div>
     <div class="kpi">
       <div class="label">Germ. Média</div>
-      <div class="value" style="font-size:1.6rem;color:${colorGerm(parseFloat(avgGerm))}">${avgGerm}%</div>
+      <div class="value" style="font-size:1.8rem;color:${colorGerm(parseFloat(avgGerm))}">${avgGerm}%</div>
       <div class="sub">Rolo de papel</div>
     </div>
     <div class="kpi">
       <div class="label">Vigor Médio</div>
-      <div class="value" style="font-size:1.6rem;color:${colorVigor(parseFloat(avgVigor))}">${avgVigor}%</div>
+      <div class="value" style="font-size:1.8rem;color:${colorVigor(parseFloat(avgVigor))}">${avgVigor}%</div>
       <div class="sub">Envelh. acelerado</div>
     </div>
     <div class="kpi ${kpiColor}">
       <div class="label">Taxa de Aprovação</div>
-      <div class="value" style="font-size:1.6rem;color:${pctAprov>=80?'var(--excelente)':pctAprov>=60?'var(--regular)':'var(--critico)'}">${pctAprov}%</div>
+      <div class="value" style="font-size:1.8rem;color:${pctAprov>=80?'var(--excelente)':pctAprov>=60?'var(--regular)':'var(--critico)'}">${pctAprov}%</div>
       <div class="sub">${aprovados} apr. · ${reprovados} rep.</div>
     </div>
     <div class="kpi" onclick="goToCultivar('${bestCv?.cultivar||''}')"
       style="cursor:pointer;border-color:#FDE68A;background:linear-gradient(135deg,#FFFBEB,#FEF9E7);position:relative;overflow:hidden;">
       <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,#F59E0B,#D97706);border-radius:10px 0 0 10px;"></div>
       <div class="label" style="color:#92400E;">⭐ Destaque da Safra</div>
-      <div class="value" style="font-size:1.1rem;color:#92400E;font-weight:800;letter-spacing:-0.5px;line-height:1.2;margin-top:2px;">${bestCv?.cultivar||'—'}</div>
+      <div class="value" style="font-size:1.2rem;color:#92400E;font-weight:800;letter-spacing:-0.5px;line-height:1.2;margin-top:2px;">${bestCv?.cultivar||'—'}</div>
       <div class="sub" style="color:#B45309;margin-top:5px;">${bestCv?bestCv.pctAprov+'% aprov. · '+bestCv.lotes+' lotes · '+(bestCv.total_kg/1000).toFixed(0)+'t':'—'}</div>
     </div>
   `;
@@ -1508,9 +1525,9 @@ function buildOverview() {
     const vc = classVigor(c.vigor_media);
     return `
       <tr>
-        <td style="font-weight:600;font-size:0.78rem;">${c.cultivar}</td>
-        <td class="num" style="font-size:0.75rem;">${c.total_kg>0?(c.total_kg/1000).toFixed(0)+'t':'—'}</td>
-        <td class="num" style="color:var(--texto2);font-size:0.75rem;">${c.lotes}</td>
+        <td style="font-weight:600;font-size:0.88rem;">${c.cultivar}</td>
+        <td class="num" style="font-size:0.85rem;">${c.total_kg>0?(c.total_kg/1000).toFixed(0)+'t':'—'}</td>
+        <td class="num" style="color:var(--texto2);font-size:0.85rem;">${c.lotes}</td>
         <td class="num"><span style="font-weight:600;color:${colorGerm(c.germ_media)}">${c.germ_media!=null?c.germ_media+'%':'—'}</span></td>
         <td class="num"><span style="font-weight:600;color:${colorVigor(c.vigor_media)}">${c.vigor_media!=null?c.vigor_media+'%':'—'}</span></td>
         <td style="padding:8px 14px;">
@@ -1555,7 +1572,7 @@ function buildOverview() {
     <text x="70" y="82" text-anchor="middle" font-size="9" fill="#64748B" font-family="Inter">APROVADOS</text>`;
   document.getElementById('donut-center').textContent = `${aprovados} de ${total2} lotes`;
   document.getElementById('donut-legend').innerHTML = slices.map(s=>`
-    <div style="display:flex;align-items:center;gap:6px;font-size:0.68rem;color:var(--texto2);">
+    <div style="display:flex;align-items:center;gap:6px;font-size:0.78rem;color:var(--texto2);">
       <div style="width:10px;height:10px;border-radius:2px;background:${s.color};flex-shrink:0;"></div>
       <span><b style="color:var(--texto);">${s.val}</b> ${s.label}</span>
     </div>`).join('');
@@ -1582,7 +1599,7 @@ function buildOverview() {
   }
   if (!alerts.length) alerts.push({icon:'✅', text:'Nenhum alerta crítico!', color:'#F0FDF4', border:'#BBF7D0'});
   document.getElementById('alerts-list').innerHTML = alerts.map(a=>`
-    <div style="background:${a.color};border:1px solid ${a.border};border-radius:7px;padding:9px 12px;font-size:0.72rem;color:var(--texto);line-height:1.4;">
+    <div style="background:${a.color};border:1px solid ${a.border};border-radius:7px;padding:9px 12px;font-size:0.82rem;color:var(--texto);line-height:1.4;">
       ${a.icon} ${a.text}
     </div>`).join('');
 
@@ -1822,7 +1839,7 @@ function renderLoteTable() {
           </svg>
         </button>
       </td>
-      <td><code style="color:var(--accent);font-size:0.68rem;font-family:'IBM Plex Mono',monospace;">${l.lote}</code></td>
+      <td><code style="color:var(--accent);font-size:0.78rem;font-family:'IBM Plex Mono',monospace;">${l.lote}</code></td>
       <td style="font-size:0.74rem;">${l.cultivar}</td>
       <td class="col-hide-mobile">${l.categoria}</td>
       <td class="col-hide-mobile">${l.peneira}</td>
@@ -1901,7 +1918,7 @@ function toggleTZ(lote, idx) {
 
 function buildTZPanel(lote) {
   const d = TZ_DATA[lote];
-  if (!d) return '<div style="color:var(--texto2);font-size:0.78rem;padding:4px;">Dados de Tetrazólio não disponíveis.</div>';
+  if (!d) return '<div style="color:var(--texto2);font-size:0.88rem;padding:4px;">Dados de Tetrazólio não disponíveis.</div>';
 
   const pct = v => v != null ? v + '%' : '—';
   const colorViab  = v => v==null?'#94A3B8':v>=95?'#16A34A':v>=90?'#2563EB':'#D97706';
@@ -1912,24 +1929,24 @@ function buildTZPanel(lote) {
   // Big chip for TZ main indicators
   const bigChip = (lbl, val, colorFn) =>
     `<div style="background:#fff;border:1px solid #E2E8F0;border-radius:7px;padding:8px 6px;text-align:center;flex:1;">
-      <div style="font-size:0.56rem;color:#64748B;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">${lbl}</div>
-      <div style="font-size:1.2rem;font-weight:800;color:${colorFn(val)};">${pct(val)}</div>
+      <div style="font-size:0.65rem;color:#64748B;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">${lbl}</div>
+      <div style="font-size:1.35rem;font-weight:800;color:${colorFn(val)};">${pct(val)}</div>
     </div>`;
 
   // Small chip
   const sm = (lbl, val, colorFn) =>
     `<div style="background:#fff;border:1px solid #E2E8F0;border-radius:6px;padding:6px 4px;text-align:center;flex:1;">
-      <div style="font-size:0.52rem;color:#94A3B8;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:1px;">${lbl}</div>
-      <div style="font-size:0.95rem;font-weight:700;color:${colorFn(val)};">${pct(val)}</div>
+      <div style="font-size:0.62rem;color:#94A3B8;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:1px;">${lbl}</div>
+      <div style="font-size:1.05rem;font-weight:700;color:${colorFn(val)};">${pct(val)}</div>
     </div>`;
 
   // Dano table row
   const danoRow = (label, v45, v68, vtot) =>
     `<tr>
-      <td style="font-size:0.62rem;font-weight:600;color:#475569;padding:4px 6px 4px 0;white-space:nowrap;">${label}</td>
-      <td style="font-size:0.78rem;font-weight:700;color:${colorDano(v45)};text-align:center;padding:4px 4px;">${pct(v45)}</td>
-      <td style="font-size:0.78rem;font-weight:700;color:${colorDano(v68)};text-align:center;padding:4px 4px;">${pct(v68)}</td>
-      <td style="font-size:0.78rem;font-weight:700;color:${colorDano(vtot)};text-align:center;padding:4px 4px;font-weight:800;">${pct(vtot)}</td>
+      <td style="font-size:0.72rem;font-weight:600;color:#475569;padding:4px 6px 4px 0;white-space:nowrap;">${label}</td>
+      <td style="font-size:0.88rem;font-weight:700;color:${colorDano(v45)};text-align:center;padding:4px 4px;">${pct(v45)}</td>
+      <td style="font-size:0.88rem;font-weight:700;color:${colorDano(v68)};text-align:center;padding:4px 4px;">${pct(v68)}</td>
+      <td style="font-size:0.88rem;font-weight:700;color:${colorDano(vtot)};text-align:center;padding:4px 4px;font-weight:800;">${pct(vtot)}</td>
     </tr>`;
 
   return `
@@ -1953,10 +1970,10 @@ function buildTZPanel(lote) {
       <table style="width:100%;border-collapse:collapse;">
         <thead>
           <tr style="background:#F8FAFC;">
-            <th style="font-size:0.56rem;color:#94A3B8;text-transform:uppercase;padding:4px 6px 4px 0;text-align:left;">Dano</th>
-            <th style="font-size:0.56rem;color:#94A3B8;text-transform:uppercase;padding:4px;text-align:center;">4-5</th>
-            <th style="font-size:0.56rem;color:#94A3B8;text-transform:uppercase;padding:4px;text-align:center;">6-8</th>
-            <th style="font-size:0.56rem;color:#94A3B8;text-transform:uppercase;padding:4px;text-align:center;">Total</th>
+            <th style="font-size:0.65rem;color:#94A3B8;text-transform:uppercase;padding:4px 6px 4px 0;text-align:left;">Dano</th>
+            <th style="font-size:0.65rem;color:#94A3B8;text-transform:uppercase;padding:4px;text-align:center;">4-5</th>
+            <th style="font-size:0.65rem;color:#94A3B8;text-transform:uppercase;padding:4px;text-align:center;">6-8</th>
+            <th style="font-size:0.65rem;color:#94A3B8;text-transform:uppercase;padding:4px;text-align:center;">Total</th>
           </tr>
         </thead>
         <tbody>
@@ -2035,12 +2052,12 @@ function buildRanking() {
     topEl.innerHTML = bestA.map(l => `
       <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--borda)">
         <div>
-          <div style="font-size:0.72rem;color:var(--texto)"><code style="color:var(--accent)">${l.lote}</code> · ${l.cultivar}</div>
-          <div style="font-size:0.62rem;color:var(--texto2)">${l.peneira} · ${l.kg.toLocaleString('pt-BR')} kg</div>
+          <div style="font-size:0.82rem;color:var(--texto)"><code style="color:var(--accent)">${l.lote}</code> · ${l.cultivar}</div>
+          <div style="font-size:0.72rem;color:var(--texto2)">${l.peneira} · ${l.kg.toLocaleString('pt-BR')} kg</div>
         </div>
         <div style="text-align:right">
           <div style="color:var(--excelente);font-weight:700">${l.germ}%</div>
-          <div style="font-size:0.62rem;color:var(--texto2)">germ.</div>
+          <div style="font-size:0.72rem;color:var(--texto2)">germ.</div>
         </div>
       </div>`).join('');
   }
@@ -2052,12 +2069,12 @@ function buildRanking() {
       : critD.map(l => `
       <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--borda)">
         <div>
-          <div style="font-size:0.72rem;color:var(--texto)"><code style="color:var(--critico)">${l.lote}</code> · ${l.cultivar}</div>
-          <div style="font-size:0.62rem;color:var(--texto2)">${l.peneira} · ${l.kg.toLocaleString('pt-BR')} kg</div>
+          <div style="font-size:0.82rem;color:var(--texto)"><code style="color:var(--critico)">${l.lote}</code> · ${l.cultivar}</div>
+          <div style="font-size:0.72rem;color:var(--texto2)">${l.peneira} · ${l.kg.toLocaleString('pt-BR')} kg</div>
         </div>
         <div style="text-align:right">
           <div style="color:var(--critico);font-weight:700">${fmt(l.tz_viab)}%</div>
-          <div style="font-size:0.62rem;color:var(--texto2)">TZ viab.</div>
+          <div style="font-size:0.72rem;color:var(--texto2)">TZ viab.</div>
         </div>
       </div>`).join('');
   }
@@ -2125,7 +2142,7 @@ function filterBenef() {
 
         <!-- Nome + barra mini -->
         <div style="flex:1;min-width:0;">
-          <div style="font-weight:700;font-size:0.88rem;color:var(--texto);">${c.cultivar}</div>
+          <div style="font-weight:700;font-size:0.98rem;color:var(--texto);">${c.cultivar}</div>
           <div style="display:flex;height:4px;border-radius:2px;overflow:hidden;margin-top:5px;max-width:200px;">
             <div style="width:${(c.bags_p1/c.bags_total*100).toFixed(1)}%;background:#2563EB;"></div>
             <div style="width:${(c.bags_p2/c.bags_total*100).toFixed(1)}%;background:#7C3AED;"></div>
@@ -2161,7 +2178,7 @@ function filterBenef() {
       <div id="benef-detail-${i}" style="display:none;border-top:1px solid var(--borda);background:var(--bg3);padding:16px;">
 
         <!-- Cards por categoria+peneira -->
-        <div style="font-size:0.62rem;font-weight:700;color:var(--texto2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Por Categoria e Peneira</div>
+        <div style="font-size:0.72rem;font-weight:700;color:var(--texto2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Por Categoria e Peneira</div>
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
           ${c.detail.map(d=>`
             <div style="background:#fff;border:1px solid var(--borda);border-radius:8px;padding:10px 14px;flex:1;min-width:90px;text-align:center;box-shadow:var(--shadow);">
@@ -2169,15 +2186,15 @@ function filterBenef() {
                 <span style="background:${CAT_BG[d.categoria]};color:${CAT_COLORS[d.categoria]};border:1px solid ${CAT_BORDER[d.categoria]};border-radius:4px;padding:1px 6px;font-size:0.6rem;font-weight:700;">${d.categoria}</span>
                 <span style="background:${d.peneira==='P1'?'#EFF6FF':'#F5F3FF'};color:${d.peneira==='P1'?'#2563EB':'#7C3AED'};border:1px solid ${d.peneira==='P1'?'#BFDBFE':'#DDD6FE'};border-radius:4px;padding:1px 6px;font-size:0.6rem;font-weight:700;">${d.peneira}</span>
               </div>
-              <div style="font-size:1.2rem;font-weight:800;color:var(--texto);line-height:1;">${d.bags.toLocaleString('pt-BR')}</div>
-              <div style="font-size:0.58rem;color:var(--texto2);margin-top:1px;">bags</div>
+              <div style="font-size:1.35rem;font-weight:800;color:var(--texto);line-height:1;">${d.bags.toLocaleString('pt-BR')}</div>
+              <div style="font-size:0.68rem;color:var(--texto2);margin-top:1px;">bags</div>
               <div style="font-size:0.7rem;font-weight:600;color:var(--texto2);margin-top:4px;">${(d.kg/1000).toFixed(1)}t</div>
             </div>`).join('')}
           <!-- Total -->
           <div style="background:#0F172A;border-radius:8px;padding:10px 14px;flex:1;min-width:90px;text-align:center;">
-            <div style="font-size:0.58rem;color:#64748B;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Total</div>
-            <div style="font-size:1.2rem;font-weight:800;color:#fff;line-height:1;">${c.bags_total.toLocaleString('pt-BR')}</div>
-            <div style="font-size:0.58rem;color:#64748B;margin-top:1px;">bags</div>
+            <div style="font-size:0.68rem;color:#64748B;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Total</div>
+            <div style="font-size:1.35rem;font-weight:800;color:#fff;line-height:1;">${c.bags_total.toLocaleString('pt-BR')}</div>
+            <div style="font-size:0.68rem;color:#64748B;margin-top:1px;">bags</div>
             <div style="font-size:0.7rem;font-weight:600;color:#94A3B8;margin-top:4px;">${(c.kg_total/1000).toFixed(1)}t</div>
           </div>
         </div>
@@ -2200,7 +2217,7 @@ function filterBenef() {
             <div style="height:10px;display:flex;border-radius:5px;overflow:hidden;border:1px solid var(--borda);">
               ${presentCats.map(cat=>`<div style="width:${(catBags[cat]/c.bags_total*100).toFixed(1)}%;background:${CAT_COLORS[cat]};"></div>`).join('')}
             </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;font-size:0.58rem;color:var(--texto2);">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;font-size:0.68rem;color:var(--texto2);">
               ${presentCats.map(cat=>`<span style="display:flex;align-items:center;gap:2px;">
                 <span style="display:inline-block;width:7px;height:7px;background:${CAT_COLORS[cat]};border-radius:1px;"></span>${cat}: ${catBags[cat]}
               </span>`).join('')}
@@ -2208,23 +2225,23 @@ function filterBenef() {
           </div>` : ''}
         </div>
 
-        ${c.peso_medio ? `<div style="margin-top:10px;font-size:0.68rem;color:var(--texto2);">⚖️ Peso médio por bag: <b style="color:var(--texto);">${c.peso_medio.toFixed(0)} kg</b></div>` : ''}
+        ${c.peso_medio ? `<div style="margin-top:10px;font-size:0.78rem;color:var(--texto2);">⚖️ Peso médio por bag: <b style="color:var(--texto);">${c.peso_medio.toFixed(0)} kg</b></div>` : ''}
 
         <!-- PMS todos os lotes -->
         <div style="margin-top:12px;border-top:1px solid var(--borda);padding-top:12px;">
-          <div style="font-size:0.62rem;font-weight:700;color:var(--texto2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">
+          <div style="font-size:0.72rem;font-weight:700;color:var(--texto2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">
             PMS Médio — Todos os lotes
           </div>
           <div style="display:flex;gap:8px;">
             <div style="flex:1;background:#fff;border:1px solid #BFDBFE;border-radius:8px;padding:10px;text-align:center;box-shadow:var(--shadow);">
-              <span style="background:#EFF6FF;color:#2563EB;border:1px solid #BFDBFE;border-radius:4px;padding:1px 8px;font-size:0.62rem;font-weight:700;display:inline-block;margin-bottom:6px;">P1</span>
-              <div style="font-size:1.3rem;font-weight:800;color:#2563EB;line-height:1;">${c.pms_todos_p1 != null ? c.pms_todos_p1.toFixed(1)+'g' : '—'}</div>
-              <div style="font-size:0.58rem;color:var(--texto2);margin-top:2px;">peso de mil sementes</div>
+              <span style="background:#EFF6FF;color:#2563EB;border:1px solid #BFDBFE;border-radius:4px;padding:1px 8px;font-size:0.72rem;font-weight:700;display:inline-block;margin-bottom:6px;">P1</span>
+              <div style="font-size:1.45rem;font-weight:800;color:#2563EB;line-height:1;">${c.pms_todos_p1 != null ? c.pms_todos_p1.toFixed(1)+'g' : '—'}</div>
+              <div style="font-size:0.68rem;color:var(--texto2);margin-top:2px;">peso de mil sementes</div>
             </div>
             <div style="flex:1;background:#fff;border:1px solid #DDD6FE;border-radius:8px;padding:10px;text-align:center;box-shadow:var(--shadow);">
-              <span style="background:#F5F3FF;color:#7C3AED;border:1px solid #DDD6FE;border-radius:4px;padding:1px 8px;font-size:0.62rem;font-weight:700;display:inline-block;margin-bottom:6px;">P2</span>
-              <div style="font-size:1.3rem;font-weight:800;color:#7C3AED;line-height:1;">${c.pms_todos_p2 != null ? c.pms_todos_p2.toFixed(1)+'g' : '—'}</div>
-              <div style="font-size:0.58rem;color:var(--texto2);margin-top:2px;">peso de mil sementes</div>
+              <span style="background:#F5F3FF;color:#7C3AED;border:1px solid #DDD6FE;border-radius:4px;padding:1px 8px;font-size:0.72rem;font-weight:700;display:inline-block;margin-bottom:6px;">P2</span>
+              <div style="font-size:1.45rem;font-weight:800;color:#7C3AED;line-height:1;">${c.pms_todos_p2 != null ? c.pms_todos_p2.toFixed(1)+'g' : '—'}</div>
+              <div style="font-size:0.68rem;color:var(--texto2);margin-top:2px;">peso de mil sementes</div>
             </div>
           </div>
         </div>
@@ -2275,14 +2292,14 @@ function buildPopupHTML(c) {
     if (!val || val === 'null' || val === '—') return '';
     return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #F1F5F9;">' +
       '<span style="font-size:0.8rem;width:16px;text-align:center;flex-shrink:0;">' + icon + '</span>' +
-      '<span style="font-size:0.68rem;color:#64748B;flex:1;">' + lbl + '</span>' +
-      '<span style="font-size:0.72rem;font-weight:600;color:' + color + ';">' + val + '</span></div>';
+      '<span style="font-size:0.78rem;color:#64748B;flex:1;">' + lbl + '</span>' +
+      '<span style="font-size:0.82rem;font-weight:600;color:' + color + ';">' + val + '</span></div>';
   }
 
   function bar(lbl, pct, color) {
     var w = Math.min(100, Math.max(0, pct));
     return '<div style="margin-bottom:6px;">' +
-      '<div style="display:flex;justify-content:space-between;font-size:0.65rem;margin-bottom:3px;">' +
+      '<div style="display:flex;justify-content:space-between;font-size:0.75rem;margin-bottom:3px;">' +
       '<span style="color:#64748B;">' + lbl + '</span>' +
       '<span style="font-weight:700;color:' + color + ';">' + pct.toFixed(1) + '%</span></div>' +
       '<div style="height:6px;background:#F1F5F9;border-radius:3px;overflow:hidden;">' +
@@ -2297,11 +2314,11 @@ function buildPopupHTML(c) {
 
   // Header
   html += '<div style="background:#0F172A;padding:14px 16px 12px;">';
-  html += '<div style="font-weight:800;font-size:0.9rem;color:#fff;line-height:1.2;">' + (c.nome_campo||'—') + (c.numero ? ' <span style="font-size:0.72rem;color:#94A3B8;font-weight:400;">— ' + c.numero.trim() + '</span>' : '') + '</div>';
-  html += '<div style="font-size:0.62rem;color:#64748B;margin-top:3px;">' + (c.municipio||'') + ' · ' + (c.uf||'') + ' · ' + (c.safra||'') + '</div>';
+  html += '<div style="font-weight:800;font-size:0.9rem;color:#fff;line-height:1.2;">' + (c.nome_campo||'—') + (c.numero ? ' <span style="font-size:0.82rem;color:#94A3B8;font-weight:400;">— ' + c.numero.trim() + '</span>' : '') + '</div>';
+  html += '<div style="font-size:0.72rem;color:#64748B;margin-top:3px;">' + (c.municipio||'') + ' · ' + (c.uf||'') + ' · ' + (c.safra||'') + '</div>';
   html += '<div style="margin-top:8px;">';
-  html += '<span style="background:' + sBg + ';color:' + sColor + ';border:1px solid ' + sColor + '33;border-radius:5px;padding:2px 9px;font-size:0.65rem;font-weight:700;">' + sLabel + '</span>';
-  if (c.categoria) html += '<span style="background:#F1F5F9;color:#475569;border-radius:4px;padding:2px 7px;font-size:0.62rem;margin-left:4px;">' + c.categoria + '</span>';
+  html += '<span style="background:' + sBg + ';color:' + sColor + ';border:1px solid ' + sColor + '33;border-radius:5px;padding:2px 9px;font-size:0.75rem;font-weight:700;">' + sLabel + '</span>';
+  if (c.categoria) html += '<span style="background:#F1F5F9;color:#475569;border-radius:4px;padding:2px 7px;font-size:0.72rem;margin-left:4px;">' + c.categoria + '</span>';
   html += '</div></div>';
 
   // Body
@@ -2413,26 +2430,26 @@ function renderMapaKPIs() {
   document.getElementById('mapa-kpis').innerHTML =
     '<div class="kpi accent">' +
       '<div class="label">Total de Campos</div>' +
-      '<div class="value" style="font-size:1.6rem;">' + d.length + '</div>' +
+      '<div class="value" style="font-size:1.8rem;">' + d.length + '</div>' +
       '<div class="sub">' + totalHa.toFixed(0) + ' ha mapeados</div></div>' +
     '<div class="kpi">' +
       '<div class="label">Colhidos</div>' +
-      '<div class="value" style="font-size:1.6rem;color:var(--excelente);">' + aprovados + '</div>' +
+      '<div class="value" style="font-size:1.8rem;color:var(--excelente);">' + aprovados + '</div>' +
       '<div class="sub">' + (d.length?Math.round(aprovados/d.length*100):0) + '% do total</div></div>' +
     '<div class="kpi">' +
       '<div class="label">Produção Bruta</div>' +
-      '<div class="value" style="font-size:1.6rem;">' + totalProd.toFixed(0) + 't</div>' +
+      '<div class="value" style="font-size:1.8rem;">' + totalProd.toFixed(0) + 't</div>' +
       '<div class="sub">Total colhido</div></div>' +
     '<div class="kpi">' +
       '<div class="label">Cultivares</div>' +
-      '<div class="value" style="font-size:1.6rem;">' + cultivares + '</div>' +
+      '<div class="value" style="font-size:1.8rem;">' + cultivares + '</div>' +
       '<div class="sub">Variedades no mapa</div></div>';
 }
 
 function renderMapaCharts() {
   var d = mapaFiltered.filter(function(c){return c.prod_bruta_ton;});
   var bars = document.getElementById('mapa-bars');
-  if (!d.length) { bars.innerHTML = '<div style="color:var(--texto2);font-size:0.78rem;text-align:center;padding:8px;">Sem dados de produção disponíveis</div>'; return; }
+  if (!d.length) { bars.innerHTML = '<div style="color:var(--texto2);font-size:0.88rem;text-align:center;padding:8px;">Sem dados de produção disponíveis</div>'; return; }
 
   var sorted = d.slice().sort(function(a,b){return (b.prod_bruta_ton||0)-(a.prod_bruta_ton||0);}).slice(0,15);
   var maxP = Math.max.apply(null, sorted.map(function(c){return c.prod_bruta_ton||0;}));
@@ -2440,10 +2457,10 @@ function renderMapaCharts() {
   bars.innerHTML = sorted.map(function(c) {
     var w = maxP ? (c.prod_bruta_ton/maxP*100).toFixed(1) : 0;
     return '<div style="display:grid;grid-template-columns:160px 1fr 60px;align-items:center;gap:10px;">' +
-      '<div style="text-align:right;overflow:hidden;">' + '<div style="font-size:0.65rem;color:var(--texto);font-weight:600;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;">' + ((c.numero||'').trim() || c.nome_campo) + '</div>' + '<div style="font-size:0.58rem;color:var(--texto2);white-space:nowrap;text-overflow:ellipsis;overflow:hidden;">' + (c.cultivar||'') + '</div></div>' +
+      '<div style="text-align:right;overflow:hidden;">' + '<div style="font-size:0.75rem;color:var(--texto);font-weight:600;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;">' + ((c.numero||'').trim() || c.nome_campo) + '</div>' + '<div style="font-size:0.68rem;color:var(--texto2);white-space:nowrap;text-overflow:ellipsis;overflow:hidden;">' + (c.cultivar||'') + '</div></div>' +
       '<div style="background:var(--bg3);border-radius:4px;overflow:hidden;height:18px;border:1px solid var(--borda);">' +
       '<div style="width:' + w + '%;height:100%;background:' + campoColor(c) + ';border-radius:3px;"></div></div>' +
-      '<div style="font-size:0.68rem;font-weight:600;text-align:right;">' + c.prod_bruta_ton.toFixed(1) + 't</div></div>';
+      '<div style="font-size:0.78rem;font-weight:600;text-align:right;">' + c.prod_bruta_ton.toFixed(1) + 't</div></div>';
   }).join('');
 }
 
@@ -2598,7 +2615,7 @@ function buildDiag() {
   const barStat = (label, n, total, color) => {
     const pct = total ? Math.round(n/total*100) : 0;
     return `<div style="margin-bottom:6px;">
-      <div style="display:flex;justify-content:space-between;font-size:0.72rem;margin-bottom:3px;">
+      <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:3px;">
         <span style="color:var(--texto2);">${label}</span>
         <span style="font-weight:700;color:${color};">${n} lotes (${pct}%)</span>
       </div>
@@ -2621,16 +2638,16 @@ function buildDiag() {
   // ── HEADER + SITUAÇÃO GERAL (always shown)
   let globalHtml = `
     <div style="margin-bottom:24px;">
-      <h2 style="font-size:1.3rem;font-weight:800;color:var(--texto);letter-spacing:-0.5px;">Diagnóstico da Safra — Soja 25/26</h2>
-      <div style="font-size:0.75rem;color:var(--texto2);margin-top:4px;">Análise automática gerada a partir dos dados de análise de sementes</div>
+      <h2 style="font-size:1.45rem;font-weight:800;color:var(--texto);letter-spacing:-0.5px;">Diagnóstico da Safra — Soja 25/26</h2>
+      <div style="font-size:0.85rem;color:var(--texto2);margin-top:4px;">Análise automática gerada a partir dos dados de análise de sementes</div>
     </div>`;
 
   globalHtml += `<div class="panel" style="margin-bottom:16px;">
     <div class="panel-header"><h3>📋 Situação Geral da Safra</h3></div>
     <div style="padding:16px 18px;display:grid;grid-template-columns:1fr;gap:16px;">
       <div>
-        <div style="font-size:0.65rem;font-weight:700;color:var(--texto2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Visão Geral</div>
-        <p style="font-size:0.82rem;color:var(--texto);line-height:1.7;">${g.geral}</p>
+        <div style="font-size:0.75rem;font-weight:700;color:var(--texto2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Visão Geral</div>
+        <p style="font-size:0.92rem;color:var(--texto);line-height:1.7;">${g.geral}</p>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div style="background:var(--bg3);border-radius:8px;padding:14px;">
@@ -2640,11 +2657,11 @@ function buildDiag() {
           ${barStat('Pendentes (X)', cvs.reduce((s,c)=>s+c.pendentes,0), cvs.reduce((s,c)=>s+c.total,0), '#94A3B8')}
         </div>
         <div>
-          <div style="font-size:0.65rem;font-weight:700;color:var(--texto2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Problema Principal</div>
-          <p style="font-size:0.78rem;color:var(--texto);line-height:1.7;">${g.problema}</p>
+          <div style="font-size:0.75rem;font-weight:700;color:var(--texto2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Problema Principal</div>
+          <p style="font-size:0.88rem;color:var(--texto);line-height:1.7;">${g.problema}</p>
           <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--borda);">
-            <div style="font-size:0.65rem;font-weight:700;color:var(--texto2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Análises Pendentes</div>
-            <p style="font-size:0.78rem;color:var(--texto);line-height:1.7;">${g.pendentes}</p>
+            <div style="font-size:0.75rem;font-weight:700;color:var(--texto2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Análises Pendentes</div>
+            <p style="font-size:0.88rem;color:var(--texto);line-height:1.7;">${g.pendentes}</p>
           </div>
         </div>
       </div>
@@ -2682,11 +2699,11 @@ function renderDiagCultivares(cvs, statusStyle) {
       <div style="padding:12px 16px;background:#0F172A;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
         <div>
           <div style="font-weight:700;font-size:0.9rem;color:#fff;">${c.cultivar}</div>
-          <div style="font-size:0.62rem;color:#64748B;margin-top:2px;">${c.total} lotes · ${c.volume}</div>
+          <div style="font-size:0.72rem;color:#64748B;margin-top:2px;">${c.total} lotes · ${c.volume}</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:1.2rem;font-weight:800;color:${st.color};">${c.pct_aprov}%</span>
-          <span style="background:${st.bg};color:${st.color};border:1px solid ${st.border};border-radius:6px;padding:3px 10px;font-size:0.65rem;font-weight:700;">${st.label}</span>
+          <span style="font-size:1.35rem;font-weight:800;color:${st.color};">${c.pct_aprov}%</span>
+          <span style="background:${st.bg};color:${st.color};border:1px solid ${st.border};border-radius:6px;padding:3px 10px;font-size:0.75rem;font-weight:700;">${st.label}</span>
         </div>
       </div>
       <div style="height:4px;display:flex;">
@@ -2698,8 +2715,8 @@ function renderDiagCultivares(cvs, statusStyle) {
       <div style="padding:14px 16px;">
         <p style="font-size:0.8rem;color:var(--texto);line-height:1.75;margin-bottom:10px;">${c.diagnostico}</p>
         <div style="background:${st.bg};border:1px solid ${st.border};border-radius:7px;padding:10px 14px;">
-          <span style="font-size:0.62rem;font-weight:700;color:${st.color};text-transform:uppercase;letter-spacing:0.8px;">Recomendação · </span>
-          <span style="font-size:0.78rem;color:var(--texto);">${c.recomendacao}</span>
+          <span style="font-size:0.72rem;font-weight:700;color:${st.color};text-transform:uppercase;letter-spacing:0.8px;">Recomendação · </span>
+          <span style="font-size:0.88rem;color:var(--texto);">${c.recomendacao}</span>
         </div>
       </div>
     </div>`;
@@ -2768,7 +2785,7 @@ buildRanking();
 setupMapaDragDrop();
 </script>
 
-<footer style="background:#fff;border-top:1px solid #E2E8F0;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:0.62rem;color:#94A3B8;">
+<footer style="background:#fff;border-top:1px solid #E2E8F0;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:0.72rem;color:#94A3B8;">
   <span style="font-weight:700;color:#CBD5E1;text-transform:uppercase;letter-spacing:1px;">Parâmetros</span>
   <span class="footer-spacer" style="color:#E2E8F0;">·</span>
   <span><b style="color:#64748B;">TZ Germ:</b>
@@ -2805,20 +2822,20 @@ setupMapaDragDrop();
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       </div>
     </div>
-    <div style="text-align:center;font-weight:700;font-size:1.1rem;color:#0F172A;margin-bottom:4px;">Acesso Restrito</div>
-    <div style="text-align:center;font-size:0.75rem;color:#64748B;margin-bottom:24px;">Mapa de Campos — apenas gestores</div>
-    <label style="display:block;font-size:0.68rem;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:7px;">Senha</label>
+    <div style="text-align:center;font-weight:700;font-size:1.2rem;color:#0F172A;margin-bottom:4px;">Acesso Restrito</div>
+    <div style="text-align:center;font-size:0.85rem;color:#64748B;margin-bottom:24px;">Mapa de Campos — apenas gestores</div>
+    <label style="display:block;font-size:0.78rem;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:7px;">Senha</label>
     <div style="position:relative;margin-bottom:10px;">
       <input id="mapa-pw-input" type="password" placeholder="Digite a senha..." autocomplete="off"
         onkeydown="if(event.key==='Enter') checkMapaPassword()"
-        style="width:100%;padding:11px 42px 11px 14px;border:1.5px solid #E2E8F0;border-radius:9px;font-family:'Inter',sans-serif;font-size:0.88rem;color:#0F172A;outline:none;box-sizing:border-box;">
+        style="width:100%;padding:11px 42px 11px 14px;border:1.5px solid #E2E8F0;border-radius:9px;font-family:'Barlow',sans-serif;font-size:0.98rem;color:#0F172A;outline:none;box-sizing:border-box;">
       <button onclick="toggleMapaPw()" tabindex="-1" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94A3B8;padding:0;">
         <svg id="mapa-eye-icon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
       </button>
     </div>
-    <div id="mapa-pw-error" style="display:none;font-size:0.72rem;color:#DC2626;background:#FEF2F2;border:1px solid #FECACA;border-radius:7px;padding:8px 12px;margin-bottom:10px;text-align:center;">❌ Senha incorreta.</div>
-    <button onclick="checkMapaPassword()" style="width:100%;background:#0F172A;color:#fff;border:none;border-radius:9px;padding:12px;font-family:'Inter',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;margin-top:4px;" onmouseover="this.style.background='#1E293B'" onmouseout="this.style.background='#0F172A'">Entrar →</button>
-    <button onclick="closeMapaModal()" style="width:100%;background:none;border:none;color:#94A3B8;font-size:0.75rem;cursor:pointer;margin-top:12px;font-family:'Inter',sans-serif;padding:4px;">Cancelar</button>
+    <div id="mapa-pw-error" style="display:none;font-size:0.82rem;color:#DC2626;background:#FEF2F2;border:1px solid #FECACA;border-radius:7px;padding:8px 12px;margin-bottom:10px;text-align:center;">❌ Senha incorreta.</div>
+    <button onclick="checkMapaPassword()" style="width:100%;background:#0F172A;color:#fff;border:none;border-radius:9px;padding:14px;font-family:'Barlow',sans-serif;font-size:0.98rem;font-weight:600;cursor:pointer;margin-top:4px;" onmouseover="this.style.background='#1E293B'" onmouseout="this.style.background='#0F172A'">Entrar →</button>
+    <button onclick="closeMapaModal()" style="width:100%;background:none;border:none;color:#94A3B8;font-size:0.85rem;cursor:pointer;margin-top:12px;font-family:'Barlow',sans-serif;padding:4px;">Cancelar</button>
   </div>
 </div>
 
@@ -2839,16 +2856,16 @@ setupMapaDragDrop();
       </div>
     </div>
 
-    <div style="text-align:center;font-weight:700;font-size:1.1rem;color:#0F172A;margin-bottom:4px;">Acesso Restrito</div>
-    <div style="text-align:center;font-size:0.75rem;color:#64748B;margin-bottom:24px;">Diagnóstico da Safra — apenas gestores</div>
+    <div style="text-align:center;font-weight:700;font-size:1.2rem;color:#0F172A;margin-bottom:4px;">Acesso Restrito</div>
+    <div style="text-align:center;font-size:0.85rem;color:#64748B;margin-bottom:24px;">Diagnóstico da Safra — apenas gestores</div>
 
-    <label style="display:block;font-size:0.68rem;font-weight:600;color:#64748B;
+    <label style="display:block;font-size:0.78rem;font-weight:600;color:#64748B;
            text-transform:uppercase;letter-spacing:0.8px;margin-bottom:7px;">Senha</label>
     <div style="position:relative;margin-bottom:10px;">
       <input id="diag-pw-input" type="password" placeholder="Digite a senha..."
         autocomplete="off" onkeydown="if(event.key==='Enter') checkDiagPassword()"
         style="width:100%;padding:11px 42px 11px 14px;border:1.5px solid #E2E8F0;border-radius:9px;
-               font-family:'Inter',sans-serif;font-size:0.88rem;color:#0F172A;outline:none;
+               font-family:'Barlow',sans-serif;font-size:0.98rem;color:#0F172A;outline:none;
                transition:border-color 0.15s;box-sizing:border-box;">
       <button onclick="toggleDiagPw()" tabindex="-1"
         style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
@@ -2862,7 +2879,7 @@ setupMapaDragDrop();
       </button>
     </div>
 
-    <div id="diag-pw-error" style="display:none;font-size:0.72rem;color:#DC2626;
+    <div id="diag-pw-error" style="display:none;font-size:0.82rem;color:#DC2626;
          background:#FEF2F2;border:1px solid #FECACA;border-radius:7px;
          padding:8px 12px;margin-bottom:10px;text-align:center;">
       ❌ Senha incorreta. Tente novamente.
@@ -2870,14 +2887,14 @@ setupMapaDragDrop();
 
     <button onclick="checkDiagPassword()"
       style="width:100%;background:#0F172A;color:#fff;border:none;border-radius:9px;
-             padding:12px;font-family:'Inter',sans-serif;font-size:0.88rem;font-weight:600;
+             padding:14px;font-family:'Barlow',sans-serif;font-size:0.98rem;font-weight:600;
              cursor:pointer;margin-top:4px;"
       onmouseover="this.style.background='#1E293B'" onmouseout="this.style.background='#0F172A'">
       Entrar →
     </button>
     <button onclick="document.getElementById('diag-modal-overlay').style.display='none'"
-      style="width:100%;background:none;border:none;color:#94A3B8;font-size:0.75rem;
-             cursor:pointer;margin-top:12px;font-family:'Inter',sans-serif;padding:4px;">
+      style="width:100%;background:none;border:none;color:#94A3B8;font-size:0.85rem;
+             cursor:pointer;margin-top:12px;font-family:'Barlow',sans-serif;padding:4px;">
       Cancelar
     </button>
   </div>
