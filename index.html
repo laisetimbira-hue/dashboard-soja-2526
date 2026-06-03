@@ -1627,7 +1627,7 @@ function buildOverview() {
   });
   document.getElementById('donut-svg').innerHTML = `${paths}
     <text x="70" y="65" text-anchor="middle" font-size="18" font-weight="800" fill="#0F172A" font-family="Inter">${pctAprov}%</text>
-    <text x="70" y="82" text-anchor="middle" font-size="9" fill="#64748B" font-family="Inter">APROVADOS</text>`;
+    <text x="70" y="82" text-anchor="middle" font-size="9" fill="#64748B" font-family="Barlow Condensed, sans-serif" font-weight="700" letter-spacing="1">APROVADOS</text>`;
   document.getElementById('donut-center').textContent = `${aprovados} de ${total2} lotes`;
   document.getElementById('donut-legend').innerHTML = slices.map(s=>`
     <div style="display:flex;align-items:center;gap:6px;font-size:0.78rem;color:var(--texto2);">
