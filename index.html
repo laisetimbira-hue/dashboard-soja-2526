@@ -1563,7 +1563,7 @@ function buildOverview() {
     return oa - ob;
   });
   document.getElementById('ov-tbody').innerHTML = sortedSummary.map((c, idx) => {
-    const total = c.rank_A + c.rank_B + c.rank_C + c.rank_D + c.rank_X;
+    const total = c.rank_A + c.rank_B + (c.rank_BV||0) + c.rank_C + c.rank_D + c.rank_X;
     const aprov = c.rank_A + c.rank_B + (c.rank_BV||0);
     const reprov = c.rank_C + c.rank_D;
 
@@ -1787,7 +1787,7 @@ function filterCultivares() {
       </div>`;
     }
     const pms  = PMS_CV.find(p => p.cultivar === c.cultivar) || {};
-    const total = c.rank_A + c.rank_B + c.rank_C + c.rank_D + c.rank_X;
+    const total = c.rank_A + c.rank_B + (c.rank_BV||0) + c.rank_C + c.rank_D + c.rank_X;
     const aprov  = c.rank_A + c.rank_B;
     const cond   = c.rank_C;
     const reprov = c.rank_D;
@@ -1807,6 +1807,7 @@ function filterCultivares() {
                          .reduce((s, l) => s + (l.bags || 0), 0);
     const barA  = total ? (c.rank_A/total*100).toFixed(1) : 0;
     const barB  = total ? (c.rank_B/total*100).toFixed(1) : 0;
+    const barBV = total ? ((c.rank_BV||0)/total*100).toFixed(1) : 0;
     const barC  = total ? (c.rank_C/total*100).toFixed(1) : 0;
     const barD  = total ? (c.rank_D/total*100).toFixed(1) : 0;
     const barX  = total ? (c.rank_X/total*100).toFixed(1) : 0;
@@ -1837,6 +1838,7 @@ function filterCultivares() {
       <div class="cv-rankbar">
         ${c.rank_A?`<div style="width:${barA}%;background:#16A34A;"></div>`:''}
         ${c.rank_B?`<div style="width:${barB}%;background:#2563EB;"></div>`:''}
+        ${(c.rank_BV||0)?`<div style="width:${barBV}%;background:#D97706;opacity:0.7;"></div>`:''}
         ${c.rank_C?`<div style="width:${barC}%;background:#D97706;"></div>`:''}
         ${c.rank_D?`<div style="width:${barD}%;background:#DC2626;"></div>`:''}
         ${c.rank_X?`<div style="width:${barX}%;background:#94A3B8;"></div>`:''}
@@ -2133,7 +2135,7 @@ function buildRanking() {
   if (!rtc) return; // ranking page not present
 
   const scored = SUMMARY.map(c => {
-    const total = c.rank_A + c.rank_B + c.rank_C + c.rank_D + c.rank_X;
+    const total = c.rank_A + c.rank_B + (c.rank_BV||0) + c.rank_C + c.rank_D + c.rank_X;
     const score = total ? (c.rank_A*4 + c.rank_B*3 + c.rank_C*2 + c.rank_D*1) / total : 0;
     const germ = c.germ_media || 0;
     const combi = (score / 4 * 60) + (germ / 100 * 40);
@@ -3122,9 +3124,8 @@ function toggleMapaPw() {
 }
 
 // Close modal clicking overlay
-
-
-
+window.addEventListener('load', function() {
+  var mmo = document.getElementById('mapa-modal-overlay');
   if (mmo) mmo.addEventListener('click', function(e) { if (e.target === this) closeMapaModal(); });
 });
 </script>
