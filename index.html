@@ -3219,8 +3219,14 @@ function updateConfigUI() {
 function applyFontSize(size) {
   const sizes = { small: '12px', normal: '16px', large: '20px' };
   const px = sizes[size] || '16px';
-  // Set on html element — this scales ALL rem units in the page
-  document.documentElement.style.setProperty('font-size', px, 'important');
+  // Inject/update a style tag — works on all browsers including mobile
+  let styleTag = document.getElementById('font-size-override');
+  if (!styleTag) {
+    styleTag = document.createElement('style');
+    styleTag.id = 'font-size-override';
+    document.head.appendChild(styleTag);
+  }
+  styleTag.textContent = 'html { font-size: ' + px + ' !important; } body { font-size: ' + px + ' !important; }';
 }
 
 function setFontSize(size) {
