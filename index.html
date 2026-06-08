@@ -1703,7 +1703,7 @@ function buildOverview() {
   }
   if (!alerts.length) alerts.push({icon:'✅', text:'Nenhum alerta crítico!', color:'#F0FDF4', border:'#BBF7D0'});
   document.getElementById('alerts-list').innerHTML = alerts.map(a=>`
-    <div style="background:${a.color};border:1px solid ${a.border};border-radius:7px;padding:9px 12px;font-size:0.82rem;color:var(--texto);line-height:1.4;">
+    <div style="background:${a.color};border:1px solid ${a.border};border-radius:7px;padding:9px 12px;font-size:0.82rem;color:#1E293B;line-height:1.4;">
       ${a.icon} ${a.text}
     </div>`).join('');
 
@@ -3311,8 +3311,13 @@ function toggleDark() {
 <div id="config-overlay" onclick="toggleConfig()" style="display:none;position:fixed;inset:0;z-index:99997;background:rgba(0,0,0,0.3);"></div>
 
 <style>
-/* ============================================================
-   DARK MODE — COMPLETO E LEGÍVEL
+/* Alertas em dark mode */
+body.dark-mode #alerts-list > div { color: #F1F5F9 !important; }
+body.dark-mode #alerts-list > div[style*="#FEF2F2"] { background: #3B1010 !important; border-color: #7F1D1D !important; }
+body.dark-mode #alerts-list > div[style*="#FFFBEB"] { background: #3B2800 !important; border-color: #78350F !important; }
+body.dark-mode #alerts-list > div[style*="#F8FAFC"] { background: #1E293B !important; border-color: #334155 !important; }
+body.dark-mode #alerts-list > div[style*="#F0FDF4"] { background: #052E16 !important; border-color: #14532D !important; }
+body.dark-mode #alerts-list b { color: #F1F5F9 !important; }
    ============================================================ */
 body.dark-mode {
   --bg:     #0F172A;
