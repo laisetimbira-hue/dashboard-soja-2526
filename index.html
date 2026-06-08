@@ -1085,6 +1085,9 @@
 
   <!-- BUSCA GLOBAL — centro do header (desktop) -->
 
+  <!-- Botão Sair -->
+  <div style="display:flex;align-items:center;gap:16px;">
+
   <div class="header-stats">
     <div class="h-stat">
       <div class="val" id="h-kg">—</div>
@@ -1098,9 +1101,12 @@
       <div class="val" id="h-cultivares">—</div>
       <div class="lbl">Cultivares</div>
     </div>
+    <div class="h-stat">
+      <div class="val" id="h-data" style="font-size:0.95rem;">08/06/2026</div>
+      <div class="lbl">Atualização</div>
+    </div>
   </div>
 
-  <!-- Botão Sair -->
   <div style="display:flex;align-items:center;gap:8px;">
   <button id="btn-config" onclick="toggleConfig()" title="Configurações"
     style="display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);
@@ -1130,6 +1136,7 @@
     </svg>
     Sair
   </button>
+</div>
 </div>
 </header>
 
