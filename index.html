@@ -60,7 +60,7 @@
     background: var(--bg);
     color: var(--texto);
     font-family: var(--font-body);
-    font-size: 16px;
+    font-size: var(--base-font, 16px);
     line-height: 1.5;
     min-height: 100vh;
     overflow-x: hidden;
@@ -75,6 +75,7 @@
     background: #0F172A;
     border-bottom: 3px solid var(--accent);
     padding: 0 16px;
+    padding-top: env(safe-area-inset-top, 0px);
     min-height: 56px;
     height: auto;
     display: flex;
@@ -125,7 +126,7 @@
     scrollbar-width: none;
     position: -webkit-sticky;
     position: sticky;
-    top: 59px;
+    top: calc(59px + env(safe-area-inset-top, 0px));
     z-index: 190;
     padding: 0 4px;
   }
@@ -1100,6 +1101,20 @@
   </div>
 
   <!-- Botão Sair -->
+  <div style="display:flex;align-items:center;gap:8px;">
+  <button id="btn-config" onclick="toggleConfig()" title="Configurações"
+    style="display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);
+           border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#94A3B8;
+           width:38px;height:38px;cursor:pointer;transition:all 0.15s;"
+    onmouseover="this.style.background='rgba(255,255,255,0.12)'"
+    onmouseout="this.style.background='rgba(255,255,255,0.06)'">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  </button>
+
   <button onclick="doLogout()" title="Sair"
     style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);
            border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#94A3B8;
@@ -1115,6 +1130,7 @@
     </svg>
     Sair
   </button>
+</div>
 </header>
 
 <!-- BUSCA MOBILE OVERLAY -->
@@ -3173,6 +3189,146 @@ setInterval(function(){
     bl.style.pointerEvents=wrap.scrollTop>200?'auto':'none';
   }
 },200);
+// ===== CONFIGURAÇÕES =====
+function toggleConfig() {
+  const panel   = document.getElementById('config-panel');
+  const overlay = document.getElementById('config-overlay');
+  const open    = panel.style.display !== 'none';
+  panel.style.display   = open ? 'none' : 'block';
+  overlay.style.display = open ? 'none' : 'block';
+  if (!open) updateConfigUI();
+}
+
+function updateConfigUI() {
+  const size = localStorage.getItem('fontSize') || 'normal';
+  ['small','normal','large'].forEach(s => {
+    const btn = document.getElementById('fs-' + s);
+    if (!btn) return;
+    btn.style.borderColor = s === size ? 'var(--accent)' : '#E2E8F0';
+    btn.style.background  = s === size ? '#EFF6FF' : '#F8FAFC';
+    btn.style.color       = s === size ? 'var(--accent)' : '#0F172A';
+    btn.style.fontWeight  = s === size ? '700' : '400';
+  });
+  const dark  = localStorage.getItem('darkMode') === '1';
+  const tog   = document.getElementById('dark-toggle');
+  const knob  = document.getElementById('dark-knob');
+  if (tog)  tog.style.background = dark ? '#2563EB' : '#E2E8F0';
+  if (knob) knob.style.transform = dark ? 'translateX(22px)' : 'translateX(0)';
+}
+
+function setFontSize(size) {
+  document.body.classList.remove('fs-small','fs-normal','fs-large');
+  document.body.classList.add('fs-' + size);
+  localStorage.setItem('fontSize', size);
+  updateConfigUI();
+}
+
+function toggleDark() {
+  const isDark = document.body.classList.toggle('dark-mode');
+  localStorage.setItem('darkMode', isDark ? '1' : '0');
+  updateConfigUI();
+}
+
+// Apply saved settings on load
+(function applySettings() {
+  const size = localStorage.getItem('fontSize');
+  if (size) { document.body.classList.add('fs-' + size); }
+  if (localStorage.getItem('darkMode') === '1') { document.body.classList.add('dark-mode'); }
+})();
+
 </script>
+
+<!-- PAINEL CONFIGURAÇÕES -->
+<div id="config-panel" style="display:none;position:fixed;top:0;right:0;bottom:0;z-index:99998;
+     width:280px;max-width:90vw;background:#fff;box-shadow:-8px 0 32px rgba(0,0,0,0.2);
+     padding:0;overflow-y:auto;transition:transform 0.25s ease;">
+  <div style="background:#0F172A;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.1rem;color:#38BDF8;letter-spacing:0.5px;">CONFIGURAÇÕES</div>
+    <button onclick="toggleConfig()" style="background:none;border:none;color:#64748B;cursor:pointer;font-size:1.2rem;line-height:1;">✕</button>
+  </div>
+
+  <div style="padding:20px;">
+
+    <!-- Tamanho da Fonte -->
+    <div style="margin-bottom:28px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;
+           color:#0F172A;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">
+        🔤 Tamanho da Fonte
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+        <button onclick="setFontSize('small')" id="fs-small"
+          style="padding:10px 6px;border-radius:8px;border:1.5px solid #E2E8F0;background:#F8FAFC;
+                 font-family:'Barlow',sans-serif;font-size:0.78rem;cursor:pointer;transition:all 0.15s;">
+          A<br><span style="font-size:0.6rem;color:#94A3B8;">Pequeno</span>
+        </button>
+        <button onclick="setFontSize('normal')" id="fs-normal"
+          style="padding:10px 6px;border-radius:8px;border:1.5px solid #E2E8F0;background:#F8FAFC;
+                 font-family:'Barlow',sans-serif;font-size:0.88rem;cursor:pointer;transition:all 0.15s;">
+          A<br><span style="font-size:0.6rem;color:#94A3B8;">Normal</span>
+        </button>
+        <button onclick="setFontSize('large')" id="fs-large"
+          style="padding:10px 6px;border-radius:8px;border:1.5px solid #E2E8F0;background:#F8FAFC;
+                 font-family:'Barlow',sans-serif;font-size:1rem;cursor:pointer;transition:all 0.15s;">
+          A<br><span style="font-size:0.6rem;color:#94A3B8;">Grande</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Modo Noturno -->
+    <div style="margin-bottom:28px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;
+           color:#0F172A;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">
+        🌙 Modo Noturno
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;
+           background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;padding:12px 16px;">
+        <span style="font-family:'Barlow',sans-serif;font-size:0.88rem;color:#0F172A;">Tema escuro</span>
+        <div id="dark-toggle" onclick="toggleDark()"
+          style="width:48px;height:26px;border-radius:13px;background:#E2E8F0;cursor:pointer;
+                 position:relative;transition:background 0.2s;">
+          <div id="dark-knob"
+            style="position:absolute;top:3px;left:3px;width:20px;height:20px;
+                   border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.2);
+                   transition:transform 0.2s;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div id="config-overlay" onclick="toggleConfig()" style="display:none;position:fixed;inset:0;z-index:99997;background:rgba(0,0,0,0.3);"></div>
+
+<style>
+/* DARK MODE */
+body.dark-mode {
+  --bg:    #0F172A;
+  --bg2:   #1E293B;
+  --bg3:   #1E293B;
+  --texto: #F1F5F9;
+  --texto2:#94A3B8;
+  --borda: #334155;
+  --borda2:#334155;
+}
+body.dark-mode header { background: #020617; }
+body.dark-mode .tabs  { background: #0F172A; border-color:#334155; }
+body.dark-mode .tab   { color:#64748B; }
+body.dark-mode .tab.active { color:#38BDF8; border-color:#38BDF8; background:#0F172A; }
+body.dark-mode .panel { background:#1E293B; border-color:#334155; }
+body.dark-mode .panel-header { background:#1E293B; border-color:#334155; }
+body.dark-mode .kpi   { background:#1E293B; border-color:#334155; }
+body.dark-mode input, body.dark-mode select { background:#1E293B; color:#F1F5F9; border-color:#334155; }
+body.dark-mode thead th { background:#1E293B; color:#64748B; }
+body.dark-mode tbody tr:hover { background:#334155; }
+body.dark-mode .data-table-wrap, body.dark-mode .lotes-table-wrap { background:#1E293B; }
+body.dark-mode #config-panel { background:#1E293B; }
+body.dark-mode #config-panel button { background:#0F172A !important; border-color:#334155 !important; color:#F1F5F9; }
+body.dark-mode footer { background:#0F172A; border-color:#334155; }
+
+/* FONT SIZES */
+body.fs-small  { font-size: 13px !important; }
+body.fs-normal { font-size: 16px !important; }
+body.fs-large  { font-size: 19px !important; }
+</style>
+
 </body>
 </html>
