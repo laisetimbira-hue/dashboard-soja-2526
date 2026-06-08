@@ -3216,9 +3216,16 @@ function updateConfigUI() {
   if (knob) knob.style.transform = dark ? 'translateX(22px)' : 'translateX(0)';
 }
 
+function applyFontSize(size) {
+  const sizes = { small: '13px', normal: '16px', large: '20px' };
+  const px = sizes[size] || '16px';
+  // Use CSS custom property so rem units scale correctly
+  document.documentElement.style.setProperty('font-size', px, 'important');
+  document.body.style.setProperty('font-size', px, 'important');
+}
+
 function setFontSize(size) {
-  document.body.classList.remove('fs-small','fs-normal','fs-large');
-  document.body.classList.add('fs-' + size);
+  applyFontSize(size);
   localStorage.setItem('fontSize', size);
   updateConfigUI();
 }
@@ -3231,8 +3238,8 @@ function toggleDark() {
 
 // Apply saved settings on load
 (function applySettings() {
-  const size = localStorage.getItem('fontSize');
-  if (size) { document.body.classList.add('fs-' + size); }
+  const size = localStorage.getItem('fontSize') || 'normal';
+  applyFontSize(size);
   if (localStorage.getItem('darkMode') === '1') { document.body.classList.add('dark-mode'); }
 })();
 
@@ -3299,30 +3306,94 @@ function toggleDark() {
 <div id="config-overlay" onclick="toggleConfig()" style="display:none;position:fixed;inset:0;z-index:99997;background:rgba(0,0,0,0.3);"></div>
 
 <style>
-/* DARK MODE */
+/* ============================================================
+   DARK MODE — COMPLETO E LEGÍVEL
+   ============================================================ */
 body.dark-mode {
-  --bg:    #0F172A;
-  --bg2:   #1E293B;
-  --bg3:   #1E293B;
-  --texto: #F1F5F9;
-  --texto2:#94A3B8;
-  --borda: #334155;
-  --borda2:#334155;
+  --bg:     #0F172A;
+  --bg2:    #1E293B;
+  --bg3:    #1E293B;
+  --texto:  #F1F5F9;
+  --texto2: #94A3B8;
+  --borda:  #334155;
+  --borda2: #334155;
+  --shadow: 0 1px 4px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+  background: #0F172A;
+  color: #F1F5F9;
 }
-body.dark-mode header { background: #020617; }
-body.dark-mode .tabs  { background: #0F172A; border-color:#334155; }
-body.dark-mode .tab   { color:#64748B; }
-body.dark-mode .tab.active { color:#38BDF8; border-color:#38BDF8; background:#0F172A; }
-body.dark-mode .panel { background:#1E293B; border-color:#334155; }
-body.dark-mode .panel-header { background:#1E293B; border-color:#334155; }
-body.dark-mode .kpi   { background:#1E293B; border-color:#334155; }
-body.dark-mode input, body.dark-mode select { background:#1E293B; color:#F1F5F9; border-color:#334155; }
-body.dark-mode thead th { background:#1E293B; color:#64748B; }
-body.dark-mode tbody tr:hover { background:#334155; }
-body.dark-mode .data-table-wrap, body.dark-mode .lotes-table-wrap { background:#1E293B; }
-body.dark-mode #config-panel { background:#1E293B; }
-body.dark-mode #config-panel button { background:#0F172A !important; border-color:#334155 !important; color:#F1F5F9; }
-body.dark-mode footer { background:#0F172A; border-color:#334155; }
+
+/* Header e abas */
+body.dark-mode header            { background: #020617; }
+body.dark-mode .tabs             { background: #0F172A; border-color:#334155; }
+body.dark-mode .tab              { color:#64748B; background:#0F172A; }
+body.dark-mode .tab.active       { color:#38BDF8; border-color:#38BDF8; background:#0F172A; }
+
+/* Cards e painéis */
+body.dark-mode .panel            { background:#1E293B; border-color:#334155; }
+body.dark-mode .panel-header     { background:#1E293B; border-color:#334155; }
+body.dark-mode .panel-header h3  { color:#F1F5F9; }
+body.dark-mode .kpi              { background:#1E293B; border-color:#334155; }
+body.dark-mode .kpi .label       { color:#64748B; }
+body.dark-mode .kpi .value       { color:#F1F5F9; }
+body.dark-mode .kpi .sub         { color:#475569; }
+
+/* Tabela */
+body.dark-mode thead th          { background:#0F172A; color:#64748B; border-color:#334155; }
+body.dark-mode tbody tr          { border-color:#334155; }
+body.dark-mode tbody tr:hover    { background:#334155; }
+body.dark-mode tbody td          { color:#F1F5F9; }
+body.dark-mode .data-table-wrap,
+body.dark-mode .lotes-table-wrap { background:#1E293B; }
+body.dark-mode .count-badge      { background:#1E293B; color:#94A3B8; border-color:#334155; }
+
+/* Filtros */
+body.dark-mode input,
+body.dark-mode select            { background:#1E293B; color:#F1F5F9; border-color:#334155; }
+body.dark-mode input::placeholder{ color:#475569; }
+body.dark-mode .filter-bar       { background:#0F172A; }
+
+/* Cultivar cards */
+body.dark-mode .cv-card          { background:#1E293B; border-color:#334155; }
+body.dark-mode .cv-body          { background:#1E293B; }
+body.dark-mode .cv-metric-box    { background:#0F172A; border-color:#334155; }
+body.dark-mode .cv-metric-label  { color:#64748B; }
+body.dark-mode .cv-pms-box       { background:#0F172A; border-color:#334155; }
+body.dark-mode .cv-box-title     { color:#64748B; }
+body.dark-mode .cv-pms-pen       { border-color:#334155; }
+
+/* Beneficiamento */
+body.dark-mode .benef-card       { background:#1E293B; border-color:#334155; }
+body.dark-mode .benef-header     { background:#0F172A; }
+body.dark-mode .benef-detail     { background:#0F172A; border-color:#334155; }
+
+/* Lotes */
+body.dark-mode #tz-body-0,
+body.dark-mode [id^="tz-body-"]  { background:#0F172A; }
+body.dark-mode [id^="tz-row-"]   { background:#0F172A; }
+body.dark-mode .tz-btn            { border-color:#334155; color:#94A3B8; }
+
+/* Rank badges mantém cores originais */
+body.dark-mode .rank-badge       { opacity:1; }
+
+/* Config panel */
+body.dark-mode #config-panel     { background:#1E293B; color:#F1F5F9; }
+body.dark-mode #config-panel button { background:#0F172A !important; border-color:#334155 !important; color:#F1F5F9 !important; }
+
+/* Footer */
+body.dark-mode footer            { background:#020617; border-color:#334155; color:#475569; }
+
+/* Visão geral - overview table */
+body.dark-mode #ov-tbody tr      { border-color:#334155; }
+body.dark-mode #ov-tbody td      { color:#F1F5F9; }
+body.dark-mode #ov-detail-0,
+body.dark-mode [id^="ov-detail-"]{ background:#0F172A; }
+
+/* Mapa de campos */
+body.dark-mode .mapa-select      { background:#1E293B; color:#F1F5F9; border-color:#334155; }
+
+/* Login (não aplica dark) */
+body.dark-mode #login-screen     { background: linear-gradient(135deg, #0a0f1e 0%, #0f172a 50%, #0d1a2e 100%); }
 
 /* FONT SIZES */
 body.fs-small  { font-size: 13px !important; }
