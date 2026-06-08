@@ -60,7 +60,7 @@
     background: var(--bg);
     color: var(--texto);
     font-family: var(--font-body);
-    font-size: var(--base-font, 16px);
+    font-size: 1rem;
     line-height: 1.5;
     min-height: 100vh;
     overflow-x: hidden;
@@ -3217,11 +3217,10 @@ function updateConfigUI() {
 }
 
 function applyFontSize(size) {
-  const sizes = { small: '13px', normal: '16px', large: '20px' };
+  const sizes = { small: '12px', normal: '16px', large: '20px' };
   const px = sizes[size] || '16px';
-  // Use CSS custom property so rem units scale correctly
+  // Set on html element — this scales ALL rem units in the page
   document.documentElement.style.setProperty('font-size', px, 'important');
-  document.body.style.setProperty('font-size', px, 'important');
 }
 
 function setFontSize(size) {
