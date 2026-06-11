@@ -2006,10 +2006,10 @@ function renderLoteTable() {
       <td class="num col-hide-mobile" style="font-weight:600;color:${l.hipoclorito != null ? (l.hipoclorito >= 6 ? 'var(--critico)' : 'var(--excelente)') : 'var(--texto2)'};">${l.hipoclorito != null ? l.hipoclorito.toFixed(1) : '—'}</td>
       <td class="num col-hide-mobile" style="color:${colorTZ(l.tz_viab)}">${fmt(l.tz_viab)}</td>
       <td class="num col-hide-mobile" style="color:${colorTZ(l.tz_vigor)}">${fmt(l.tz_vigor)}</td>
-      <td class="num" style="color:${colorGerm(l.germ)};${l.modo_classificacao==='ambos'?'opacity:0.4;text-decoration:line-through;':''}">${fmt(l.germ)}</td>
-      <td class="num" style="color:${colorVigor(l.vigor)};${l.modo_classificacao!=='nenhum'?'opacity:0.4;text-decoration:line-through;':''}">${fmt(l.vigor)}</td>
-      <td class="num col-hide-mobile" style="color:${l.germ_oficial?'#15803D':'#94A3B8'};font-weight:${l.germ_oficial?'700':'400'};">${l.germ_oficial!=null?l.germ_oficial+'%':'—'}</td>
-      <td class="num col-hide-mobile" style="color:${l.vigor_oficial?'#15803D':'#94A3B8'};font-weight:${l.vigor_oficial?'700':'400'};">${l.vigor_oficial!=null?l.vigor_oficial+'%':'—'}</td>
+      <td class="num" style="color:${colorGerm(l.germ)};">${fmt(l.germ)}</td>
+      <td class="num" style="color:${colorVigor(l.vigor)};">${fmt(l.vigor)}</td>
+      <td class="num col-hide-mobile" style="color:${l.germ_oficial!=null?'#15803D':'#94A3B8'};font-weight:${l.germ_oficial!=null?'700':'400'};">${l.germ_oficial!=null?l.germ_oficial+'%':'—'}</td>
+      <td class="num col-hide-mobile" style="color:${l.vigor_oficial!=null?'#15803D':'#94A3B8'};font-weight:${l.vigor_oficial!=null?'700':'400'};">${l.vigor_oficial!=null?l.vigor_oficial+'%':'—'}</td>
       <td class="num">${l.pms_etq != null ? l.pms_etq+'g' : '—'}</td>
       <td class="num">${l.peso_bag != null ? l.peso_bag.toLocaleString('pt-BR')+'kg' : '—'}</td>
       <td class="num" style="color:${l.sementes_m!=null?(l.sementes_m>=5?'var(--bom)':'var(--texto)'):'var(--texto2)'};">${l.sementes_m != null ? l.sementes_m+'M' : '—'}</td>
