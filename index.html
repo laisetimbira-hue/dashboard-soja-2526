@@ -702,7 +702,7 @@
   }
   @media (min-width: 1024px) {
     #mapa-kpis { grid-template-columns: repeat(4, 1fr); gap: 14px; }
-    #map-container { height: 560px; }
+    #map-container { height: 650px; }
   }
 
   /* ============================================
@@ -1110,16 +1110,6 @@
   </div>
 
   <div style="display:flex;align-items:center;gap:8px;">
-  <button id="btn-notify" onclick="enviarNotificacaoSMS()" title="Notificar equipe"
-    style="display:flex;align-items:center;gap:6px;background:rgba(34,197,94,0.12);
-           border:1px solid rgba(34,197,94,0.3);border-radius:8px;color:#4ADE80;
-           padding:7px 14px;cursor:pointer;font-family:'Barlow',sans-serif;
-           font-size:0.82rem;font-weight:600;transition:all 0.15s;white-space:nowrap;"
-    onmouseover="this.style.background='rgba(34,197,94,0.22)'"
-    onmouseout="this.style.background='rgba(34,197,94,0.12)'">
-    📲 Notificar
-  </button>
-
   <button id="btn-config" onclick="toggleConfig()" title="Configurações"
     style="display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);
            border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#94A3B8;
@@ -1402,12 +1392,12 @@
     </div>
 
     <!-- KPI Cards -->
-    <div id="mapa-kpis" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;"></div>
+    <div id="mapa-kpis" style="display:flex;align-items:center;gap:20px;padding:8px 12px;background:var(--bg2);border-radius:8px;margin-bottom:10px;flex-wrap:wrap;"></div>
     <div id="mapa-bars" style="display:none;"></div>
 
     <!-- Mapa -->
     <div class="panel" style="overflow:hidden;position:relative;margin-bottom:12px;">
-      <div id="map-container" style="height:500px;width:100%;"></div>
+      <div id="map-container" style="height:620px;width:100%;"></div>
       <!-- Legenda -->
       <div style="position:absolute;bottom:16px;left:16px;z-index:999;background:rgba(255,255,255,0.96);
            border:1px solid var(--borda);border-radius:8px;padding:10px 14px;box-shadow:var(--shadow-md);font-size:0.78rem;pointer-events:none;">
@@ -2582,22 +2572,18 @@ function renderMapaKPIs() {
   var cultivares= new Set(d.map(function(c){return c.cultivar;}).filter(Boolean)).size;
 
   document.getElementById('mapa-kpis').innerHTML =
-    '<div class="kpi accent">' +
-      '<div class="label">Total de Campos</div>' +
-      '<div class="value" style="font-size:1.8rem;">' + d.length + '</div>' +
-      '<div class="sub">' + totalHa.toFixed(0) + ' ha mapeados</div></div>' +
-    '<div class="kpi">' +
-      '<div class="label">Colhidos</div>' +
-      '<div class="value" style="font-size:1.8rem;color:var(--excelente);">' + aprovados + '</div>' +
-      '<div class="sub">' + (d.length?Math.round(aprovados/d.length*100):0) + '% do total</div></div>' +
-    '<div class="kpi">' +
-      '<div class="label">Produção Bruta</div>' +
-      '<div class="value" style="font-size:1.8rem;">' + totalProd.toFixed(0) + 't</div>' +
-      '<div class="sub">Total colhido</div></div>' +
-    '<div class="kpi">' +
-      '<div class="label">Cultivares</div>' +
-      '<div class="value" style="font-size:1.8rem;">' + cultivares + '</div>' +
-      '<div class="sub">Variedades no mapa</div></div>';
+    '<div style="display:flex;align-items:center;gap:6px;">' +
+      '<span style="font-size:0.62rem;color:#64748B;text-transform:uppercase;letter-spacing:1px;">Campos</span>' +
+      '<span style="font-size:1rem;font-weight:800;color:#38BDF8;">' + d.length + '</span></div>' +
+    '<div style="display:flex;align-items:center;gap:6px;">' +
+      '<span style="font-size:0.62rem;color:#64748B;text-transform:uppercase;letter-spacing:1px;">Aprovados</span>' +
+      '<span style="font-size:1rem;font-weight:800;color:#4ADE80;">' + aprovados + '</span></div>' +
+    '<div style="display:flex;align-items:center;gap:6px;">' +
+      '<span style="font-size:0.62rem;color:#64748B;text-transform:uppercase;letter-spacing:1px;">Produção</span>' +
+      '<span style="font-size:1rem;font-weight:800;color:#F59E0B;">' + totalProd.toFixed(0) + 't</span></div>' +
+    '<div style="display:flex;align-items:center;gap:6px;">' +
+      '<span style="font-size:0.62rem;color:#64748B;text-transform:uppercase;letter-spacing:1px;">Cultivares</span>' +
+      '<span style="font-size:1rem;font-weight:800;color:#A78BFA;">' + cultivares + '</span></div>';
 }
 
 function renderMapaCharts() {
@@ -3228,46 +3214,6 @@ function toggleDark() {
   const isDark = document.body.classList.toggle('dark-mode');
   localStorage.setItem('darkMode', isDark ? '1' : '0');
   updateConfigUI();
-}
-
-// ===================== NOTIFICAÇÃO SMS =====================
-const TWILIO_FUNCTION_URL = 'https://seedbase-notify-1507.twil.io/notify';
-
-async function enviarNotificacaoSMS() {
-  const btn = document.getElementById('btn-notify');
-  btn.textContent = '⏳ Enviando...';
-  btn.disabled = true;
-
-  const totalLotes = LOTS.length;
-  const aprovados  = LOTS.filter(l => ['A','B','BV'].includes(l.ranking)).length;
-  const bags       = LOTS.reduce((s,l) => s+l.bags, 0).toLocaleString('pt-BR');
-  const dataAtual  = document.getElementById('h-data')?.textContent || '';
-  const msg = `🌱 SEED BASE atualizado!\n📅 ${dataAtual}\n📦 ${totalLotes} lotes | ✅ ${aprovados} aprovados | ${bags} bags\n🔗 https://laisetimbira-hue.github.io/dashboard-soja-2526/`;
-
-  try {
-    const resp = await fetch(TWILIO_FUNCTION_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ msg })
-    });
-    const data = await resp.json();
-    if (data.success) {
-      btn.textContent = '✅ Enviado!';
-      btn.style.background = 'rgba(34,197,94,0.3)';
-    } else {
-      throw new Error('falhou');
-    }
-  } catch(e) {
-    btn.textContent = '❌ Erro';
-    btn.style.background = 'rgba(220,38,38,0.2)';
-    btn.style.color = '#FCA5A5';
-  }
-  setTimeout(() => {
-    btn.textContent = '📲 Notificar';
-    btn.disabled = false;
-    btn.style.background = 'rgba(34,197,94,0.12)';
-    btn.style.color = '#4ADE80';
-  }, 3000);
 }
 
 // Apply saved settings on load
