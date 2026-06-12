@@ -8,7 +8,10 @@
 <title>SEED BASE — Gestão de Qualidade</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
   /* ============================================
@@ -106,12 +109,21 @@
 
   .header-stats {
     display: none; /* hidden on mobile */
-    gap: 24px;
+    gap: 0;
+    align-items: center;
+    border-left: 1px solid rgba(255,255,255,0.08);
+    margin-left: 8px;
+    padding-left: 16px;
   }
 
-  .h-stat { text-align: right; }
-  .h-stat .val { font-size: 1.2rem; font-weight: 700; color: #fff; }
-  .h-stat .lbl { font-size: 0.68rem; color: #64748B; text-transform: uppercase; letter-spacing: 1px; }
+  .h-stat {
+    text-align: center;
+    padding: 0 16px;
+    border-right: 1px solid rgba(255,255,255,0.08);
+  }
+  .h-stat:last-child { border-right: none; }
+  .h-stat .val { font-size: 1.15rem; font-weight: 800; color: #fff; line-height: 1.1; }
+  .h-stat .lbl { font-size: 0.58rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 1.2px; margin-top: 2px; }
 
   /* ============================================
      TABS — horizontal scroll on mobile
@@ -1082,7 +1094,7 @@
 <header>
   <div class="logo-area">
     <h1 style="font-family:'Barlow Condensed',sans-serif;font-weight:800;letter-spacing:-1px;font-size:1.55rem;color:#38BDF8;text-transform:uppercase;">SEED BASE</h1>
-    <p style="font-family:'IBM Plex Mono',monospace;font-size:0.68rem;letter-spacing:2px;color:#475569;text-transform:uppercase;">GESTÃO DE QUALIDADE</p>
+    <p style="font-family:'IBM Plex Mono',monospace;font-size:0.68rem;letter-spacing:2px;color:#94A3B8;text-transform:uppercase;">GESTÃO DE QUALIDADE</p>
   </div>
 
   <!-- BUSCA GLOBAL — centro do header (desktop) -->
@@ -1092,19 +1104,19 @@
 
   <div class="header-stats">
     <div class="h-stat">
-      <div class="val" id="h-kg">—</div>
+      <div class="val" id="h-kg" style="color:#38BDF8;">—</div>
       <div class="lbl">Total KG</div>
     </div>
     <div class="h-stat">
-      <div class="val" id="h-lotes">—</div>
+      <div class="val" id="h-lotes" style="color:#F1F5F9;">—</div>
       <div class="lbl">Lotes</div>
     </div>
     <div class="h-stat">
-      <div class="val" id="h-cultivares">—</div>
+      <div class="val" id="h-cultivares" style="color:#F1F5F9;">—</div>
       <div class="lbl">Cultivares</div>
     </div>
     <div class="h-stat">
-      <div class="val" id="h-data" style="font-size:0.95rem;">11/06/2026</div>
+      <div class="val" id="h-data" style="color:#F1F5F9;font-size:0.9rem;">11/06/2026</div>
       <div class="lbl">Atualização</div>
     </div>
   </div>
@@ -1369,6 +1381,9 @@
 
     <!-- Filtros bar -->
     <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px;">
+      <select id="mapa-filter-cooperado" onchange="applyMapaFilters()" class="mapa-select">
+        <option value="">Todos os cooperados</option>
+      </select>
       <select id="mapa-filter-campo" onchange="applyMapaFilters()" class="mapa-select">
         <option value="">Todos os campos</option>
       </select>
@@ -1378,12 +1393,9 @@
       <select id="mapa-filter-municipio" onchange="applyMapaFilters()" class="mapa-select">
         <option value="">Todos os municípios</option>
       </select>
-      <select id="mapa-filter-safra" onchange="applyMapaFilters()" class="mapa-select">
-        <option value="">Todas as safras</option>
-      </select>
       <select id="mapa-filter-status" onchange="applyMapaFilters()" class="mapa-select">
         <option value="">Todos os status</option>
-        <option value="Colhido">Colhido</option>
+        <option value="Aprovado">Aprovado</option>
         <option value="Inscrito">Inscrito</option>
         <option value="Cancelado">Cancelado</option>
         <option value="Denegado">Denegado</option>
@@ -2479,7 +2491,7 @@ function buildPopupHTML(c) {
   html += '<div style="padding:12px 14px;">';
   html += row('🌱', 'Cultivar', c.cultivar, '#2563EB');
   html += row('📐', 'Área', c.hectares ? c.hectares + ' ha' : null);
-  html += row('👤', 'Produtor', c.produtor);
+  html += row('👤', 'Produtor', c.cooperado);
   html += row('📅', 'Plantio', c.data_plantio);
   html += row('📅', 'Colheita', c.data_colheita !== 'nan' ? c.data_colheita : null);
   if (c.prod_estimada_ton || c.prod_bruta_ton) {
@@ -2519,49 +2531,46 @@ function initMapa() {
 }
 
 function renderMapaCampos() {
-  mapaMarkers.forEach(function(m) { mapaMap.removeLayer(m); });
+  // Remove existing cluster group
+  if (window.mapaCluster) { mapaMap.removeLayer(window.mapaCluster); }
   mapaMarkers = [];
 
   var cnt = document.getElementById('mapa-count');
   if (cnt) cnt.textContent = mapaFiltered.length + ' campo' + (mapaFiltered.length !== 1 ? 's' : '');
 
+  // Create cluster group
+  window.mapaCluster = L.markerClusterGroup({
+    maxClusterRadius: 50,
+    iconCreateFunction: function(cluster) {
+      var count = cluster.getChildCount();
+      var size = count < 10 ? 34 : count < 50 ? 40 : 46;
+      return L.divIcon({
+        html: '<div style="background:#38BDF8;color:#0F172A;border-radius:50%;width:'+size+'px;height:'+size+'px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.8rem;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);">'+count+'</div>',
+        className: '', iconSize: [size, size], iconAnchor: [size/2, size/2]
+      });
+    }
+  });
+
   mapaFiltered.forEach(function(c) {
     if (!c.latitude || !c.longitude) return;
-
     var color  = campoColor(c);
-    var radius = Math.max(9, Math.min(20, (c.hectares || 30) / 5));
-
+    var radius = Math.max(9, Math.min(22, (c.hectares || 30) / 5));
     var marker = L.circleMarker([c.latitude, c.longitude], {
-      radius: radius,
-      fillColor: color,
-      color: '#fff',
-      weight: 2.5,
-      opacity: 1,
-      fillOpacity: 0.88,
-    }).addTo(mapaMap);
-
-    marker.on('mouseover', function() {
-      this.setStyle({ weight: 4, fillOpacity: 1 });
-      this.bringToFront();
+      radius: radius, fillColor: color, color: '#fff',
+      weight: 2.5, opacity: 1, fillOpacity: 0.88,
     });
-    marker.on('mouseout', function() {
-      this.setStyle({ weight: 2.5, fillOpacity: 0.88 });
-    });
+    marker.on('mouseover', function() { this.setStyle({ weight: 4, fillOpacity: 1 }); this.bringToFront(); });
+    marker.on('mouseout',  function() { this.setStyle({ weight: 2.5, fillOpacity: 0.88 }); });
     marker.on('click', function() {
-      L.popup({
-        maxWidth: 340,
-        minWidth: 280,
-        closeButton: true,
-        autoPanPadding: [20, 20],
-      })
-      .setLatLng([c.latitude, c.longitude])
-      .setContent(buildPopupHTML(c))
-      .openOn(mapaMap);
+      L.popup({ maxWidth: 340, minWidth: 280, closeButton: true, autoPanPadding: [20,20] })
+      .setLatLng([c.latitude, c.longitude]).setContent(buildPopupHTML(c)).openOn(mapaMap);
       mapaMap.panTo([c.latitude, c.longitude], { animate: true, duration: 0.4 });
     });
-
+    window.mapaCluster.addLayer(marker);
     mapaMarkers.push(marker);
   });
+
+  mapaMap.addLayer(window.mapaCluster);
 }
 
 function renderMapaKPIs() {
@@ -2613,30 +2622,28 @@ function populateMapaFilters() {
   }
   var cvs = Array.from(new Set(CAMPOS_SIGEF.map(function(c){return c.cultivar;}).filter(Boolean))).sort();
   var mus = Array.from(new Set(CAMPOS_SIGEF.map(function(c){return c.municipio;}).filter(Boolean))).sort();
-  var sfs = Array.from(new Set(CAMPOS_SIGEF.map(function(c){return c.safra;}).filter(Boolean))).sort();
-  // Campo: "NUMERO — FAZENDA" for each field
+  var prs = Array.from(new Set(CAMPOS_SIGEF.map(function(c){return c.cooperado;}).filter(Boolean))).sort();
   var campos = CAMPOS_SIGEF.map(function(c){
     var n = (c.numero||'').trim();
     var f = (c.nome_campo||'').trim();
     return n ? n + ' — ' + f : f;
   }).filter(Boolean).sort();
+  opts(prs,    'mapa-filter-cooperado', 'Todos os cooperados');
   opts(campos, 'mapa-filter-campo', 'Todos os campos');
   opts(cvs,    'mapa-filter-cultivar', 'Todos os cultivares');
   opts(mus,    'mapa-filter-municipio', 'Todos os municípios');
-  opts(sfs,    'mapa-filter-safra', 'Todas as safras');
 }
 
 function applyMapaFilters() {
   var cv = document.getElementById('mapa-filter-cultivar').value;
   var mu = document.getElementById('mapa-filter-municipio').value;
-  var sf = document.getElementById('mapa-filter-safra').value;
   var st = document.getElementById('mapa-filter-status').value;
   var ca = document.getElementById('mapa-filter-campo').value;
+  var pr = document.getElementById('mapa-filter-cooperado')?.value || '';
 
   mapaFiltered = CAMPOS_SIGEF.filter(function(c) {
     if (cv && c.cultivar !== cv) return false;
     if (mu && c.municipio !== mu) return false;
-    if (sf && c.safra !== sf) return false;
     if (st && c.status !== st) return false;
     if (ca) {
       var n = (c.numero||'').trim();
@@ -2644,6 +2651,7 @@ function applyMapaFilters() {
       var label = n ? n + ' — ' + f : f;
       if (label !== ca) return false;
     }
+    if (pr && c.cooperado !== pr) return false;
     return true;
   });
   renderMapaCampos();
