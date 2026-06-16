@@ -1786,11 +1786,14 @@ function buildCultivares() {
   const sel = document.getElementById('lote-cultivar');
   // clear existing options except first
   while (sel.options.length > 1) sel.remove(1);
-  SUMMARY.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c.cultivar;
+  const cvOpts = SUMMARY.map(c => {
     const meta = CV_META[c.cultivar];
-    opt.textContent = meta ? `${meta.nome} — ${c.cultivar}` : c.cultivar;
+    return { value: c.cultivar, label: meta ? `${meta.nome} — ${c.cultivar}` : c.cultivar };
+  }).sort((a, b) => a.label.localeCompare(b.label, 'pt-BR', { sensitivity: 'base' }));
+  cvOpts.forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o.value;
+    opt.textContent = o.label;
     sel.appendChild(opt);
   });
   // Always render all cultivars on load
