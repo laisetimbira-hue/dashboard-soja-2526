@@ -1786,14 +1786,11 @@ function buildCultivares() {
   const sel = document.getElementById('lote-cultivar');
   // clear existing options except first
   while (sel.options.length > 1) sel.remove(1);
-  const cvOpts = SUMMARY.map(c => {
-    const meta = CV_META[c.cultivar];
-    return { value: c.cultivar, label: meta ? `${meta.nome} — ${c.cultivar}` : c.cultivar };
-  }).sort((a, b) => a.label.localeCompare(b.label, 'pt-BR', { sensitivity: 'base' }));
-  cvOpts.forEach(o => {
+  SUMMARY.forEach(c => {
     const opt = document.createElement('option');
-    opt.value = o.value;
-    opt.textContent = o.label;
+    opt.value = c.cultivar;
+    const meta = CV_META[c.cultivar];
+    opt.textContent = meta ? `${meta.nome} — ${c.cultivar}` : c.cultivar;
     sel.appendChild(opt);
   });
   // Always render all cultivars on load
@@ -2754,6 +2751,20 @@ function applyMapaFilters() {
   renderMapaCampos();
   renderMapaKPIs();
   renderMapaCharts();
+
+  // Sincroniza o select do ranking de produtividade com o filtro de cultivar do mapa
+  var prodSel = document.getElementById('prod-cultivar-select');
+  if (prodSel) {
+    if (cv && prodSel.value !== cv) {
+      var hasOption = Array.from(prodSel.options).some(function(o){ return o.value === cv; });
+      if (hasOption) {
+        prodSel.value = cv;
+        renderProdRanking();
+      }
+    } else if (!cv) {
+      renderProdRanking();
+    }
+  }
 }
 
 function setupMapaDragDrop() {} // kept for compatibility
