@@ -1551,9 +1551,10 @@ function buildOverview() {
   const aprovados    = rankA + rankB;
   const condicionais = rankC;
   const reprovados   = rankD;
-  const germs      = SUMMARY.filter(c => c.germ_media != null).map(c => c.germ_media);
+  const lotsAprovados = LOTS.filter(l => l.ranking === 'A' || l.ranking === 'B');
+  const germs      = lotsAprovados.map(l => l.germ_oficial != null ? l.germ_oficial : l.germ).filter(v => v != null);
   const avgGerm    = germs.length ? (germs.reduce((a,b)=>a+b,0)/germs.length).toFixed(1) : '—';
-  const vigors     = SUMMARY.filter(c => c.vigor_media != null).map(c => c.vigor_media);
+  const vigors     = lotsAprovados.map(l => l.vigor_oficial != null ? l.vigor_oficial : l.vigor).filter(v => v != null);
   const avgVigor   = vigors.length ? (vigors.reduce((a,b)=>a+b,0)/vigors.length).toFixed(1) : '—';
   const pctAprov   = totalLotes ? Math.round(aprovados/totalLotes*100) : 0;
 
