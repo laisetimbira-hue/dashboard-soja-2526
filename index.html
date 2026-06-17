@@ -1178,6 +1178,7 @@
   <div class="tab" onclick="showPage('beneficiamento')">Beneficiamento</div>
   <div class="tab" onclick="showPage('cultivares')">Por Cultivar</div>
   <div class="tab" onclick="showPage('lotes')">Lotes Detalhados</div>
+  <div class="tab" onclick="showPage('comprados')">Lotes Comprados</div>
 </div>
 
 <main>
@@ -1332,6 +1333,45 @@
     </div>
   </div>
 
+  <!-- LOTES COMPRADOS PAGE -->
+  <div class="page" id="page-comprados">
+    <div id="comprados-kpis" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;"></div>
+    <div class="filter-bar">
+      <input type="text" id="comprado-search" placeholder="🔍 Buscar lote, cultivar ou empresa..." oninput="filterLotesComprados()">
+      <select id="comprado-cultivar" onchange="filterLotesComprados()">
+        <option value="">Todos os Cultivares</option>
+      </select>
+      <select id="comprado-empresa" onchange="filterLotesComprados()">
+        <option value="">Todas as Empresas</option>
+      </select>
+      <div class="count-badge">Exibindo <span id="comprado-count">—</span> lotes</div>
+    </div>
+    <div class="panel">
+      <div class="lotes-table-wrap" id="comprados-wrap">
+        <table id="comprado-table">
+          <thead>
+            <tr>
+              <th onclick="sortTableComprados('lote')">Lote</th>
+              <th onclick="sortTableComprados('lote_origem')" class="col-hide-mobile">Lote Origem</th>
+              <th onclick="sortTableComprados('cultivar')">Cultivar</th>
+              <th onclick="sortTableComprados('categoria_origem')" class="col-hide-mobile">Cat. Origem</th>
+              <th onclick="sortTableComprados('categoria_reembalado')" class="col-hide-mobile">Cat. Reemb.</th>
+              <th onclick="sortTableComprados('empresa')">Empresa</th>
+              <th onclick="sortTableComprados('peneira')" class="col-hide-mobile">Pen.</th>
+              <th onclick="sortTableComprados('germ_oficial')" class="num" style="color:#15803D;">Germ. Of. %</th>
+              <th onclick="sortTableComprados('vigor_oficial')" class="num" style="color:#15803D;">Vigor Of. %</th>
+              <th onclick="sortTableComprados('pms_etq')" class="num">PMS (g)</th>
+              <th onclick="sortTableComprados('peso_bag')" class="num">Peso Bag</th>
+              <th onclick="sortTableComprados('kg')" class="num col-hide-mobile">KG</th>
+              <th onclick="sortTableComprados('bags')" class="num">Bags</th>
+            </tr>
+          </thead>
+          <tbody id="comprado-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- RANKING PAGE -->
   <div class="page" id="page-ranking">
     <div class="panel" style="margin-bottom:20px;">
@@ -1451,6 +1491,7 @@
 <script>
 
 // ===================== PMS DATA (média só lotes A+B) =====================
+const LOTES_COMPRADOS = [];
 const HISTORICO_APROVACAO = [{"data":"15/06/2026","rank_A":22,"rank_B":154,"rank_BV":17,"rank_C":69,"rank_D":162,"rank_X":29,"total":453,"pctAprov":39},{"data":"17/06/2026","rank_A":31,"rank_B":199,"rank_BV":14,"rank_C":28,"rank_D":164,"rank_X":17,"total":453,"pctAprov":51}];
 const MUDANCAS_RECENTES = {"subiram":[{"lote":"26S319G","cultivar":"55I57RSF IPRO","de":"X","para":"A"},{"lote":"26S351G","cultivar":"53IX55RSF I2X","de":"X","para":"A"},{"lote":"26S902C","cultivar":"63E66RSF E","de":"X","para":"A"},{"lote":"26S1100E","cultivar":"C2645CE","de":"X","para":"A"},{"lote":"26S334G","cultivar":"55I57RSF IPRO","de":"X","para":"B"},{"lote":"26S335G","cultivar":"55I57RSF IPRO","de":"X","para":"B"},{"lote":"26S348G","cultivar":"53IX55RSF I2X","de":"X","para":"B"},{"lote":"26S353G","cultivar":"53IX55RSF I2X","de":"X","para":"B"}],"cairam":[{"lote":"26S141G","cultivar":"C2560CE","de":"B","para":"D"},{"lote":"26S132G","cultivar":"C2560CE","de":"BV","para":"D"},{"lote":"26S133C","cultivar":"C2560CE","de":"BV","para":"D"},{"lote":"26S138C","cultivar":"C2560CE","de":"BV","para":"D"},{"lote":"26S273F","cultivar":"55IX56RSF I2X","de":"C","para":"D"},{"lote":"26S297F","cultivar":"C2575E","de":"C","para":"D"},{"lote":"26S298F","cultivar":"C2575E","de":"C","para":"D"},{"lote":"26S299F","cultivar":"C2575E","de":"C","para":"D"}],"total_subiram":63,"total_cairam":22};
 const PMS_CV = [{"cultivar":"55I57RSF IPRO","bags_p1":428,"pms_p1":186.6,"aprov_p1":7,"reprov_p1":14,"pend_p1":2,"bags_p2":1010,"pms_p2":228.4,"aprov_p2":21,"reprov_p2":36,"pend_p2":8,"bags_total":1438},{"cultivar":"C2575E","bags_p1":240,"pms_p1":153.7,"aprov_p1":5,"reprov_p1":8,"pend_p1":0,"bags_p2":666,"pms_p2":200.9,"aprov_p2":8,"reprov_p2":30,"pend_p2":0,"bags_total":906},{"cultivar":"C2550E","bags_p1":482,"pms_p1":150.3,"aprov_p1":21,"reprov_p1":0,"pend_p1":0,"bags_p2":363,"pms_p2":198.4,"aprov_p2":19,"reprov_p2":0,"pend_p2":0,"bags_total":845},{"cultivar":"56IX58RSF I2X","bags_p1":253,"pms_p1":193.6,"aprov_p1":7,"reprov_p1":5,"pend_p1":0,"bags_p2":450,"pms_p2":241.5,"aprov_p2":15,"reprov_p2":9,"pend_p2":0,"bags_total":703},{"cultivar":"C2530RR","bags_p1":283,"pms_p1":160.3,"aprov_p1":13,"reprov_p1":0,"pend_p1":0,"bags_p2":400,"pms_p2":210.0,"aprov_p2":22,"reprov_p2":0,"pend_p2":0,"bags_total":683},{"cultivar":"55IX56RSF I2X","bags_p1":76,"pms_p1":null,"aprov_p1":0,"reprov_p1":4,"pend_p1":0,"bags_p2":346,"pms_p2":222.4,"aprov_p2":2,"reprov_p2":20,"pend_p2":0,"bags_total":422},{"cultivar":"C2560CE","bags_p1":196,"pms_p1":208.0,"aprov_p1":5,"reprov_p1":7,"pend_p1":0,"bags_p2":214,"pms_p2":245.6,"aprov_p2":10,"reprov_p2":4,"pend_p2":0,"bags_total":410},{"cultivar":"C2605 E","bags_p1":336,"pms_p1":141.0,"aprov_p1":1,"reprov_p1":13,"pend_p1":0,"bags_p2":60,"pms_p2":null,"aprov_p2":0,"reprov_p2":3,"pend_p2":0,"bags_total":396},{"cultivar":"57K58RSF CE","bags_p1":176,"pms_p1":156.3,"aprov_p1":1,"reprov_p1":8,"pend_p1":0,"bags_p2":141,"pms_p2":198.7,"aprov_p2":3,"reprov_p2":6,"pend_p2":0,"bags_total":317},{"cultivar":"57K56RSF CE","bags_p1":120,"pms_p1":168.5,"aprov_p1":6,"reprov_p1":0,"pend_p1":0,"bags_p2":144,"pms_p2":203.3,"aprov_p2":9,"reprov_p2":0,"pend_p2":0,"bags_total":264},{"cultivar":"57IX60RSF I2X","bags_p1":87,"pms_p1":156.0,"aprov_p1":2,"reprov_p1":2,"pend_p1":0,"bags_p2":160,"pms_p2":186.8,"aprov_p2":7,"reprov_p2":1,"pend_p2":0,"bags_total":247},{"cultivar":"BMX ATIVA RR","bags_p1":105,"pms_p1":151.9,"aprov_p1":3,"reprov_p1":2,"pend_p1":0,"bags_p2":138,"pms_p2":193.9,"aprov_p2":6,"reprov_p2":1,"pend_p2":0,"bags_total":243},{"cultivar":"C2535CE","bags_p1":67,"pms_p1":164.6,"aprov_p1":3,"reprov_p1":0,"pend_p1":0,"bags_p2":159,"pms_p2":200.2,"aprov_p2":9,"reprov_p2":0,"pend_p2":0,"bags_total":226},{"cultivar":"53IX55RSF I2X","bags_p1":80,"pms_p1":null,"aprov_p1":0,"reprov_p1":0,"pend_p1":4,"bags_p2":144,"pms_p2":222.2,"aprov_p2":6,"reprov_p2":0,"pend_p2":3,"bags_total":224},{"cultivar":"50I52RSF IPRO","bags_p1":158,"pms_p1":178.0,"aprov_p1":9,"reprov_p1":0,"pend_p1":0,"bags_p2":48,"pms_p2":225.7,"aprov_p2":3,"reprov_p2":0,"pend_p2":0,"bags_total":206},{"cultivar":"C2645CE","bags_p1":95,"pms_p1":null,"aprov_p1":0,"reprov_p1":5,"pend_p1":0,"bags_p2":85,"pms_p2":198.4,"aprov_p2":2,"reprov_p2":3,"pend_p2":0,"bags_total":180},{"cultivar":"63E66RSF E","bags_p1":84,"pms_p1":154.6,"aprov_p1":2,"reprov_p1":2,"pend_p1":0,"bags_p2":80,"pms_p2":187.8,"aprov_p2":3,"reprov_p2":1,"pend_p2":0,"bags_total":164},{"cultivar":"64IX66RSF I2X","bags_p1":120,"pms_p1":134.7,"aprov_p1":5,"reprov_p1":0,"pend_p1":0,"bags_p2":40,"pms_p2":185.1,"aprov_p2":1,"reprov_p2":1,"pend_p2":0,"bags_total":160},{"cultivar":"C2615CE","bags_p1":100,"pms_p1":163.0,"aprov_p1":5,"reprov_p1":0,"pend_p1":0,"bags_p2":60,"pms_p2":166.5,"aprov_p2":3,"reprov_p2":0,"pend_p2":0,"bags_total":160},{"cultivar":"64I61RSF IPRO","bags_p1":109,"pms_p1":null,"aprov_p1":0,"reprov_p1":5,"pend_p1":0,"bags_p2":32,"pms_p2":null,"aprov_p2":0,"reprov_p2":2,"pend_p2":0,"bags_total":141}];
@@ -1527,6 +1568,7 @@ function showPage(name) {
   document.getElementById('page-' + name).classList.add('active');
   event.target.classList.add('active');
   if (name === 'beneficiamento') buildBeneficiamento();
+  if (name === 'comprados') buildLotesComprados();
   if (name === 'mapa') {
     setTimeout(() => {
       initMapa();
@@ -2159,6 +2201,100 @@ function renderLoteTable() {
       <td colspan="17" style="padding:0;">
         <div id="tz-body-${idx}" style="padding:14px 16px;"></div>
       </td>
+    </tr>
+  `).join('');
+}
+
+// ===================== LOTES COMPRADOS =====================
+let filteredComprados = [];
+let sortKeyComprados = null;
+let sortAscComprados = true;
+
+function buildLotesComprados() {
+  // Populate cultivar select
+  const cvSel = document.getElementById('comprado-cultivar');
+  while (cvSel.options.length > 1) cvSel.remove(1);
+  const cvs = [...new Set(LOTES_COMPRADOS.map(l => l.cultivar))].sort((a,b) => a.localeCompare(b,'pt-BR'));
+  cvs.forEach(cv => {
+    const meta = CV_META[cv];
+    const opt = document.createElement('option');
+    opt.value = cv;
+    opt.textContent = meta ? `${meta.nome} — ${cv}` : cv;
+    cvSel.appendChild(opt);
+  });
+
+  // Populate empresa select
+  const empSel = document.getElementById('comprado-empresa');
+  while (empSel.options.length > 1) empSel.remove(1);
+  const empresas = [...new Set(LOTES_COMPRADOS.map(l => l.empresa).filter(Boolean))].sort((a,b) => a.localeCompare(b,'pt-BR'));
+  empresas.forEach(e => {
+    const opt = document.createElement('option');
+    opt.value = e; opt.textContent = e;
+    empSel.appendChild(opt);
+  });
+
+  const totalKg = LOTES_COMPRADOS.reduce((s,l) => s + (l.kg||0), 0);
+  const totalBags = LOTES_COMPRADOS.reduce((s,l) => s + (l.bags||0), 0);
+
+  document.getElementById('comprados-kpis').innerHTML = `
+    <div class="kpi"><div class="label">Total Comprado</div><div class="value" style="font-size:1.6rem;">${(totalKg/1000).toFixed(1)}t</div><div class="sub">${totalKg.toLocaleString('pt-BR')} kg</div></div>
+    <div class="kpi"><div class="label">Lotes Comprados</div><div class="value" style="font-size:1.6rem;">${LOTES_COMPRADOS.length}</div><div class="sub">${cvs.length} cultivares</div></div>
+    <div class="kpi"><div class="label">Empresas Fornecedoras</div><div class="value" style="font-size:1.6rem;">${empresas.length}</div></div>
+    <div class="kpi"><div class="label">Total de Bags</div><div class="value" style="font-size:1.6rem;">${totalBags.toLocaleString('pt-BR')}</div></div>
+  `;
+
+  filteredComprados = LOTES_COMPRADOS.slice();
+  renderCompradosTable();
+}
+
+function filterLotesComprados() {
+  const q   = (document.getElementById('comprado-search').value || '').toLowerCase().trim();
+  const cv  = document.getElementById('comprado-cultivar').value;
+  const emp = document.getElementById('comprado-empresa').value;
+
+  filteredComprados = LOTES_COMPRADOS.filter(l => {
+    if (cv && l.cultivar !== cv) return false;
+    if (emp && l.empresa !== emp) return false;
+    if (q && !l.lote.toLowerCase().includes(q) && !l.cultivar.toLowerCase().includes(q) && !(l.empresa||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+  renderCompradosTable();
+}
+
+function sortTableComprados(key) {
+  if (sortKeyComprados === key) sortAscComprados = !sortAscComprados;
+  else { sortKeyComprados = key; sortAscComprados = true; }
+  filteredComprados.sort((a,b) => {
+    const va = a[key], vb = b[key];
+    if (va == null && vb == null) return 0;
+    if (va == null) return 1;
+    if (vb == null) return -1;
+    return sortAscComprados ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
+  });
+  renderCompradosTable();
+}
+
+function renderCompradosTable() {
+  document.getElementById('comprado-count').textContent = filteredComprados.length;
+  if (!LOTES_COMPRADOS.length) {
+    document.getElementById('comprado-tbody').innerHTML = `<tr><td colspan="12" style="text-align:center;padding:32px;color:var(--texto2);">Nenhum lote comprado registrado ainda. Assim que a aba "LOTES COMPRADOS" da planilha tiver dados, é só me mandar pra atualizar.</td></tr>`;
+    return;
+  }
+  document.getElementById('comprado-tbody').innerHTML = filteredComprados.map(l => `
+    <tr>
+      <td><code style="color:var(--accent);font-size:0.78rem;font-family:'IBM Plex Mono',monospace;">${l.lote}</code></td>
+      <td class="col-hide-mobile" style="font-size:0.74rem;">${l.lote_origem||'—'}</td>
+      <td style="font-size:0.74rem;">${l.cultivar}</td>
+      <td class="col-hide-mobile">${l.categoria_origem||'—'}</td>
+      <td class="col-hide-mobile">${l.categoria_reembalado||'—'}</td>
+      <td style="font-size:0.74rem;">${l.empresa||'—'}</td>
+      <td class="col-hide-mobile">${l.peneira||'—'}</td>
+      <td class="num" style="color:${l.germ_oficial!=null?'#15803D':'#94A3B8'};font-weight:${l.germ_oficial!=null?'700':'400'};">${l.germ_oficial!=null?l.germ_oficial+'%':'—'}</td>
+      <td class="num" style="color:${l.vigor_oficial!=null?'#15803D':'#94A3B8'};font-weight:${l.vigor_oficial!=null?'700':'400'};">${l.vigor_oficial!=null?l.vigor_oficial+'%':'—'}</td>
+      <td class="num">${l.pms_etq != null ? l.pms_etq+'g' : '—'}</td>
+      <td class="num">${l.peso_bag != null ? l.peso_bag.toLocaleString('pt-BR')+'kg' : '—'}</td>
+      <td class="num col-hide-mobile">${l.kg!=null?l.kg.toLocaleString('pt-BR'):'—'}</td>
+      <td class="num" style="font-weight:700;">${l.bags!=null?l.bags:'—'}</td>
     </tr>
   `).join('');
 }
