@@ -1005,6 +1005,7 @@
     pointer-events: none;
   }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body class="locked">
 
@@ -1272,6 +1273,7 @@
         <option value="SCV">SCV</option>
       </select>
       <div class="count-badge">Exibindo <span id="cv-count" style="color:var(--accent);font-weight:700;">—</span> cultivares</div>
+      <button id="btn-export-cultivares" onclick="exportarPrintCultivares()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;white-space:nowrap;">📸 Print</button>
     </div>
     <div id="cultivar-grid"></div>
   </div>
@@ -1300,7 +1302,9 @@
         <option value="Pendente">Pendente (X)</option>
       </select>
       <div class="count-badge">Exibindo <span id="lote-count">—</span> lotes</div>
+      <button id="btn-export-lotes" onclick="exportarPrintLotes()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;white-space:nowrap;">📸 Print</button>
     </div>
+    <div id="export-lotes-warning" style="display:none;font-size:0.75rem;color:#D97706;margin:-8px 0 12px 2px;">⚠️ Lista grande (<span id="export-lotes-warning-count"></span> lotes) — a imagem ficará bem longa. Considere filtrar mais antes de exportar, se for só pra conferência rápida.</div>
     <div class="panel">
       <div class="lotes-table-wrap" id="lotes-wrap">
         <table id="lote-table">
@@ -2132,6 +2136,16 @@ function filterLotes() {
     return true;
   });
 
+  const warnEl = document.getElementById('export-lotes-warning');
+  if (warnEl) {
+    if (filteredLots.length > 70) {
+      document.getElementById('export-lotes-warning-count').textContent = filteredLots.length;
+      warnEl.style.display = 'block';
+    } else {
+      warnEl.style.display = 'none';
+    }
+  }
+
   renderLoteTable();
 }
 
@@ -2146,6 +2160,187 @@ function sortTable(key) {
     return sortAsc ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
   });
   renderLoteTable();
+}
+
+function exportarPrintCultivares() {
+  const btn = document.getElementById('btn-export-cultivares');
+  const originalLabel = btn.innerHTML;
+  btn.innerHTML = '⏳ Gerando imagem...';
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+
+  const q   = document.getElementById('cv-search').value.trim();
+  const obt = document.getElementById('cv-obtentor-filter').value;
+  const bio = document.getElementById('cv-biotech-filter').value;
+  const ubs = document.getElementById('cv-ubs-filter').value;
+  const filtros = [
+    obt ? `Obtentor: ${obt}` : null,
+    bio ? `Biotecnologia: ${bio}` : null,
+    ubs ? `UBS: ${ubs}` : null,
+    q ? `Busca: "${q}"` : null,
+  ].filter(Boolean);
+  const filtrosTxt = filtros.length ? filtros.join('  ·  ') : 'Todos os cultivares (sem filtro)';
+
+  const agora = new Date();
+  const hoje = agora.toLocaleDateString('pt-BR');
+  const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const count = document.getElementById('cv-count').textContent;
+
+  const wrap = document.createElement('div');
+  wrap.style.cssText = `
+    position:fixed;top:-99999px;left:-99999px;width:1200px;font-family:Arial,sans-serif;
+    background:#FFFFFF;padding:24px;
+    --bg:#F8FAFC;--bg2:#FFFFFF;--bg3:#F1F5F9;--card:#FFFFFF;
+    --borda:#E2E8F0;--borda2:#CBD5E1;
+    --texto:#0F172A;--texto2:#64748B;--texto3:#94A3B8;
+    --accent:#2563EB;--accent-light:#3B82F6;
+    --excelente:#16A34A;--bom:#2563EB;--regular:#D97706;--critico:#DC2626;--condicional:#D97706;
+  `;
+
+  const header = document.createElement('div');
+  header.style.cssText = 'margin-bottom:16px;';
+  header.innerHTML = `
+    <div style="font-size:1.1rem;font-weight:800;color:#0F172A;">🌱 SEED BASE — Por Cultivar</div>
+    <div style="font-size:0.82rem;color:#475569;margin-top:4px;">${filtrosTxt}</div>
+    <div style="font-size:0.74rem;color:#64748B;margin-top:2px;">${count} cultivare${count!=='1'?'s':''} · Exportado em ${hoje} às ${hora}</div>
+  `;
+  wrap.appendChild(header);
+
+  const originalGrid = document.getElementById('cultivar-grid');
+  const clone = originalGrid.cloneNode(true);
+  clone.style.background = '#FFFFFF';
+  // Force every descendant card/panel surface to white and borders to light gray so dark-mode card backgrounds don't carry over
+  clone.querySelectorAll('*').forEach(el => {
+    el.style.position = el.style.position === 'sticky' ? 'static' : el.style.position;
+    el.style.boxShadow = 'none';
+  });
+  wrap.appendChild(clone);
+
+  document.body.appendChild(wrap);
+
+  html2canvas(wrap, { backgroundColor: '#FFFFFF', scale: 2 }).then(canvas => {
+    const link = document.createElement('a');
+    const dataSlug = new Date().toLocaleDateString('pt-BR').split('/').join('-');
+    link.download = `cultivares_${dataSlug}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    document.body.removeChild(wrap);
+    btn.innerHTML = originalLabel;
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  }).catch(err => {
+    console.error('Erro ao exportar print:', err);
+    document.body.removeChild(wrap);
+    btn.innerHTML = originalLabel;
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    alert('Não foi possível gerar a imagem. Tente novamente.');
+  });
+}
+
+function exportarPrintLotes() {
+  const btn = document.getElementById('btn-export-lotes');
+  const originalLabel = btn.innerHTML;
+  btn.innerHTML = '⏳ Gerando imagem...';
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+
+  // Build filter summary text
+  const q  = document.getElementById('lote-search').value.trim();
+  const cv = document.getElementById('lote-cultivar').value;
+  const st = document.getElementById('lote-status').value;
+  const ub = document.getElementById('lote-ubs').value;
+  const cvLabel = cv ? (CV_META[cv]?.nome ? `${CV_META[cv].nome} — ${cv}` : cv) : null;
+  const filtros = [
+    cvLabel ? `Cultivar: ${cvLabel}` : null,
+    ub ? `UBS: ${ub}` : null,
+    st ? `Status: ${st}` : null,
+    q ? `Busca: "${q}"` : null,
+  ].filter(Boolean);
+  const filtrosTxt = filtros.length ? filtros.join('  ·  ') : 'Todos os lotes (sem filtro)';
+
+  const agora = new Date();
+  const hoje = agora.toLocaleDateString('pt-BR');
+  const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+  // Build an offscreen export container: header + cloned table (without TZ-expand rows, without action columns)
+  const wrap = document.createElement('div');
+  // Force light-theme CSS variables on this subtree so all the existing inline var(--texto) etc.
+  // styles in the cloned table resolve to readable colors regardless of the dashboard's current dark/light mode.
+  wrap.style.cssText = `
+    position:fixed;top:-99999px;left:-99999px;width:fit-content;font-family:Arial,sans-serif;
+    background:#FFFFFF;padding:24px;
+    --bg:#F8FAFC;--bg2:#FFFFFF;--bg3:#F1F5F9;--card:#FFFFFF;
+    --borda:#E2E8F0;--borda2:#CBD5E1;
+    --texto:#0F172A;--texto2:#64748B;--texto3:#94A3B8;
+    --accent:#2563EB;--accent-light:#3B82F6;
+    --excelente:#16A34A;--bom:#2563EB;--regular:#D97706;--critico:#DC2626;--condicional:#D97706;
+  `;
+
+  const header = document.createElement('div');
+  header.style.cssText = 'margin-bottom:16px;';
+  header.innerHTML = `
+    <div style="font-size:1.1rem;font-weight:800;color:#0F172A;">🌱 SEED BASE — Lotes Detalhados</div>
+    <div style="font-size:0.82rem;color:#475569;margin-top:4px;">${filtrosTxt}</div>
+    <div style="font-size:0.74rem;color:#64748B;margin-top:2px;">${filteredLots.length} lote${filteredLots.length!==1?'s':''} · Exportado em ${hoje} às ${hora}</div>
+  `;
+  wrap.appendChild(header);
+
+  // Clone the real table so visual styling matches what's on screen
+  const originalTable = document.getElementById('lote-table');
+  const clone = originalTable.cloneNode(true);
+  // Remove the expand-toggle and TZ columns (1st and last <th>/<td>), and any open tz-row detail rows
+  clone.querySelectorAll('tr[id^="tz-row-"]').forEach(r => r.remove());
+  clone.querySelectorAll('thead tr, tbody tr').forEach(row => {
+    if (row.children.length) {
+      row.removeChild(row.children[0]); // expand chevron column
+      if (row.children.length) row.removeChild(row.children[row.children.length - 1]); // TZ icon column
+    }
+  });
+  clone.style.cssText = 'border-collapse:collapse;background:#FFFFFF;width:auto;';
+  clone.querySelectorAll('th, td').forEach(cell => {
+    cell.style.padding = '6px 10px';
+    cell.style.fontSize = '12px';
+    cell.style.whiteSpace = 'nowrap';
+    cell.style.borderBottom = '1px solid #E2E8F0';
+    // Strip sticky positioning — breaks html2canvas's element ordering and was pushing the header to the bottom
+    cell.style.position = 'static';
+    cell.style.boxShadow = 'none';
+    cell.style.top = 'auto';
+    cell.style.zIndex = 'auto';
+  });
+  clone.querySelectorAll('thead th').forEach(cell => {
+    cell.style.background = '#F1F5F9';
+    cell.style.color = '#475569';
+    cell.style.borderBottom = '2px solid #CBD5E1';
+    cell.style.textAlign = cell.classList.contains('num') ? 'right' : 'left';
+  });
+  clone.querySelectorAll('tbody td').forEach(cell => {
+    cell.style.background = '#FFFFFF';
+  });
+  wrap.appendChild(clone);
+
+  document.body.appendChild(wrap);
+
+  html2canvas(wrap, { backgroundColor: '#FFFFFF', scale: 2 }).then(canvas => {
+    const link = document.createElement('a');
+    const cvSlug = cv || 'todos';
+    const dataSlug = new Date().toLocaleDateString('pt-BR').split('/').join('-');
+    link.download = `lotes_${cvSlug}_${dataSlug}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    document.body.removeChild(wrap);
+    btn.innerHTML = originalLabel;
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  }).catch(err => {
+    console.error('Erro ao exportar print:', err);
+    document.body.removeChild(wrap);
+    btn.innerHTML = originalLabel;
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    alert('Não foi possível gerar a imagem. Tente novamente.');
+  });
 }
 
 function renderLoteTable() {
