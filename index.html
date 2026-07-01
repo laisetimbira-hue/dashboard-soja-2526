@@ -66,7 +66,7 @@
     font-size: 1.0625rem;
     line-height: 1.5;
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow-x: clip;
     font-variant-numeric: tabular-nums;
     /* Garante que começa no topo */
     scroll-behavior: auto;
@@ -346,6 +346,10 @@
     max-height: calc(100vh - 160px);
     -webkit-overflow-scrolling: touch;
   }
+
+  /* Tables need an explicit min-width so they scroll inside their wrapper on tablet */
+  .data-table-wrap table { min-width: 700px; }
+  .lotes-table-wrap table { min-width: 600px; }
 
   table { width: 100%; border-collapse: collapse; font-size: 0.70rem; }
 
