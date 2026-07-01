@@ -2031,8 +2031,11 @@ function filterCultivares() {
 
     // Ribbon OFICIAL: todos os lotes do cultivar têm resultado oficial (germ ou vigor)
     const todosLotes = LOTS.filter(l => l.cultivar === c.cultivar);
-    const todosOficiais = todosLotes.some(l => l.vigor_oficial != null || l.germ_oficial != null);
-    const ribbon = todosOficiais ? `<div class="cv-ribbon">Oficial</div>` : '';
+    const comOficial = todosLotes.filter(l => l.vigor_oficial != null || l.germ_oficial != null).length;
+    const ribbon = comOficial === 0 ? '' :
+      comOficial === todosLotes.length
+        ? `<div class="cv-ribbon" style="background:#16A34A;">Oficial</div>`
+        : `<div class="cv-ribbon" style="background:#D97706;">Parcial</div>`;
     const barA  = total ? (c.rank_A/total*100).toFixed(1) : 0;
     const barB  = total ? (c.rank_B/total*100).toFixed(1) : 0;
     const barBV = total ? ((c.rank_BV||0)/total*100).toFixed(1) : 0;
