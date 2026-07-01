@@ -532,6 +532,23 @@
     border-radius: var(--radius);
     overflow: hidden;
     box-shadow: var(--shadow);
+    position: relative;
+  }
+  .cv-ribbon {
+    position: absolute;
+    top: 12px;
+    right: -22px;
+    background: #16A34A;
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 28px;
+    transform: rotate(35deg);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    pointer-events: none;
+    z-index: 10;
   }
 
   /* Header */
@@ -809,10 +826,15 @@
   }
 
   /* ============================================
-     LOTES TABLE — hide less-important cols on mobile
+     LOTES TABLE — hide less-important cols on mobile + tablet
   ============================================ */
   @media (max-width: 639px) {
     .col-hide-mobile { display: none !important; }
+    .col-hide-tablet { display: none !important; }
+  }
+  @media (min-width: 640px) and (max-width: 1023px) {
+    .col-hide-mobile { display: none !important; }
+    .col-hide-tablet { display: none !important; }
   }
 </style>
 
@@ -1316,18 +1338,18 @@
               <th onclick="sortTable('cultivar')">Cultivar</th>
               <th onclick="sortTable('categoria')" class="col-hide-mobile">Cat.</th>
               <th onclick="sortTable('peneira')" class="col-hide-mobile">Pen.</th>
-              <th onclick="sortTable('umidade')" class="num col-hide-mobile">Umid. %</th>
-              <th onclick="sortTable('hipoclorito')" class="num col-hide-mobile">DM %</th>
-              <th onclick="sortTable('tz_viab')" class="num col-hide-mobile">TZ Viab.</th>
-              <th onclick="sortTable('tz_vigor')" class="num col-hide-mobile">TZ Vigor</th>
+              <th onclick="sortTable('umidade')" class="num col-hide-mobile col-hide-tablet">Umid. %</th>
+              <th onclick="sortTable('hipoclorito')" class="num col-hide-mobile col-hide-tablet">DM %</th>
+              <th onclick="sortTable('tz_viab')" class="num col-hide-mobile col-hide-tablet">TZ Viab.</th>
+              <th onclick="sortTable('tz_vigor')" class="num col-hide-mobile col-hide-tablet">TZ Vigor</th>
               <th onclick="sortTable('germ')" class="num">Germ. %</th>
               <th onclick="sortTable('vigor')" class="num">Vigor E.A. %</th>
               <th onclick="sortTable('germ_oficial')" class="num col-hide-mobile" style="color:#15803D;">Germ. Of. %</th>
               <th onclick="sortTable('vigor_oficial')" class="num col-hide-mobile" style="color:#15803D;">Vigor Of. %</th>
-              <th onclick="sortTable('pms_etq')" class="num">PMS (g)</th>
-              <th onclick="sortTable('peso_bag')" class="num">Peso Bag</th>
-              <th onclick="sortTable('sementes_m')" class="num">Sem. (M)</th>
-              <th onclick="sortTable('kg')" class="num col-hide-mobile">KG</th>
+              <th onclick="sortTable('pms_etq')" class="num col-hide-tablet">PMS (g)</th>
+              <th onclick="sortTable('peso_bag')" class="num col-hide-tablet">Peso Bag</th>
+              <th onclick="sortTable('sementes_m')" class="num col-hide-tablet">Sem. (M)</th>
+              <th onclick="sortTable('kg')" class="num col-hide-mobile col-hide-tablet">KG</th>
               <th onclick="sortTable('ranking')">Ranking</th>
               <th style="width:32px;" title="Tetrazólio">TZ</th>
             </tr>
@@ -2006,6 +2028,11 @@ function filterCultivares() {
     // Bags de lotes pendentes (X) para este cultivar
     const bagsPend = LOTS.filter(l => l.cultivar === c.cultivar && l.ranking === 'X')
                          .reduce((s, l) => s + (l.bags || 0), 0);
+
+    // Ribbon OFICIAL: todos os lotes do cultivar têm resultado oficial (germ ou vigor)
+    const todosLotes = LOTS.filter(l => l.cultivar === c.cultivar);
+    const todosOficiais = todosLotes.some(l => l.vigor_oficial != null || l.germ_oficial != null);
+    const ribbon = todosOficiais ? `<div class="cv-ribbon">Oficial</div>` : '';
     const barA  = total ? (c.rank_A/total*100).toFixed(1) : 0;
     const barB  = total ? (c.rank_B/total*100).toFixed(1) : 0;
     const barBV = total ? ((c.rank_BV||0)/total*100).toFixed(1) : 0;
@@ -2017,6 +2044,7 @@ function filterCultivares() {
 
     return divider + `
     <div class="cv-card">
+      ${ribbon}
 
       <!-- Cabeçalho -->
       <div class="cv-header">
@@ -2367,17 +2395,17 @@ function renderLoteTable() {
       <td style="font-size:0.74rem;">${l.cultivar}</td>
       <td class="col-hide-mobile">${l.categoria}</td>
       <td class="col-hide-mobile">${l.peneira}</td>
-      <td class="num col-hide-mobile">${l.umidade != null ? l.umidade.toFixed(2) : '—'}</td>
-      <td class="num col-hide-mobile" style="font-weight:600;color:${l.hipoclorito != null ? (l.hipoclorito >= 6 ? 'var(--critico)' : 'var(--excelente)') : 'var(--texto2)'};">${l.hipoclorito != null ? l.hipoclorito.toFixed(1) : '—'}</td>
-      <td class="num col-hide-mobile" style="color:${colorTZ(l.tz_viab)}">${fmt(l.tz_viab)}</td>
-      <td class="num col-hide-mobile" style="color:${colorTZ(l.tz_vigor)}">${fmt(l.tz_vigor)}</td>
+      <td class="num col-hide-mobile col-hide-tablet">${l.umidade != null ? l.umidade.toFixed(2) : '—'}</td>
+      <td class="num col-hide-mobile col-hide-tablet" style="font-weight:600;color:${l.hipoclorito != null ? (l.hipoclorito >= 6 ? 'var(--critico)' : 'var(--excelente)') : 'var(--texto2)'};">${l.hipoclorito != null ? l.hipoclorito.toFixed(1) : '—'}</td>
+      <td class="num col-hide-mobile col-hide-tablet" style="color:${colorTZ(l.tz_viab)}">${fmt(l.tz_viab)}</td>
+      <td class="num col-hide-mobile col-hide-tablet" style="color:${colorTZ(l.tz_vigor)}">${fmt(l.tz_vigor)}</td>
       <td class="num" style="color:${colorGerm(l.germ)};">${fmt(l.germ)}</td>
       <td class="num" style="color:${colorVigor(l.vigor)};">${fmt(l.vigor)}</td>
       <td class="num col-hide-mobile" style="color:${l.germ_oficial!=null?'#15803D':'#94A3B8'};font-weight:${l.germ_oficial!=null?'700':'400'};">${l.germ_oficial!=null?l.germ_oficial+'%':'—'}</td>
       <td class="num col-hide-mobile" style="color:${l.vigor_oficial!=null?'#15803D':'#94A3B8'};font-weight:${l.vigor_oficial!=null?'700':'400'};">${l.vigor_oficial!=null?l.vigor_oficial+'%':'—'}</td>
-      <td class="num">${l.pms_etq != null ? l.pms_etq+'g' : '—'}</td>
-      <td class="num">${l.peso_bag != null ? l.peso_bag.toLocaleString('pt-BR')+'kg' : '—'}</td>
-      <td class="num" style="color:${l.sementes_m!=null?(l.sementes_m>=5?'var(--bom)':'var(--texto)'):'var(--texto2)'};">${l.sementes_m != null ? l.sementes_m+'M' : '—'}</td>
+      <td class="num col-hide-tablet">${l.pms_etq != null ? l.pms_etq+'g' : '—'}</td>
+      <td class="num col-hide-tablet">${l.peso_bag != null ? l.peso_bag.toLocaleString('pt-BR')+'kg' : '—'}</td>
+      <td class="num col-hide-tablet" style="color:${l.sementes_m!=null?(l.sementes_m>=5?'var(--bom)':'var(--texto)'):'var(--texto2)'};">${l.sementes_m != null ? l.sementes_m+'M' : '—'}</td>
       <td class="num col-hide-mobile">${l.kg.toLocaleString('pt-BR')}</td>
       <td><span class="rank-badge rank-${l.ranking}">${l.ranking === 'C' ? 'C — Cond.' : l.ranking === 'BV' ? 'BV — Cond. Vigor' : l.ranking === 'D' ? 'D — Ruim' : l.ranking === 'X' ? 'X — Pend.' : l.ranking + ' — ' + l.status}</span></td>
       <td style="padding:6px 8px;text-align:center;">
