@@ -1635,7 +1635,7 @@ function renderAprovacaoPanel() {
   const anterior = hist.length > 1 ? hist[hist.length - 2] : null;
 
   // ---- mini trend chart (SVG) ----
-  const W = 560, H = 90, pad = 28;
+  const W = 560, H = 110, pad = 28;
   const maxPct = 100;
   const pts = hist.map((h, i) => {
     const x = pad + (hist.length > 1 ? i * (W - pad * 2) / (hist.length - 1) : 0);
@@ -1645,8 +1645,8 @@ function renderAprovacaoPanel() {
   const pathD = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
   const dots = pts.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="var(--accent)"/>
     <text x="${p.x.toFixed(1)}" y="${(p.y-10).toFixed(1)}" font-size="11" font-weight="700" text-anchor="middle" fill="var(--texto)">${p.h.pctAprov}%</text>
-    <text x="${p.x.toFixed(1)}" y="${H-6}" font-size="9.5" text-anchor="middle" fill="var(--texto2)">${p.h.data}</text>`).join('');
-  const trendSvg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;height:${H}px;">
+    <text x="${p.x.toFixed(1)}" y="${H-6}" font-size="9" text-anchor="end" fill="var(--texto2)" transform="rotate(-40,${p.x.toFixed(1)},${H-6})">${p.h.data.slice(0,5)}</text>`).join('');
+  const trendSvg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;height:${H}px;overflow:visible;">
     <path d="${pathD}" fill="none" stroke="var(--accent)" stroke-width="2"/>
     ${dots}
   </svg>`;
