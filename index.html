@@ -1312,6 +1312,9 @@
       <select id="lote-cultivar" onchange="filterLotes()">
         <option value="">Todos os Cultivares</option>
       </select>
+      <select id="lote-categoria" onchange="filterLotes()">
+        <option value="">Todas as Categorias</option>
+      </select>
       <select id="lote-ubs" onchange="filterLotes()">
         <option value="">Todas as UBS</option>
         <option value="CAMBAÍ">CAMBAÍ</option>
@@ -1953,7 +1956,6 @@ function toggleOvRow(idx) {
 function buildCultivares() {
   // Populate lote cultivar dropdown
   const sel = document.getElementById('lote-cultivar');
-  // clear existing options except first
   while (sel.options.length > 1) sel.remove(1);
   const cvOpts = SUMMARY.map(c => {
     const meta = CV_META[c.cultivar];
@@ -1965,7 +1967,17 @@ function buildCultivares() {
     opt.textContent = o.label;
     sel.appendChild(opt);
   });
-  // Always render all cultivars on load
+
+  // Populate categoria dropdown
+  const catSel = document.getElementById('lote-categoria');
+  while (catSel.options.length > 1) catSel.remove(1);
+  const cats = [...new Set(LOTS.map(l => l.categoria).filter(Boolean))].sort((a,b) => a.localeCompare(b,'pt-BR'));
+  cats.forEach(cat => {
+    const opt = document.createElement('option');
+    opt.value = cat; opt.textContent = cat;
+    catSel.appendChild(opt);
+  });
+
   filterCultivares();
 }
 
@@ -2163,11 +2175,13 @@ function filterLotes() {
   const cv = document.getElementById('lote-cultivar').value;
   const st = document.getElementById('lote-status').value;
   const ub = document.getElementById('lote-ubs').value;
+  const cat = document.getElementById('lote-categoria').value;
 
   filteredLots = LOTS.filter(l => {
     if (cv && l.cultivar !== cv) return false;
     if (st && l.status !== st) return false;
     if (ub && l.ubs !== ub) return false;
+    if (cat && l.categoria !== cat) return false;
     if (q && !l.lote.toLowerCase().includes(q) && !l.cultivar.toLowerCase().includes(q) && !(CV_META[l.cultivar]?.nome||'').toLowerCase().includes(q)) return false;
     return true;
   });
@@ -2286,10 +2300,12 @@ function exportarPrintLotes() {
   const cv = document.getElementById('lote-cultivar').value;
   const st = document.getElementById('lote-status').value;
   const ub = document.getElementById('lote-ubs').value;
+  const cat = document.getElementById('lote-categoria').value;
   const cvLabel = cv ? (CV_META[cv]?.nome ? `${CV_META[cv].nome} — ${cv}` : cv) : null;
   const filtros = [
     cvLabel ? `Cultivar: ${cvLabel}` : null,
     ub ? `UBS: ${ub}` : null,
+    cat ? `Categoria: ${cat}` : null,
     st ? `Status: ${st}` : null,
     q ? `Busca: "${q}"` : null,
   ].filter(Boolean);
