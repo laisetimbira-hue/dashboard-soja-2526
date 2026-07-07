@@ -2916,6 +2916,16 @@ function filterBenef() {
               <div style="font-size:1.45rem;font-weight:800;color:#7C3AED;line-height:1;">${c.pms_todos_p2 != null ? c.pms_todos_p2.toFixed(1)+'g' : '—'}</div>
               <div style="font-size:0.68rem;color:var(--texto2);margin-top:2px;">peso de mil sementes</div>
             </div>
+            <div style="flex:1;background:#fff;border:1px solid #BBF7D0;border-radius:8px;padding:10px;text-align:center;box-shadow:var(--shadow);">
+              <span style="background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0;border-radius:4px;padding:1px 8px;font-size:0.72rem;font-weight:700;display:inline-block;margin-bottom:6px;">P1+P2</span>
+              <div style="font-size:1.45rem;font-weight:800;color:#16A34A;line-height:1;">${(() => {
+                const w1 = (c.pms_todos_p1 || 0) * (c.bags_p1 || 0);
+                const w2 = (c.pms_todos_p2 || 0) * (c.bags_p2 || 0);
+                const bt = (c.bags_p1 || 0) + (c.bags_p2 || 0);
+                return bt > 0 && (w1+w2) > 0 ? ((w1+w2)/bt).toFixed(1)+'g' : '—';
+              })()}</div>
+              <div style="font-size:0.68rem;color:var(--texto2);margin-top:2px;">cultivar geral</div>
+            </div>
           </div>
         </div>
       </div>
