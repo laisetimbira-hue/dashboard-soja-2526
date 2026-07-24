@@ -2541,8 +2541,25 @@ function sortTableComprados(key) {
 
 function renderCompradosTable() {
   document.getElementById('comprado-count').textContent = filteredComprados.length;
+
+  // KPIs dinâmicos — refletem os lotes filtrados
+  const totalKg   = filteredComprados.reduce((s,l) => s + (l.kg||0), 0);
+  const totalBags = filteredComprados.reduce((s,l) => s + (l.bags||0), 0);
+  const cvs       = [...new Set(filteredComprados.map(l => l.cultivar))];
+  const empresas  = [...new Set(filteredComprados.map(l => l.empresa).filter(Boolean))];
+  document.getElementById('comprados-kpis').innerHTML = `
+    <div class="kpi"><div class="label">Total Comprado</div><div class="value" style="font-size:1.6rem;">${(totalKg/1000).toFixed(1)}t</div><div class="sub">${totalKg.toLocaleString('pt-BR')} kg</div></div>
+    <div class="kpi"><div class="label">Lotes</div><div class="value" style="font-size:1.6rem;">${filteredComprados.length}</div><div class="sub">${cvs.length} cultivar${cvs.length!==1?'es':''}</div></div>
+    <div class="kpi"><div class="label">Empresas</div><div class="value" style="font-size:1.6rem;">${empresas.length}</div></div>
+    <div class="kpi"><div class="label">Total de Bags</div><div class="value" style="font-size:1.6rem;">${totalBags.toLocaleString('pt-BR')}</div></div>
+  `;
+
   if (!LOTES_COMPRADOS.length) {
-    document.getElementById('comprado-tbody').innerHTML = `<tr><td colspan="12" style="text-align:center;padding:32px;color:var(--texto2);">Nenhum lote comprado registrado ainda. Assim que a aba "LOTES COMPRADOS" da planilha tiver dados, é só me mandar pra atualizar.</td></tr>`;
+    document.getElementById('comprado-tbody').innerHTML = `<tr><td colspan="13" style="text-align:center;padding:32px;color:var(--texto2);">Nenhum lote comprado registrado ainda.</td></tr>`;
+    return;
+  }
+  if (!filteredComprados.length) {
+    document.getElementById('comprado-tbody').innerHTML = `<tr><td colspan="13" style="text-align:center;padding:32px;color:var(--texto2);">Nenhum lote encontrado com os filtros selecionados.</td></tr>`;
     return;
   }
   document.getElementById('comprado-tbody').innerHTML = filteredComprados.map(l => `
@@ -2558,14 +2575,11 @@ function renderCompradosTable() {
       <td class="num" style="color:${l.vigor_oficial!=null?'#15803D':'#94A3B8'};font-weight:${l.vigor_oficial!=null?'700':'400'};">${l.vigor_oficial!=null?l.vigor_oficial+'%':'—'}</td>
       <td class="num">${l.pms_etq != null ? l.pms_etq+'g' : '—'}</td>
       <td class="num">${l.peso_bag != null ? l.peso_bag.toLocaleString('pt-BR')+'kg' : '—'}</td>
-      <td class="num col-hide-mobile">${l.kg!=null?l.kg.toLocaleString('pt-BR'):'—'}</td>
-      <td class="num" style="font-weight:700;">${l.bags!=null?l.bags:'—'}</td>
-    </tr>
-  `).join('');
+      <td class="num col-hide-mobile">${l.kg != null ? l.kg.toLocaleString('pt-BR') : '—'}</td>
+      <td class="num">${l.bags != null ? l.bags.toLocaleString('pt-BR') : '—'}</td>
+    </tr>`).join('');
 }
 
-// ===================== TZ EXPAND =====================
-let currentExpandedLote = null;
 
 function toggleTZ(lote, idx) {
   const row  = document.getElementById('tz-row-' + idx);
