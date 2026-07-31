@@ -2581,7 +2581,23 @@ function renderCompradosTable() {
   const totalBags = filteredComprados.reduce((s,l) => s + (l.bags||0), 0);
   const cvs       = [...new Set(filteredComprados.map(l => l.cultivar))];
   const empresas  = [...new Set(filteredComprados.map(l => l.empresa).filter(Boolean))];
-  document.getElementById('comprados-kpis').innerHTML = `
+  const cvFiltro  = document.getElementById('comprado-cultivar')?.value || '';
+
+  // PMS médio P1 e P2 (só calcula quando cultivar selecionado)
+  let pmsMedP1 = null, pmsMedP2 = null;
+  if (cvFiltro) {
+    const lotsP1 = filteredComprados.filter(l => l.peneira && l.peneira.startsWith('P1') && l.pms_etq != null);
+    const lotsP2 = filteredComprados.filter(l => l.peneira && l.peneira.startsWith('P2') && l.pms_etq != null);
+    if (lotsP1.length) pmsMedP1 = (lotsP1.reduce((s,l)=>s+l.pms_etq,0)/lotsP1.length).toFixed(1);
+    if (lotsP2.length) pmsMedP2 = (lotsP2.reduce((s,l)=>s+l.pms_etq,0)/lotsP2.length).toFixed(1);
+  }
+
+  document.getElementById('comprados-kpis').innerHTML = cvFiltro ? `
+    <div class="kpi"><div class="label">Total Comprado</div><div class="value" style="font-size:1.6rem;">${(totalKg/1000).toFixed(1)}t</div><div class="sub">${totalKg.toLocaleString('pt-BR')} kg</div></div>
+    <div class="kpi"><div class="label">Lotes</div><div class="value" style="font-size:1.6rem;">${filteredComprados.length}</div><div class="sub">${totalBags.toLocaleString('pt-BR')} bags</div></div>
+    <div class="kpi"><div class="label">PMS Médio P1</div><div class="value" style="font-size:1.6rem;">${pmsMedP1 != null ? pmsMedP1+'g' : '—'}</div><div class="sub">${filteredComprados.filter(l=>l.peneira&&l.peneira.startsWith('P1')).length} lotes P1</div></div>
+    <div class="kpi"><div class="label">PMS Médio P2</div><div class="value" style="font-size:1.6rem;">${pmsMedP2 != null ? pmsMedP2+'g' : '—'}</div><div class="sub">${filteredComprados.filter(l=>l.peneira&&l.peneira.startsWith('P2')).length} lotes P2</div></div>
+  ` : `
     <div class="kpi"><div class="label">Total Comprado</div><div class="value" style="font-size:1.6rem;">${(totalKg/1000).toFixed(1)}t</div><div class="sub">${totalKg.toLocaleString('pt-BR')} kg</div></div>
     <div class="kpi"><div class="label">Lotes</div><div class="value" style="font-size:1.6rem;">${filteredComprados.length}</div><div class="sub">${cvs.length} cultivar${cvs.length!==1?'es':''}</div></div>
     <div class="kpi"><div class="label">Empresas</div><div class="value" style="font-size:1.6rem;">${empresas.length}</div></div>
