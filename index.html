@@ -3934,6 +3934,17 @@ window.addEventListener('load', function() {
     <polyline points="18 15 12 9 6 15"/>
   </svg>
 </button>
+<button onclick="document.getElementById('comprados-wrap').scrollTop=0;" id="btn-topo-comprados"
+  style="position:fixed;bottom:28px;right:80px;z-index:99999;width:48px;height:48px;
+         border-radius:50%;background:#0F172A;border:1px solid #334155;color:#38BDF8;
+         cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.4);
+         display:flex;align-items:center;justify-content:center;
+         opacity:0;pointer-events:none;transition:opacity 0.3s;">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="18 15 12 9 6 15"/>
+  </svg>
+</button>
 <button onclick="document.documentElement.scrollTop=0;document.body.scrollTop=0;" id="btn-topo"
   style="position:fixed;bottom:28px;right:24px;z-index:99999;width:48px;height:48px;
          border-radius:50%;background:#0F172A;border:1px solid #334155;color:#38BDF8;
@@ -3960,6 +3971,12 @@ setInterval(function(){
   if(bl&&wrap){
     bl.style.opacity=wrap.scrollTop>200?'1':'0';
     bl.style.pointerEvents=wrap.scrollTop>200?'auto':'none';
+  }
+  var bc=document.getElementById('btn-topo-comprados');
+  var wrapC=document.getElementById('comprados-wrap');
+  if(bc&&wrapC){
+    bc.style.opacity=wrapC.scrollTop>200?'1':'0';
+    bc.style.pointerEvents=wrapC.scrollTop>200?'auto':'none';
   }
 },200);
 // ===== CONFIGURAÇÕES =====
