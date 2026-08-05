@@ -47,37 +47,97 @@ def log(msg):
 
 # ---------------------------------------------------------------- download
 
+def extrair_id(valor):
+    """Aceita o ID puro ou uma URL completa colada no secret."""
+    v = (valor or "").strip().strip('"').strip("'")
+    if not v:
+        return ""
+    # .../spreadsheets/d/ID/edit  ou  .../file/d/ID/view
+    m = re.search(r"/d/([a-zA-Z0-9_-]{20,})", v)
+    if m:
+        return m.group(1)
+    # ...?id=ID  ou  ...&id=ID
+    m = re.search(r"[?&]id=([a-zA-Z0-9_-]{20,})", v)
+    if m:
+        return m.group(1)
+    return v
+
+
 def baixar(file_id, nome, obrigatorio=True):
     """Baixa um arquivo do Drive. Funciona para .xlsx e para Sheets nativo.
 
     Se obrigatorio=False e o ID não estiver configurado, devolve None em vez
     de abortar — o chamador decide o que fazer.
     """
+    file_id = extrair_id(file_id)
+
     if not file_id:
         if not obrigatorio:
             log(f"  {nome}: ID não configurado — etapa será pulada")
             return None
         raise SystemExit(f"ERRO: ID do arquivo '{nome}' não configurado nos secrets.")
 
-    urls = [
-        # Google Sheets nativo → exporta como xlsx
-        f"https://docs.google.com/spreadsheets/d/{file_id}/export?format=xlsx",
-        # Arquivo .xlsx hospedado no Drive
-        f"https://drive.google.com/uc?export=download&id={file_id}",
+    log(f"  {nome}: id={file_id[:8]}...{file_id[-4:]} ({len(file_id)} caracteres)")
+
+    tentativas = [
+        ("Sheets nativo",
+         f"https://docs.google.com/spreadsheets/d/{file_id}/export?format=xlsx"),
+        ("Drive usercontent",
+         f"https://drive.usercontent.google.com/download?id={file_id}&export=download"),
+        ("Drive uc (legado)",
+         f"https://drive.google.com/uc?export=download&id={file_id}"),
     ]
 
-    for url in urls:
+    sessao = requests.Session()
+    sessao.headers.update({"User-Agent": "Mozilla/5.0 (compatible; SeedBaseBot/1.0)"})
+
+    for rotulo, url in tentativas:
         try:
-            r = requests.get(url, timeout=120, allow_redirects=True)
-            if r.status_code == 200 and r.content[:2] == b"PK":  # assinatura xlsx/zip
-                log(f"  {nome}: {len(r.content):,} bytes")
-                return io.BytesIO(r.content)
+            r = sessao.get(url, timeout=120, allow_redirects=True)
         except Exception as e:
-            log(f"  tentativa falhou ({url[:60]}...): {e}")
+            log(f"    [{rotulo}] falhou na conexão: {type(e).__name__}: {e}")
+            continue
+
+        ctype = r.headers.get("content-type", "?").split(";")[0]
+        log(f"    [{rotulo}] HTTP {r.status_code} · {ctype} · {len(r.content):,} bytes")
+
+        if r.status_code != 200:
+            continue
+
+        if r.content[:2] == b"PK":          # assinatura de xlsx/zip
+            log(f"    -> OK via {rotulo}")
+            return io.BytesIO(r.content)
+
+        # Arquivo grande: Google devolve uma página pedindo confirmação
+        if b"confirm" in r.content[:60000].lower():
+            token = re.search(rb'name="confirm"\s+value="([^"]+)"', r.content)
+            uuid  = re.search(rb'name="uuid"\s+value="([^"]+)"', r.content)
+            if token:
+                params = {"id": file_id, "export": "download",
+                          "confirm": token.group(1).decode()}
+                if uuid:
+                    params["uuid"] = uuid.group(1).decode()
+                r2 = sessao.get("https://drive.usercontent.google.com/download",
+                                params=params, timeout=180)
+                if r2.status_code == 200 and r2.content[:2] == b"PK":
+                    log(f"    -> OK via {rotulo} (após confirmação)")
+                    return io.BytesIO(r2.content)
+
+        # Diagnóstico: mostrar o começo do que veio
+        amostra = r.content[:300].decode("utf-8", errors="replace").replace("\n", " ")
+        log(f"    conteúdo recebido (início): {amostra[:200]}")
 
     raise SystemExit(
-        f"ERRO: não consegui baixar '{nome}'. Confira se o compartilhamento "
-        f"está como 'Qualquer pessoa com o link' e se o ID está correto."
+        f"\nERRO: não consegui baixar '{nome}' (id={file_id}).\n"
+        f"Verifique, nesta ordem:\n"
+        f"  1. O arquivo está compartilhado como 'Qualquer pessoa com o link' "
+        f"com permissão de Leitor?\n"
+        f"  2. O ID no secret corresponde a ESTE arquivo?\n"
+        f"  3. O arquivo está na sua conta pessoal ou em um Drive corporativo "
+        f"com restrição de domínio? Contas corporativas costumam bloquear "
+        f"acesso externo mesmo com o link ativo.\n"
+        f"Os códigos HTTP acima indicam o motivo: 404 = ID errado, "
+        f"403 = sem permissão pública, 200 com HTML = página de login."
     )
 
 
