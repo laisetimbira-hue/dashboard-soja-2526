@@ -47,9 +47,16 @@ def log(msg):
 
 # ---------------------------------------------------------------- download
 
-def baixar(file_id, nome):
-    """Baixa um arquivo do Drive. Funciona para .xlsx e para Sheets nativo."""
+def baixar(file_id, nome, obrigatorio=True):
+    """Baixa um arquivo do Drive. Funciona para .xlsx e para Sheets nativo.
+
+    Se obrigatorio=False e o ID não estiver configurado, devolve None em vez
+    de abortar — o chamador decide o que fazer.
+    """
     if not file_id:
+        if not obrigatorio:
+            log(f"  {nome}: ID não configurado — etapa será pulada")
+            return None
         raise SystemExit(f"ERRO: ID do arquivo '{nome}' não configurado nos secrets.")
 
     urls = [
@@ -435,7 +442,10 @@ def atualizar_html(lots, summary, pms_cv, comprados, benef):
     html = substituir_const(html, "SUMMARY", summary)
     html = substituir_const(html, "PMS_CV", pms_cv)
     html = substituir_const(html, "LOTES_COMPRADOS", comprados)
-    html = substituir_const(html, "BENEF", benef)
+    if benef is None:
+        log("  BENEF: preservado (planilha não informada)")
+    else:
+        html = substituir_const(html, "BENEF", benef)
 
     # data no header e no rodapé
     html, _ = re.subn(
@@ -493,7 +503,7 @@ def atualizar_html(lots, summary, pms_cv, comprados, benef):
 def main():
     log("Baixando planilhas do Drive...")
     buf_analises = baixar(ID_ANALISES, "ANALISES")
-    buf_benef    = baixar(ID_BENEF, "BENEFICIADOS")
+    buf_benef    = baixar(ID_BENEF, "BENEFICIADOS", obrigatorio=False)
 
     log("\nProcessando ANALISES...")
     lots = parse_analises(buf_analises)
@@ -503,9 +513,13 @@ def main():
     comprados = parse_comprados(buf_analises)
     log(f"  {len(lots)} lotes · {len(comprados)} comprados")
 
-    log("\nProcessando BENEFICIADOS...")
-    benef = parse_benef(buf_benef)
-    log(f"  {len(benef)} entradas · {sum(b['bags_total'] for b in benef):,} bags")
+    if buf_benef is None:
+        benef = None
+        log("\nBENEFICIADOS: pulado — o BENEF atual do index.html será preservado")
+    else:
+        log("\nProcessando BENEFICIADOS...")
+        benef = parse_benef(buf_benef)
+        log(f"  {len(benef)} entradas · {sum(b['bags_total'] for b in benef):,} bags")
 
     log(f"\nInjetando no {HTML_PATH}...")
     total, aprov, cont = atualizar_html(lots, summary, pms_cv, comprados, benef)
