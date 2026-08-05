@@ -2086,7 +2086,7 @@ function filterCultivares() {
 
   document.getElementById('cv-count').textContent = filtered.length;
   let prevCiclo = null;
-  document.getElementById('cultivar-grid').innerHTML = filtered.map(c => {
+  document.getElementById('cultivar-grid').innerHTML = filtered.map((c, i) => {
     const meta   = CV_META[c.cultivar] || {};
     const cicloC = meta.ciclo || '';
     const gmC    = meta.gm || '';
