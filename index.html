@@ -1381,16 +1381,18 @@
   <!-- LOTES COMPRADOS PAGE -->
   <div class="page" id="page-comprados">
     <div id="comprados-kpis" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;"></div>
-    <div class="filter-bar">
-      <button id="btn-export-comprados" onclick="exportarPrintComprados()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;white-space:nowrap;">📸 Print</button>
-      <input type="text" id="comprado-search" placeholder="🔍 Buscar lote, cultivar ou empresa..." oninput="filterLotesComprados()">
-      <select id="comprado-cultivar" onchange="filterLotesComprados()">
-        <option value="">Todos os Cultivares</option>
-      </select>
-      <select id="comprado-empresa" onchange="filterLotesComprados()">
-        <option value="">Todas as Empresas</option>
-      </select>
-      <div class="count-badge">Exibindo <span id="comprado-count">—</span> lotes</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+      <div class="filter-bar" style="flex:1;min-width:0;">
+        <input type="text" id="comprado-search" placeholder="🔍 Buscar lote, cultivar ou empresa..." oninput="filterLotesComprados()">
+        <select id="comprado-cultivar" onchange="filterLotesComprados()">
+          <option value="">Todos os Cultivares</option>
+        </select>
+        <select id="comprado-empresa" onchange="filterLotesComprados()">
+          <option value="">Todas as Empresas</option>
+        </select>
+        <div class="count-badge">Exibindo <span id="comprado-count">—</span> lotes</div>
+      </div>
+      <button id="btn-export-comprados" onclick="exportarPrintComprados()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;">📸 Print</button>
     </div>
     <div class="panel">
       <div class="lotes-table-wrap" id="comprados-wrap">
