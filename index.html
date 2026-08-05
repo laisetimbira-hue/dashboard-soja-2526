@@ -1382,6 +1382,7 @@
   <div class="page" id="page-comprados">
     <div id="comprados-kpis" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;"></div>
     <div class="filter-bar">
+      <button id="btn-export-comprados" onclick="exportarPrintComprados()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;white-space:nowrap;">📸 Print</button>
       <input type="text" id="comprado-search" placeholder="🔍 Buscar lote, cultivar ou empresa..." oninput="filterLotesComprados()">
       <select id="comprado-cultivar" onchange="filterLotesComprados()">
         <option value="">Todos os Cultivares</option>
@@ -3639,6 +3640,88 @@ function doLogout() {
   diagUnlocked = false;
   window.scrollTo(0, 0);
   setTimeout(() => document.getElementById('pw-input').focus(), 100);
+}
+
+
+function exportarPrintComprados() {
+  const btn = document.getElementById('btn-export-comprados');
+  const originalLabel = btn.innerHTML;
+  btn.innerHTML = '⏳ Gerando imagem...';
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+
+  const empresa = document.getElementById('comprado-empresa')?.value || '';
+  const cv      = document.getElementById('comprado-cultivar')?.value || '';
+  const filtros = [
+    empresa ? `Empresa: ${empresa}` : null,
+    cv      ? `Cultivar: ${cv}`     : null,
+  ].filter(Boolean);
+  const filtrosTxt = filtros.length ? filtros.join('  ·  ') : 'Todos os lotes comprados';
+
+  const agora = new Date();
+  const hoje = agora.toLocaleDateString('pt-BR');
+  const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+  const wrap = document.createElement('div');
+  wrap.style.cssText = `
+    position:fixed;top:-99999px;left:-99999px;width:fit-content;font-family:'Barlow',sans-serif;
+    background:#FFFFFF;padding:24px;
+    --bg:#F8FAFC;--bg2:#FFFFFF;--bg3:#F1F5F9;--card:#FFFFFF;
+    --borda:#E2E8F0;--borda2:#CBD5E1;
+    --texto:#0F172A;--texto2:#64748B;--texto3:#94A3B8;
+    --accent:#2563EB;--accent-light:#3B82F6;
+    --excelente:#16A34A;--bom:#2563EB;--regular:#D97706;--critico:#DC2626;
+  `;
+
+  const header = document.createElement('div');
+  header.style.cssText = 'margin-bottom:16px;';
+  header.innerHTML = `
+    <div style="font-size:1.1rem;font-weight:800;color:#0F172A;">🌱 SEED BASE — Lotes Comprados</div>
+    <div style="font-size:0.82rem;color:#475569;margin-top:4px;">${filtrosTxt}</div>
+    <div style="font-size:0.74rem;color:#64748B;margin-top:2px;">${filteredComprados.length} lote${filteredComprados.length!==1?'s':''} · Exportado em ${hoje} às ${hora}</div>
+  `;
+  wrap.appendChild(header);
+
+  const originalTable = document.getElementById('comprado-table');
+  const clone = originalTable.cloneNode(true);
+  clone.style.cssText = 'border-collapse:collapse;background:#FFFFFF;width:auto;';
+  clone.querySelectorAll('th, td').forEach(cell => {
+    cell.style.padding = '6px 10px';
+    cell.style.fontSize = '12px';
+    cell.style.whiteSpace = 'nowrap';
+    cell.style.borderBottom = '1px solid #E2E8F0';
+    cell.style.position = 'static';
+    cell.style.boxShadow = 'none';
+  });
+  clone.querySelectorAll('thead th').forEach(cell => {
+    cell.style.background = '#F1F5F9';
+    cell.style.color = '#475569';
+    cell.style.borderBottom = '2px solid #CBD5E1';
+  });
+  clone.querySelectorAll('tbody td').forEach(cell => {
+    cell.style.background = '#FFFFFF';
+  });
+  wrap.appendChild(clone);
+  document.body.appendChild(wrap);
+
+  document.fonts.ready.then(() => html2canvas(wrap, { backgroundColor: '#FFFFFF', scale: 2 })).then(canvas => {
+    const link = document.createElement('a');
+    const dataSlug = new Date().toLocaleDateString('pt-BR').split('/').join('-');
+    link.download = `lotes_comprados_${cv||'todos'}_${dataSlug}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    document.body.removeChild(wrap);
+    btn.innerHTML = originalLabel;
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  }).catch(err => {
+    console.error('Erro ao exportar print:', err);
+    document.body.removeChild(wrap);
+    btn.innerHTML = originalLabel;
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    alert('Não foi possível gerar a imagem. Tente novamente.');
+  });
 }
 
 buildOverview();
