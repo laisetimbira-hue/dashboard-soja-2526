@@ -1,0 +1,48 @@
+name: Atualizar dashboard
+
+on:
+  schedule:
+    # 09h, 13h e 18h no horário de Brasília (UTC-3)
+    - cron: '0 12,16,21 * * 1-5'
+  workflow_dispatch:        # botão "Run workflow" na aba Actions
+
+permissions:
+  contents: write
+
+concurrency:
+  group: atualizar-dashboard
+  cancel-in-progress: false
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar o repositório
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar dependências
+        run: pip install --quiet pandas openpyxl requests
+
+      - name: Rodar a atualização
+        env:
+          ID_ANALISES: ${{ secrets.ID_ANALISES }}
+          ID_BENEF: ${{ secrets.ID_BENEF }}
+        run: python scripts/atualizar.py
+
+      - name: Publicar as mudanças
+        run: |
+          if git diff --quiet index.html; then
+            echo "Nenhuma mudança nos dados — nada a publicar."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Atualização automática de dados — $(TZ=America/Sao_Paulo date '+%d/%m/%Y %H:%M')"
+          git push
