@@ -30,15 +30,18 @@ jobs:
         run: pip install --quiet pandas openpyxl requests
 
       - name: Rodar a atualização
+        id: rodar
         env:
           ID_ANALISES: ${{ secrets.ID_ANALISES }}
           ID_BENEF: ${{ secrets.ID_BENEF }}
         run: python scripts/atualizar.py
 
       - name: Publicar as mudanças
+        id: publicar
         run: |
           if git diff --quiet index.html; then
             echo "Nenhuma mudança nos dados — nada a publicar."
+            echo "publicou=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git config user.name  "github-actions[bot]"
@@ -46,3 +49,23 @@ jobs:
           git add index.html
           git commit -m "Atualização automática de dados — $(TZ=America/Sao_Paulo date '+%d/%m/%Y %H:%M')"
           git push
+          echo "publicou=true" >> "$GITHUB_OUTPUT"
+
+      # Só notifica quando o dashboard mudou de verdade E há algo relevante a contar
+      # Servidor e porta vêm de secrets — se não existirem, usa o padrão da
+      # hospedagem própria (Roundcube/cPanel: mail.<dominio> na porta 465 SSL).
+      - name: Avisar por e-mail
+        if: steps.publicar.outputs.publicou == 'true' && steps.rodar.outputs.mudou == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.EMAIL_SERVIDOR || 'mail.sementescomvigor.com' }}
+          server_port: ${{ secrets.EMAIL_PORTA || '465' }}
+          secure: ${{ secrets.EMAIL_PORTA != '587' }}
+          username: ${{ secrets.EMAIL_USUARIO }}
+          password: ${{ secrets.EMAIL_SENHA }}
+          from: Gestao de Qualidade <${{ secrets.EMAIL_USUARIO }}>
+          to: ${{ secrets.EMAIL_DESTINO }}
+          subject: ${{ steps.rodar.outputs.assunto }}
+          html_body: file://resumo_email.html
+          convert_markdown: false
+          ignore_cert: true
