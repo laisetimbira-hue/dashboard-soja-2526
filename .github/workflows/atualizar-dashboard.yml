@@ -68,3 +68,80 @@ jobs:
           subject: ${{ steps.rodar.outputs.assunto }}
           html_body: file://resumo_email.html
           convert_markdown: false
+
+      # ---------------------------------------------------------------
+      # Se qualquer etapa acima falhar, avisa por e-mail em vez de morrer
+      # em silêncio. Sem isso, o dashboard congela na versão antiga sem
+      # ninguém perceber.
+      # ---------------------------------------------------------------
+      - name: Montar aviso de falha
+        if: failure()
+        run: |
+          cat > erro_email.html <<'FIM'
+          <!DOCTYPE html>
+          <html><body style="margin:0;padding:24px;background:#F1F5F9;font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;">
+          <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #E2E8F0;">
+
+            <div style="background:#7F1D1D;padding:20px 24px;">
+              <div style="color:#fff;font-size:17px;font-weight:800;">Falha na atualizacao do dashboard</div>
+              <div style="color:#FCA5A5;font-size:13px;margin-top:3px;">DATA_HORA</div>
+            </div>
+
+            <div style="padding:24px;">
+
+              <div style="font-size:14px;color:#0F172A;line-height:1.6;">
+                A rotina automatica nao conseguiu concluir. O dashboard continua
+                no ar com os <b>dados da ultima atualizacao bem-sucedida</b> &mdash;
+                nada foi corrompido, apenas nao houve atualizacao agora.
+              </div>
+
+              <div style="margin-top:22px;font-size:13px;font-weight:700;color:#0F172A;">O que costuma causar isso</div>
+              <ul style="margin:8px 0 0;padding-left:18px;font-size:13px;color:#475569;line-height:1.7;">
+                <li>Coluna renomeada ou removida na planilha</li>
+                <li>Aba renomeada (SOJA 25-26, LOTES COMPRADOS, CAMBAI, SIMAO, GIOVELLI, CERENNA)</li>
+                <li>Compartilhamento da planilha alterado no Drive</li>
+                <li>Planilha substituida por um arquivo novo (o ID muda)</li>
+                <li>Instabilidade momentanea do Google ou do GitHub</li>
+              </ul>
+
+              <div style="margin-top:20px;font-size:13px;color:#475569;line-height:1.6;">
+                O log completo diz exatamente onde parou. Se for instabilidade,
+                basta rodar de novo pelo botao <b>Run workflow</b>.
+              </div>
+
+              <div style="margin-top:26px;text-align:center;">
+                <a href="RUN_URL"
+                   style="display:inline-block;background:#DC2626;color:#fff;text-decoration:none;
+                          padding:11px 26px;border-radius:8px;font-size:14px;font-weight:700;">
+                  Ver o log do erro
+                </a>
+              </div>
+
+            </div>
+
+            <div style="padding:14px 24px;background:#F8FAFC;border-top:1px solid #E2E8F0;
+                        font-size:11px;color:#94A3B8;text-align:center;">
+              Mensagem automatica &middot; Gestao de Qualidade
+            </div>
+
+          </div></body></html>
+          FIM
+          sed -i "s|DATA_HORA|$(TZ=America/Sao_Paulo date '+%d/%m/%Y as %H:%M')|" erro_email.html
+          sed -i "s|RUN_URL|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|" erro_email.html
+
+      # Falha vai SO para o administrador (EMAIL_ADMIN), nao para a equipe.
+      # Se EMAIL_ADMIN nao existir, cai no EMAIL_DESTINO para nao perder o aviso.
+      - name: Avisar que falhou
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USUARIO }}
+          password: ${{ secrets.GMAIL_SENHA }}
+          from: Gestao de Qualidade <${{ secrets.GMAIL_USUARIO }}>
+          to: ${{ secrets.EMAIL_ADMIN || secrets.EMAIL_DESTINO }}
+          subject: "[ATENCAO] O dashboard nao foi atualizado"
+          html_body: file://erro_email.html
+          convert_markdown: false
