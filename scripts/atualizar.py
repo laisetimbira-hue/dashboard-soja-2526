@@ -485,9 +485,29 @@ def substituir_const(html, nome, dados):
     return novo
 
 
+def ler_const(html, nome):
+    """Extrai um array JS do HTML e devolve como lista Python."""
+    m = re.search(rf"const {nome} = (\[.*?\]);", html, re.DOTALL)
+    if not m:
+        return []
+    try:
+        return json.loads(m.group(1))
+    except json.JSONDecodeError:
+        return []
+
+
 def atualizar_html(lots, summary, pms_cv, comprados, benef):
     with open(HTML_PATH, encoding="utf-8") as f:
         html = f.read()
+
+    # estado anterior — usado para montar o resumo do e-mail
+    global ESTADO_ANTERIOR
+    ESTADO_ANTERIOR = {
+        "lots": ler_const(html, "LOTS"),
+        "summary": ler_const(html, "SUMMARY"),
+        "comprados": ler_const(html, "LOTES_COMPRADOS"),
+        "benef": ler_const(html, "BENEF"),
+    }
 
     # guarda o SUMMARY atual como SUMMARY_PREV (alimenta o botão "Δ anterior")
     atual = re.search(r"const SUMMARY = (\[.*?\]);", html, re.DOTALL)
@@ -558,6 +578,240 @@ def atualizar_html(lots, summary, pms_cv, comprados, benef):
     return total, aprov, dict(cont)
 
 
+# ---------------------------------------------------------------- resumo
+
+ESTADO_ANTERIOR = {}
+
+ROTULO_RANK = {
+    "A": "Ótimo", "B": "Bom", "C": "Condicional",
+    "BV": "Cond. Vigor", "D": "Ruim", "X": "Pendente",
+}
+COR_RANK = {
+    "A": "#16A34A", "B": "#2563EB", "C": "#D97706",
+    "BV": "#D97706", "D": "#DC2626", "X": "#64748B",
+}
+
+
+def contar_ranks(lista):
+    c = defaultdict(int)
+    for l in lista:
+        c[l.get("ranking")] += 1
+    return c
+
+
+def montar_resumo(lots, summary, comprados, benef):
+    """Compara o estado anterior com o novo e devolve (assunto, corpo_html, mudou)."""
+    ant = ESTADO_ANTERIOR
+    lots_ant = ant.get("lots", [])
+
+    # --- números gerais ---
+    total_novo, total_ant = len(lots), len(lots_ant)
+    ap_novo = sum(1 for l in lots if l["ranking"] in APROVADOS)
+    ap_ant  = sum(1 for l in lots_ant if l.get("ranking") in APROVADOS)
+    pct_novo = round(ap_novo / total_novo * 100, 1) if total_novo else 0
+    pct_ant  = round(ap_ant / total_ant * 100, 1) if total_ant else 0
+
+    c_novo, c_ant = contar_ranks(lots), contar_ranks(lots_ant)
+
+    # --- lotes novos e mudanças de classificação ---
+    por_lote_ant = {l.get("lote"): l for l in lots_ant if l.get("lote")}
+    novos, mudaram = [], []
+    for l in lots:
+        chave = l.get("lote")
+        if not chave:
+            continue
+        anterior = por_lote_ant.get(chave)
+        if anterior is None:
+            novos.append(l)
+        elif anterior.get("ranking") != l["ranking"]:
+            mudaram.append((l, anterior.get("ranking")))
+
+    # --- comprados e beneficiamento ---
+    comp_ant = ant.get("comprados", [])
+    bags_comp_novo = sum(c.get("bags") or 0 for c in comprados)
+    bags_comp_ant  = sum(c.get("bags") or 0 for c in comp_ant)
+
+    ben_ant = ant.get("benef", [])
+    bags_ben_novo = sum(b.get("bags_total") or 0 for b in benef) if benef is not None else None
+    bags_ben_ant  = sum(b.get("bags_total") or 0 for b in ben_ant)
+
+    mudou = bool(
+        novos or mudaram
+        or total_novo != total_ant
+        or len(comprados) != len(comp_ant)
+        or bags_comp_novo != bags_comp_ant
+        or (bags_ben_novo is not None and bags_ben_novo != bags_ben_ant)
+    )
+
+    # ---------------- montagem do HTML ----------------
+    def seta(d, bom_subir=True):
+        if d == 0:
+            return '<span style="color:#94A3B8;">–</span>'
+        cor = ("#16A34A" if d > 0 else "#DC2626") if bom_subir else ("#DC2626" if d > 0 else "#16A34A")
+        return f'<span style="color:{cor};font-weight:700;">{"+" if d > 0 else ""}{d}</span>'
+
+    d_pct = round(pct_novo - pct_ant, 1)
+    cor_pct = "#16A34A" if d_pct > 0 else ("#DC2626" if d_pct < 0 else "#64748B")
+    txt_pct = f'{"+" if d_pct > 0 else ""}{d_pct} pp' if d_pct else "sem variação"
+
+    linhas_rank = ""
+    for r in ["A", "B", "BV", "C", "D", "X"]:
+        n, a = c_novo.get(r, 0), c_ant.get(r, 0)
+        if n == 0 and a == 0:
+            continue
+        bom = r in APROVADOS
+        linhas_rank += (
+            f'<tr>'
+            f'<td style="padding:7px 10px;border-bottom:1px solid #E2E8F0;">'
+            f'<b style="color:{COR_RANK[r]};">{r}</b> '
+            f'<span style="color:#64748B;font-size:12px;">{ROTULO_RANK[r]}</span></td>'
+            f'<td style="padding:7px 10px;border-bottom:1px solid #E2E8F0;text-align:right;color:#64748B;">{a}</td>'
+            f'<td style="padding:7px 10px;border-bottom:1px solid #E2E8F0;text-align:right;font-weight:700;">{n}</td>'
+            f'<td style="padding:7px 10px;border-bottom:1px solid #E2E8F0;text-align:right;">{seta(n - a, bom)}</td>'
+            f'</tr>'
+        )
+
+    blocos = ""
+
+    if novos:
+        porcv = defaultdict(int)
+        for l in novos:
+            porcv[l.get("cultivar") or "?"] += 1
+        itens = " · ".join(f"{cv} ({q})" for cv, q in sorted(porcv.items(), key=lambda x: -x[1]))
+        blocos += (
+            f'<div style="margin-top:22px;">'
+            f'<div style="font-size:13px;font-weight:700;color:#0F172A;margin-bottom:6px;">'
+            f'{len(novos)} lote{"s" if len(novos) != 1 else ""} novo{"s" if len(novos) != 1 else ""}</div>'
+            f'<div style="font-size:13px;color:#475569;line-height:1.6;">{itens}</div>'
+            f'</div>'
+        )
+
+    if mudaram:
+        linhas = ""
+        for l, antes in mudaram[:20]:
+            linhas += (
+                f'<tr>'
+                f'<td style="padding:5px 10px 5px 0;font-family:monospace;font-size:12px;">{l.get("lote")}</td>'
+                f'<td style="padding:5px 10px 5px 0;font-size:12px;color:#475569;">{l.get("cultivar") or ""}</td>'
+                f'<td style="padding:5px 0;font-size:12px;">'
+                f'<span style="color:{COR_RANK.get(antes, "#64748B")};">{antes or "—"}</span>'
+                f'<span style="color:#94A3B8;"> &rarr; </span>'
+                f'<b style="color:{COR_RANK.get(l["ranking"], "#64748B")};">{l["ranking"]}</b>'
+                f'</td></tr>'
+            )
+        resto = (
+            f'<div style="font-size:12px;color:#94A3B8;margin-top:6px;">'
+            f'e mais {len(mudaram) - 20} lote(s)</div>'
+        ) if len(mudaram) > 20 else ""
+        blocos += (
+            f'<div style="margin-top:22px;">'
+            f'<div style="font-size:13px;font-weight:700;color:#0F172A;margin-bottom:6px;">'
+            f'{len(mudaram)} lote{"s" if len(mudaram) != 1 else ""} mudou de classificação</div>'
+            f'<table style="border-collapse:collapse;">{linhas}</table>{resto}'
+            f'</div>'
+        )
+
+    extras = ""
+    if len(comprados) != len(comp_ant) or bags_comp_novo != bags_comp_ant:
+        extras += (
+            f'<li style="margin-bottom:4px;">Lotes comprados: <b>{len(comprados)}</b> '
+            f'({seta(len(comprados) - len(comp_ant))}) · '
+            f'<b>{bags_comp_novo:,}</b> bags ({seta(bags_comp_novo - bags_comp_ant)})</li>'
+        ).replace(",", ".")
+    if bags_ben_novo is not None and bags_ben_novo != bags_ben_ant:
+        extras += (
+            f'<li style="margin-bottom:4px;">Beneficiamento: <b>{bags_ben_novo:,}</b> bags '
+            f'({seta(bags_ben_novo - bags_ben_ant)})</li>'
+        ).replace(",", ".")
+    if extras:
+        blocos += (
+            f'<div style="margin-top:22px;">'
+            f'<div style="font-size:13px;font-weight:700;color:#0F172A;margin-bottom:6px;">Outras abas</div>'
+            f'<ul style="margin:0;padding-left:18px;font-size:13px;color:#475569;">{extras}</ul>'
+            f'</div>'
+        )
+
+    if not blocos:
+        blocos = (
+            '<div style="margin-top:22px;font-size:13px;color:#64748B;">'
+            'Os totais permanecem iguais — apenas valores internos de análise foram revisados.'
+            '</div>'
+        )
+
+    corpo = f"""<!DOCTYPE html>
+<html><body style="margin:0;padding:24px;background:#F1F5F9;font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;">
+<div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #E2E8F0;">
+
+  <div style="background:#0F172A;padding:20px 24px;">
+    <div style="color:#fff;font-size:17px;font-weight:800;">Gestão de Qualidade — Sementes com Vigor</div>
+    <div style="color:#94A3B8;font-size:13px;margin-top:3px;">Dashboard atualizado em {HOJE}</div>
+  </div>
+
+  <div style="padding:24px;">
+
+    <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+      <tr>
+        <td style="padding:12px;background:#F8FAFC;border-radius:8px;width:50%;">
+          <div style="font-size:11px;color:#64748B;text-transform:uppercase;letter-spacing:.5px;">Taxa de aprovação</div>
+          <div style="font-size:26px;font-weight:800;color:#0F172A;margin-top:2px;">{pct_novo}%</div>
+          <div style="font-size:12px;color:{cor_pct};margin-top:2px;">{txt_pct}</div>
+        </td>
+        <td style="width:10px;"></td>
+        <td style="padding:12px;background:#F8FAFC;border-radius:8px;width:50%;">
+          <div style="font-size:11px;color:#64748B;text-transform:uppercase;letter-spacing:.5px;">Lotes analisados</div>
+          <div style="font-size:26px;font-weight:800;color:#0F172A;margin-top:2px;">{total_novo}</div>
+          <div style="font-size:12px;color:#64748B;margin-top:2px;">{ap_novo} aprovados</div>
+        </td>
+      </tr>
+    </table>
+
+    <div style="font-size:13px;font-weight:700;color:#0F172A;margin-bottom:8px;">Composição por classificação</div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <tr style="background:#F8FAFC;">
+        <th style="padding:7px 10px;text-align:left;font-size:11px;color:#64748B;font-weight:600;">Classificação</th>
+        <th style="padding:7px 10px;text-align:right;font-size:11px;color:#64748B;font-weight:600;">Antes</th>
+        <th style="padding:7px 10px;text-align:right;font-size:11px;color:#64748B;font-weight:600;">Agora</th>
+        <th style="padding:7px 10px;text-align:right;font-size:11px;color:#64748B;font-weight:600;">Var.</th>
+      </tr>
+      {linhas_rank}
+    </table>
+
+    {blocos}
+
+    <div style="margin-top:26px;text-align:center;">
+      <a href="https://laisetimbira-hue.github.io/dashboard-soja-2526/"
+         style="display:inline-block;background:#2563EB;color:#fff;text-decoration:none;
+                padding:11px 26px;border-radius:8px;font-size:14px;font-weight:700;">
+        Abrir o dashboard
+      </a>
+    </div>
+
+  </div>
+
+  <div style="padding:14px 24px;background:#F8FAFC;border-top:1px solid #E2E8F0;
+              font-size:11px;color:#94A3B8;text-align:center;">
+    Mensagem automática · gerada a partir da planilha no Google Drive
+  </div>
+
+</div></body></html>"""
+
+    sinal = f"{'+' if d_pct > 0 else ''}{d_pct}pp" if d_pct else "estável"
+    assunto = f"Dashboard atualizado — {pct_novo}% aprovação ({sinal}) · {total_novo} lotes · {HOJE}"
+
+    return assunto, corpo, mudou
+
+
+def gravar_resumo(assunto, corpo, mudou):
+    with open("resumo_email.html", "w", encoding="utf-8") as f:
+        f.write(corpo)
+    saida = os.environ.get("GITHUB_OUTPUT")
+    if saida:
+        with open(saida, "a", encoding="utf-8") as f:
+            f.write(f"assunto={assunto}\n")
+            f.write(f"mudou={'true' if mudou else 'false'}\n")
+    log(f"  resumo gerado · mudanças relevantes: {'sim' if mudou else 'não'}")
+
+
 # ---------------------------------------------------------------- main
 
 def main():
@@ -583,6 +837,10 @@ def main():
 
     log(f"\nInjetando no {HTML_PATH}...")
     total, aprov, cont = atualizar_html(lots, summary, pms_cv, comprados, benef)
+
+    log("\nMontando resumo para o e-mail...")
+    assunto, corpo, mudou = montar_resumo(lots, summary, comprados, benef)
+    gravar_resumo(assunto, corpo, mudou)
 
     pct = round(aprov / total * 100, 1) if total else 0
     log(f"\n{'='*46}")
