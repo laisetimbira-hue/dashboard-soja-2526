@@ -52,20 +52,19 @@ jobs:
           echo "publicou=true" >> "$GITHUB_OUTPUT"
 
       # Só notifica quando o dashboard mudou de verdade E há algo relevante a contar
-      # Servidor e porta vêm de secrets — se não existirem, usa o padrão da
-      # hospedagem própria (Roundcube/cPanel: mail.<dominio> na porta 465 SSL).
+      # Gmail como servidor de saída — o destinatário continua sendo o e-mail
+      # da cooperativa. GMAIL_SENHA é uma "senha de app", não a senha normal.
       - name: Avisar por e-mail
         if: steps.publicar.outputs.publicou == 'true' && steps.rodar.outputs.mudou == 'true'
         uses: dawidd6/action-send-mail@v3
         with:
-          server_address: ${{ secrets.EMAIL_SERVIDOR || 'mail.sementescomvigor.com' }}
-          server_port: ${{ secrets.EMAIL_PORTA || '465' }}
-          secure: ${{ secrets.EMAIL_PORTA != '587' }}
-          username: ${{ secrets.EMAIL_USUARIO }}
-          password: ${{ secrets.EMAIL_SENHA }}
-          from: Gestao de Qualidade <${{ secrets.EMAIL_USUARIO }}>
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USUARIO }}
+          password: ${{ secrets.GMAIL_SENHA }}
+          from: Gestao de Qualidade <${{ secrets.GMAIL_USUARIO }}>
           to: ${{ secrets.EMAIL_DESTINO }}
           subject: ${{ steps.rodar.outputs.assunto }}
           html_body: file://resumo_email.html
           convert_markdown: false
-          ignore_cert: true
