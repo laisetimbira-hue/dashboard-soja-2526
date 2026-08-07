@@ -316,9 +316,14 @@ def parse_comprados(buf):
     ws = wb["LOTES COMPRADOS"]
     header = [ws.cell(1, c).value for c in range(1, ws.max_column + 1)]
     col = {h: i + 1 for i, h in enumerate(header) if h}
+    def _norm(s): return str(s).strip().upper()
+    col_norm = {_norm(h): i + 1 for i, h in enumerate(header) if h}
 
     def cell(r, nome):
-        return ws.cell(r, col[nome]).value if nome in col else None
+        idx = col.get(nome)
+        if idx is None:
+            idx = col_norm.get(_norm(nome))
+        return ws.cell(r, idx).value if idx else None
 
     def txt(r, nome):
         v = cell(r, nome)
