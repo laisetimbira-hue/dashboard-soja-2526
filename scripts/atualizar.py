@@ -32,6 +32,9 @@ ID_BENEF    = os.environ.get("ID_BENEF", "").strip()
 # Fuso de Brasília — o GitHub Actions roda em UTC
 HOJE = datetime.now(timezone(timedelta(hours=-3))).strftime("%d/%m/%Y")
 
+# Carimbo com data e hora (Brasília, UTC-3 fixo) — usado apenas no cabeçalho "ATUALIZAÇÃO"
+CARIMBO_HEADER = datetime.now(timezone(timedelta(hours=-3))).strftime("%d/%m/%Y %H:%M")
+
 APROVADOS = {"A", "B", "BV"}
 
 # Nomes usados por terceiros que não batem com o código oficial do CV_META
@@ -535,7 +538,7 @@ def atualizar_html(lots, summary, pms_cv, comprados, benef):
     # data no header e no rodapé
     html, _ = re.subn(
         r'(<div class="val" id="h-data"[^>]*>)[^<]*(</div>)',
-        rf"\g<1>{HOJE}\2", html,
+        rf"\g<1>{CARIMBO_HEADER}\2", html,
     )
     html, _ = re.subn(r"Atualizado em [0-9/]+", f"Atualizado em {HOJE}", html)
 
