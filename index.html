@@ -66,9 +66,17 @@
 html {
     margin: 0;
     padding: 0;
-    background-color: #0A0F1E;
+    background-color: #F8FAFC;
     min-height: 100vh;
     min-height: 100dvh;
+  }
+
+  html:has(body.locked) {
+    background-color: #0A0F1E;
+  }
+
+  html:has(body.dark-mode) {
+    background-color: #0F172A;
   }
 
   body {
@@ -1046,6 +1054,7 @@ html {
     position: fixed;
     width: 100%;
     top: 0;
+    background-color: #0A0F1E;
   }
   body.locked > *:not(#login-screen) {
     visibility: hidden;
