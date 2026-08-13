@@ -1393,6 +1393,7 @@ html {
               <th onclick="sortTable('peso_bag')" class="num col-hide-tablet">Peso Bag</th>
               <th onclick="sortTable('sementes_m')" class="num col-hide-tablet">Sem. (M)</th>
               <th onclick="sortTable('kg')" class="num col-hide-mobile col-hide-tablet">KG</th>
+              <th onclick="sortTable('bags')" class="num">Bags</th>
               <th onclick="sortTable('ranking')">Ranking</th>
               <th style="width:32px;" title="Tetrazólio">TZ</th>
             </tr>
@@ -2543,6 +2544,7 @@ function renderLoteTable() {
       <td class="num col-hide-tablet">${l.peso_bag != null ? l.peso_bag.toLocaleString('pt-BR')+'kg' : '—'}</td>
       <td class="num col-hide-tablet" style="color:${l.sementes_m!=null?(l.sementes_m>=5?'var(--bom)':'var(--texto)'):'var(--texto2)'};">${l.sementes_m != null ? l.sementes_m+'M' : '—'}</td>
       <td class="num col-hide-mobile">${l.kg!=null?l.kg.toLocaleString('pt-BR'):'—'}</td>
+      <td class="num">${l.bags != null ? l.bags.toLocaleString('pt-BR') : '—'}</td>
       <td><span class="rank-badge rank-${l.ranking}">${l.ranking === 'C' ? 'C — Cond.' : l.ranking === 'BV' ? 'BV — Cond. Vigor' : l.ranking === 'D' ? 'D — Ruim' : l.ranking === 'X' ? 'X — Pend.' : l.ranking + ' — ' + l.status}</span></td>
       <td style="padding:6px 8px;text-align:center;">
         <button onclick="toggleTZ('${l.lote}', ${idx})" id="tz-btn-${idx}"
@@ -2558,7 +2560,7 @@ function renderLoteTable() {
       </td>
     </tr>
     <tr id="tz-row-${idx}" style="display:none;background:var(--bg3);">
-      <td colspan="19" style="padding:0;">
+      <td colspan="20" style="padding:0;">
         <div id="tz-body-${idx}" style="padding:14px 16px;"></div>
       </td>
     </tr>
