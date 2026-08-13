@@ -1665,6 +1665,44 @@ const CV_UBS = {"50I52RSF IPRO":"SCV","55I57RSF IPRO":"SCV","55IX56RSF I2X":"SCV
 const RANK_COLOR = {A:'#16A34A',B:'#2563EB',BV:'#D97706',C:'#D97706',D:'#DC2626',X:'#64748B'};
 const RANK_LABEL = {A:'Ótimo',B:'Bom',BV:'Cond. Vigor',C:'Condicional',D:'Ruim',X:'Pendente'};
 
+// ---- impacto em bags aprovados (A/B) causado pelas mudanças de classificação ----
+// Só A e B contam como "aprovado" aqui — BV/C/D/X não contam, mesmo que outras
+// partes do dashboard tratem BV como aprovado para outros fins.
+const APROVADOS_BAGS = new Set(['A', 'B']);
+
+function calcularImpactoBags() {
+  const chave = (lote, cultivar) => lote + '␟' + cultivar;
+  const lotsPorChave = new Map();
+  LOTS.forEach(l => { if (l.lote) lotsPorChave.set(chave(l.lote, l.cultivar), l); });
+
+  const mudancas = [...MUDANCAS_RECENTES.subiram, ...MUDANCAS_RECENTES.cairam];
+  const porCultivar = new Map(); // cultivar -> { saldo, itens: [{lote,bags,de,para,delta}] }
+  let saldoGeral = 0;
+
+  mudancas.forEach(c => {
+    const eraAprovado = APROVADOS_BAGS.has(c.de);
+    const ficouAprovado = APROVADOS_BAGS.has(c.para);
+    if (eraAprovado === ficouAprovado) return; // sem impacto: dentro do mesmo grupo (A<->B) ou fora dos aprovados
+
+    const lot = lotsPorChave.get(chave(c.lote, c.cultivar));
+    if (!lot) {
+      console.warn(`[Impacto em bags] Lote não encontrado em LOTS: ${c.lote} / ${c.cultivar}`);
+      return;
+    }
+    const bags = lot.bags || 0;
+    const delta = ficouAprovado ? bags : -bags;
+
+    if (!porCultivar.has(c.cultivar)) porCultivar.set(c.cultivar, {saldo: 0, itens: []});
+    const grupo = porCultivar.get(c.cultivar);
+    grupo.saldo += delta;
+    grupo.itens.push({lote: c.lote, bags, de: c.de, para: c.para, delta});
+
+    saldoGeral += delta;
+  });
+
+  return {porCultivar, saldoGeral};
+}
+
 function toggleAprovacaoPanel() {
   const panel = document.getElementById('aprovacao-panel');
   if (panel.style.display === 'none') {
@@ -1680,22 +1718,116 @@ function renderAprovacaoPanel() {
   const atual = hist[hist.length - 1];
   const anterior = hist.length > 1 ? hist[hist.length - 2] : null;
 
-  // ---- mini trend chart (SVG) ----
-  const W = 560, H = 110, pad = 28;
-  const maxPct = 100;
-  const pts = hist.map((h, i) => {
-    const x = pad + (hist.length > 1 ? i * (W - pad * 2) / (hist.length - 1) : 0);
-    const y = H - pad / 2 - (h.pctAprov / maxPct) * (H - pad);
-    return {x, y, h};
-  });
+  // ---- gráfico de evolução da taxa de aprovação (SVG) ----
+  // Área maior e menos poluída: rótulo só em primeiro/último/maior/menor ponto,
+  // poucas datas no eixo X (sempre 1ª e última) e grid horizontal leve no eixo Y.
+  // A fonte dos dados e o cálculo de pctAprov continuam vindo de HISTORICO_APROVACAO,
+  // inalterados — só a forma de desenhar mudou.
+  const W = 680, H = 210, padL = 36, padR = 14, padT = 36, padB = 28;
+  const nPts = hist.length;
+  const valoresPct = hist.map(h => h.pctAprov);
+
+  // escala Y ajustada à faixa real da série (arredondada à dezena), em vez de fixa
+  // em 0–100 — assim a linha usa melhor o espaço vertical quando a série oscila
+  // numa faixa estreita. Sempre com pelo menos 10 pontos percentuais de amplitude.
+  let yMin = Math.max(0, Math.floor(Math.min(...valoresPct) / 10) * 10);
+  let yMax = Math.min(100, Math.ceil(Math.max(...valoresPct) / 10) * 10);
+  if (yMax - yMin < 10) yMax = Math.min(100, yMin + 10);
+  if (yMax - yMin < 10) yMin = Math.max(0, yMax - 10);
+
+  const escalaX = i => nPts > 1 ? padL + i * (W - padL - padR) / (nPts - 1) : (padL + (W - padL - padR) / 2);
+  const escalaY = v => H - padB - ((v - yMin) / (yMax - yMin)) * (H - padT - padB);
+
+  const pts = hist.map((h, i) => ({x: escalaX(i), y: escalaY(h.pctAprov), h, i}));
   const pathD = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
-  const dots = pts.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="var(--accent)"/>
-    <text x="${p.x.toFixed(1)}" y="${(p.y-10).toFixed(1)}" font-size="11" font-weight="700" text-anchor="middle" fill="var(--texto)">${p.h.pctAprov}%</text>
-    <text x="${p.x.toFixed(1)}" y="${H-6}" font-size="9" text-anchor="end" fill="var(--texto2)" transform="rotate(-40,${p.x.toFixed(1)},${H-6})">${p.h.data.slice(0,5)}</text>`).join('');
-  const trendSvg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;height:${H}px;overflow:visible;">
-    <path d="${pathD}" fill="none" stroke="var(--accent)" stroke-width="2"/>
-    ${dots}
+
+  // gridlines horizontais leves + rótulos do eixo Y, em passos "redondos" (10 ou 20 pp)
+  let passoY = 10;
+  while ((yMax - yMin) / passoY > 5) passoY *= 2;
+  let gridY = '';
+  for (let v = yMin; v <= yMax + 0.001; v += passoY) {
+    const y = escalaY(v);
+    gridY += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="var(--borda)" stroke-width="1" opacity="0.6"/>
+    <text x="${(padL - 8).toFixed(1)}" y="${(y + 3).toFixed(1)}" font-size="9" text-anchor="end" fill="var(--texto2)">${Math.round(v)}%</text>`;
+  }
+
+  // eixo X: no máximo poucas datas bem distribuídas, sempre com a primeira e a última;
+  // em telas estreitas, mostra ainda menos rótulos para não sobrepor.
+  const larguraTela = (typeof window !== 'undefined' && window.innerWidth) || 1024;
+  const alvoLabelsX = larguraTela < 480 ? 4 : larguraTela < 768 ? 5 : 7;
+  const idxLabelsX = new Set();
+  if (nPts <= alvoLabelsX) {
+    for (let i = 0; i < nPts; i++) idxLabelsX.add(i);
+  } else {
+    const passos = alvoLabelsX - 1;
+    for (let i = 0; i <= passos; i++) idxLabelsX.add(Math.round(i * (nPts - 1) / passos));
+  }
+  let eixoXHtml = '';
+  [...idxLabelsX].sort((a, b) => a - b).forEach(i => {
+    const p = pts[i];
+    const anchor = i === 0 ? 'start' : i === nPts - 1 ? 'end' : 'middle';
+    eixoXHtml += `<text x="${p.x.toFixed(1)}" y="${H - 6}" font-size="9.5" text-anchor="${anchor}" fill="var(--texto2)">${p.h.data.slice(0, 5)}</text>`;
+  });
+
+  // pontos de destaque: primeiro, último, maior e menor valor — um único rótulo por
+  // ponto mesmo quando dois papéis coincidem (ex.: o último ponto também é o maior).
+  // Prioridade visual: último (valor atual) > maior > menor > primeiro.
+  const idxMax = valoresPct.indexOf(Math.max(...valoresPct));
+  const idxMin = valoresPct.indexOf(Math.min(...valoresPct));
+  const prioridade = ['ultimo', 'maximo', 'minimo', 'primeiro'];
+  const papelPorIndice = new Map();
+  [['primeiro', 0], ['minimo', idxMin], ['maximo', idxMax], ['ultimo', nPts - 1]].forEach(([papel, idx]) => {
+    const atual2 = papelPorIndice.get(idx);
+    if (!atual2 || prioridade.indexOf(papel) < prioridade.indexOf(atual2)) papelPorIndice.set(idx, papel);
+  });
+  const estiloPapel = {
+    ultimo:   {raio: 5.5, cor: 'var(--accent)',    corLabel: 'var(--accent)',    peso: '800'},
+    maximo:   {raio: 4,   cor: 'var(--excelente)', corLabel: 'var(--excelente)', peso: '700'},
+    minimo:   {raio: 4,   cor: 'var(--critico)',   corLabel: 'var(--critico)',   peso: '700'},
+    primeiro: {raio: 3,   cor: 'var(--accent)',    corLabel: 'var(--texto2)',    peso: '600'},
+  };
+  const fmtPct = v => v.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1}) + '%';
+
+  // anti-colisão entre rótulos: quando dois pontos destacados caem muito perto um do
+  // outro no eixo X (comum quando o maior/menor valor é vizinho do último ponto), o
+  // rótulo mais à direita "empilha" um degrau acima do anterior em vez de sobrepor.
+  const LIMIAR_COLISAO_X = 42;
+  const nivelPorIndice = new Map();
+  let xRotuloAnterior = null;
+  [...papelPorIndice.keys()].sort((a, b) => a - b).forEach(i => {
+    const x = pts[i].x;
+    const nivel = (xRotuloAnterior !== null && (x - xRotuloAnterior) < LIMIAR_COLISAO_X) ? 1 : 0;
+    nivelPorIndice.set(i, nivel);
+    xRotuloAnterior = x;
+  });
+
+  let pontosHtml = '';
+  pts.forEach(p => {
+    const papel = papelPorIndice.get(p.i);
+    if (papel) {
+      const e = estiloPapel[papel];
+      const anchor = p.i === 0 ? 'start' : p.i === nPts - 1 ? 'end' : 'middle';
+      const yLabel = Math.max(9, p.y - 11 - nivelPorIndice.get(p.i) * 13);
+      pontosHtml += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${e.raio}" fill="${e.cor}" stroke="var(--bg)" stroke-width="${papel === 'ultimo' ? 2 : 1.5}"/>
+      <text x="${p.x.toFixed(1)}" y="${yLabel.toFixed(1)}" font-size="11" font-weight="${e.peso}" text-anchor="${anchor}" fill="${e.corLabel}">${fmtPct(p.h.pctAprov)}</text>`;
+    } else {
+      pontosHtml += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.2" fill="var(--accent)" opacity="0.45"/>`;
+    }
+  });
+
+  const trendSvg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;overflow:visible;">
+    ${gridY}
+    <path d="${pathD}" fill="none" stroke="var(--accent)" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
+    ${pontosHtml}
+    ${eixoXHtml}
   </svg>`;
+
+  // resumo rápido acima do gráfico: atual / máximo / mínimo da série
+  const resumoEvolucaoHtml = `<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:baseline;margin-bottom:8px;font-size:0.78rem;">
+    <span style="color:var(--texto2);">Atual <b style="color:var(--accent);font-size:0.85rem;">${fmtPct(atual.pctAprov)}</b></span>
+    <span style="color:var(--texto2);">Máx. <b style="color:var(--excelente);font-size:0.85rem;">${fmtPct(valoresPct[idxMax])}</b></span>
+    <span style="color:var(--texto2);">Mín. <b style="color:var(--critico);font-size:0.85rem;">${fmtPct(valoresPct[idxMin])}</b></span>
+  </div>`;
 
   // ---- composition bars (atual, com comparação se houver anterior) ----
   const ranks = ['A','B','BV','C','D','X'];
@@ -1740,15 +1872,63 @@ function renderAprovacaoPanel() {
     </div>`;
   }
 
+  // ---- impacto da atualização em bags aprovados, agrupado por cultivar ----
+  const fmtSinalBags = n => (n > 0 ? '+' : n < 0 ? '-' : '') + Math.abs(n).toLocaleString('pt-BR');
+  let impactoBagsHtml;
+  if (!anterior) {
+    impactoBagsHtml = `<div style="font-size:0.8rem;color:var(--texto2);padding:10px 0;">Impacto em bags estará disponível a partir da próxima atualização dos resultados.</div>`;
+  } else {
+    const {porCultivar, saldoGeral} = calcularImpactoBags();
+    if (porCultivar.size === 0) {
+      impactoBagsHtml = `<div style="font-size:0.8rem;color:var(--texto2);padding:10px 0;">Sem alteração no volume de bags aprovados nesta atualização.</div>`;
+    } else {
+      const corSaldoGeral = saldoGeral > 0 ? 'var(--excelente)' : saldoGeral < 0 ? 'var(--critico)' : 'var(--texto2)';
+      const cultivaresOrdenados = [...porCultivar.entries()].sort((a, b) => a[0].localeCompare(b[0], 'pt-BR'));
+
+      const resumoRows = cultivaresOrdenados.map(([cultivar, grupo]) => {
+        const cor = grupo.saldo > 0 ? 'var(--excelente)' : grupo.saldo < 0 ? 'var(--critico)' : 'var(--texto2)';
+        const seta = grupo.saldo > 0 ? '▲' : grupo.saldo < 0 ? '▼' : '–';
+        return `<div style="display:flex;justify-content:space-between;font-size:0.78rem;padding:3px 0;border-bottom:1px solid var(--borda);">
+        <span>${cultivar}</span>
+        <span style="color:${cor};font-weight:700;">${seta} ${fmtSinalBags(grupo.saldo)} bags</span>
+      </div>`;
+      }).join('');
+
+      const detalheBlocos = cultivaresOrdenados.map(([cultivar, grupo]) => {
+        const cor = grupo.saldo > 0 ? 'var(--excelente)' : grupo.saldo < 0 ? 'var(--critico)' : 'var(--texto2)';
+        const itens = grupo.itens.map(it => {
+          const corItem = it.delta > 0 ? 'var(--excelente)' : 'var(--critico)';
+          return `<div style="font-size:0.74rem;color:var(--texto2);padding:2px 0 2px 14px;">
+          <span style="font-family:monospace;">${it.lote}</span> · ${it.bags.toLocaleString('pt-BR')} bags · <span style="color:${corItem};font-weight:700;">${it.de} → ${it.para}</span>
+        </div>`;
+        }).join('');
+        return `<div style="margin-top:8px;">
+        <div style="font-size:0.76rem;font-weight:700;color:${cor};">${cultivar} — ${fmtSinalBags(grupo.saldo)} bags</div>
+        ${itens}
+      </div>`;
+      }).join('');
+
+      impactoBagsHtml = `
+      <div style="font-weight:700;font-size:0.82rem;margin-bottom:10px;color:${corSaldoGeral};">Saldo da atualização: ${fmtSinalBags(saldoGeral)} bags aprovados</div>
+      <div>${resumoRows}</div>
+      <div style="border-top:1px dashed var(--borda);margin-top:10px;padding-top:4px;">${detalheBlocos}</div>
+    `;
+    }
+  }
+
   document.getElementById('aprovacao-panel').innerHTML = `
     <div style="font-weight:800;font-size:0.95rem;margin-bottom:10px;">📈 Evolução da Taxa de Aprovação</div>
     <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;">
-      <div>${trendSvg}</div>
+      <div style="flex:1 1 420px;min-width:280px;">${resumoEvolucaoHtml}${trendSvg}</div>
       <div style="flex:1;min-width:260px;">${compRows}</div>
     </div>
     <div style="border-top:1px solid var(--borda);margin-top:14px;padding-top:12px;">
       <div style="font-weight:800;font-size:0.9rem;margin-bottom:4px;">🔄 O que mudou desde ${anterior ? anterior.data : 'a última atualização'}</div>
       ${mudancasHtml}
+    </div>
+    <div style="border-top:1px solid var(--borda);margin-top:14px;padding-top:12px;">
+      <div style="font-weight:800;font-size:0.9rem;margin-bottom:4px;">📦 Impacto da atualização em Bags</div>
+      ${impactoBagsHtml}
     </div>
   `;
 }
