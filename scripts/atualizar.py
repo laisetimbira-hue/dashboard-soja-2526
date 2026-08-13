@@ -482,14 +482,21 @@ def js(dados):
 
 
 def substituir_const(html, nome, dados):
+    # a maioria das consts do dashboard é um array ([...]); MUDANCAS_RECENTES
+    # é o único objeto ({...}) atualizado por aqui, então o padrão se adapta
+    # ao tipo do dado em vez de assumir colchetes.
+    abre_fecha = (r"\{", r"\}") if isinstance(dados, dict) else (r"\[", r"\]")
     novo, n = re.subn(
-        rf"const {nome} = \[.*?\];",
+        rf"const {nome} = {abre_fecha[0]}.*?{abre_fecha[1]};",
         f"const {nome} = {js(dados)};",
         html, count=1, flags=re.DOTALL,
     )
     if n == 0:
         raise SystemExit(f"ERRO: não encontrei 'const {nome}' no {HTML_PATH}.")
-    log(f"  {nome}: {len(dados)} itens")
+    if isinstance(dados, dict):
+        log(f"  {nome}: atualizado")
+    else:
+        log(f"  {nome}: {len(dados)} itens")
     return novo
 
 
@@ -504,11 +511,68 @@ def ler_const(html, nome):
         return []
 
 
+# Mesma ordem de classificação já usada em outros dois lugares do projeto
+# (a tabela de composição do e-mail de notificação, mais abaixo neste arquivo,
+# e o array `ranks` usado pelo dashboard em `renderAprovacaoPanel`): do melhor
+# para o pior. Não existe hoje uma constante central para isso — esta lista
+# deriva exatamente da ordem já adotada nesses dois pontos, para não inventar
+# um critério novo.
+RANKING_ORDEM = ["A", "B", "BV", "C", "D", "X"]
+
+
+def detectar_mudancas_ranking(lots_novos, lots_antigos):
+    """Compara o ranking de cada lote entre o estado publicado antes desta
+    execução (lots_antigos, capturado do index.html ANTES de ser sobrescrito)
+    e o estado recém-calculado agora (lots_novos).
+
+    Associa os registros por (lote, cultivar) — nunca por posição no array,
+    já que a ordem pode mudar entre atualizações. Só entra no resultado
+    quando o ranking realmente muda; lotes novos (sem registro anterior) e
+    lotes que somem do dataset não contam como mudança de classificação.
+    """
+    posicao = {r: i for i, r in enumerate(RANKING_ORDEM)}
+    ranking_anterior_por_chave = {
+        (l.get("lote"), l.get("cultivar")): l.get("ranking")
+        for l in lots_antigos if l.get("lote")
+    }
+
+    subiram, cairam = [], []
+    for l in lots_novos:
+        lote = l.get("lote")
+        if not lote:
+            continue
+        chave = (lote, l.get("cultivar"))
+        rank_anterior = ranking_anterior_por_chave.get(chave)
+        rank_atual = l.get("ranking")
+
+        if rank_anterior is None:
+            continue  # lote novo — sem estado anterior, não é mudança de ranking
+        if rank_anterior == rank_atual:
+            continue  # classificação final igual, mesmo que germ/vigor oficiais tenham mudado
+        if rank_anterior not in posicao or rank_atual not in posicao:
+            continue  # ranking fora do vocabulário conhecido — ignora com segurança
+
+        item = {"lote": lote, "cultivar": l.get("cultivar"), "de": rank_anterior, "para": rank_atual}
+        if posicao[rank_atual] < posicao[rank_anterior]:
+            subiram.append(item)
+        else:
+            cairam.append(item)
+
+    return {
+        "subiram": subiram,
+        "cairam": cairam,
+        "total_subiram": len(subiram),
+        "total_cairam": len(cairam),
+    }
+
+
 def atualizar_html(lots, summary, pms_cv, comprados, benef):
     with open(HTML_PATH, encoding="utf-8") as f:
         html = f.read()
 
-    # estado anterior — usado para montar o resumo do e-mail
+    # estado anterior — usado para montar o resumo do e-mail e para detectar
+    # mudanças de ranking (MUDANCAS_RECENTES), sempre lido ANTES de qualquer
+    # substituição neste html: é o que estava publicado antes desta execução.
     global ESTADO_ANTERIOR
     ESTADO_ANTERIOR = {
         "lots": ler_const(html, "LOTS"),
@@ -516,6 +580,15 @@ def atualizar_html(lots, summary, pms_cv, comprados, benef):
         "comprados": ler_const(html, "LOTES_COMPRADOS"),
         "benef": ler_const(html, "BENEF"),
     }
+
+    # comparação (estado publicado) x (estado recém-calculado nesta execução) —
+    # feita agora, antes de LOTS ser sobrescrito, para não comparar dados já
+    # atualizados contra eles mesmos.
+    mudancas_ranking = detectar_mudancas_ranking(lots, ESTADO_ANTERIOR["lots"])
+    log(
+        f"  mudanças de ranking: {mudancas_ranking['total_subiram']} subiram · "
+        f"{mudancas_ranking['total_cairam']} caíram"
+    )
 
     # guarda o SUMMARY atual como SUMMARY_PREV (alimenta o botão "Δ anterior")
     atual = re.search(r"const SUMMARY = (\[.*?\]);", html, re.DOTALL)
@@ -527,6 +600,7 @@ def atualizar_html(lots, summary, pms_cv, comprados, benef):
         )
 
     html = substituir_const(html, "LOTS", lots)
+    html = substituir_const(html, "MUDANCAS_RECENTES", mudancas_ranking)
     html = substituir_const(html, "SUMMARY", summary)
     html = substituir_const(html, "PMS_CV", pms_cv)
     html = substituir_const(html, "LOTES_COMPRADOS", comprados)
