@@ -2544,7 +2544,7 @@ function exportarPrintCultivares() {
   const header = document.createElement('div');
   header.style.cssText = 'margin-bottom:16px;';
   header.innerHTML = `
-    <div style="font-size:1.1rem;font-weight:800;color:#0F172A;">🌱 SEED BASE — Por Cultivar</div>
+    <div style="font-size:1.1rem;font-weight:800;color:#0F172A;">🌱 SEED MAX — Por Cultivar</div>
     <div style="font-size:0.82rem;color:#475569;margin-top:4px;">${filtrosTxt}</div>
     <div style="font-size:0.74rem;color:#64748B;margin-top:2px;">${count} cultivare${count!=='1'?'s':''} · Exportado em ${hoje} às ${hora}</div>
   `;
@@ -2626,7 +2626,7 @@ function exportarPrintLotes() {
   const header = document.createElement('div');
   header.style.cssText = 'margin-bottom:16px;';
   header.innerHTML = `
-    <div style="font-size:1.1rem;font-weight:800;color:#0F172A;">🌱 SEED BASE — Lotes Detalhados</div>
+    <div style="font-size:1.1rem;font-weight:800;color:#0F172A;">🌱 SEED MAX — Lotes Detalhados</div>
     <div style="font-size:0.82rem;color:#475569;margin-top:4px;">${filtrosTxt}</div>
     <div style="font-size:0.74rem;color:#64748B;margin-top:2px;">${filteredLots.length} lote${filteredLots.length!==1?'s':''} · Exportado em ${hoje} às ${hora}</div>
   `;
@@ -3885,7 +3885,7 @@ function exportarPrintComprados() {
   const header = document.createElement('div');
   header.style.cssText = 'margin-bottom:16px;';
   header.innerHTML = `
-    <div style="font-size:1.1rem;font-weight:800;color:#0F172A;">🌱 SEED BASE — Lotes Comprados</div>
+    <div style="font-size:1.1rem;font-weight:800;color:#0F172A;">🌱 SEED MAX — Lotes Comprados</div>
     <div style="font-size:0.82rem;color:#475569;margin-top:4px;">${filtrosTxt}</div>
     <div style="font-size:0.74rem;color:#64748B;margin-top:2px;">${filteredComprados.length} lote${filteredComprados.length!==1?'s':''} · Exportado em ${hoje} às ${hora}</div>
   `;
