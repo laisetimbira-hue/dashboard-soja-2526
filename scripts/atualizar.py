@@ -230,6 +230,13 @@ def parse_analises(buf):
     df = pd.read_excel(buf, sheet_name="SOJA 25-26")
     df = df[df["LOTE"].notna()].reset_index(drop=True)
 
+    # Coluna de hipoclorito (DM %) — resolvida por busca aproximada no
+    # cabeçalho para tolerar pequenas variações de espaço/caixa no nome
+    # exato da planilha, em vez de travar o pipeline com um KeyError.
+    col_hipoclorito = next(
+        (c for c in df.columns if "HIPOCLORITO" in str(c).strip().upper()), None
+    )
+
     lots = []
     for _, row in df.iterrows():
         germ     = r1(nz(row["GER. ROLO DE PAPEL %"]))
@@ -241,6 +248,7 @@ def parse_analises(buf):
 
         kg_raw = nz(row["QUANT.    KG"])
         umid   = nz(row["UMIDADE %"])
+        hipoclorito = r1(nz(row[col_hipoclorito])) if col_hipoclorito else None
 
         lots.append({
             "cultivar": str(nz(row["CULTIVAR"])).strip() if nz(row["CULTIVAR"]) else None,
@@ -249,6 +257,7 @@ def parse_analises(buf):
             "categoria": nz(row["CATEGORIA "]),
             "ubs": nz(row["UBS"]),
             "umidade": round(float(umid), 2) if umid is not None else None,
+            "hipoclorito": hipoclorito,
             "tz_viab": r1(nz(row["TZ VIABILDIADE (1-5) "])),
             "tz_vigor": r1(nz(row["TZ VIGOR (1-3)"])),
             "rank_tz": tz_rank,
