@@ -2632,6 +2632,23 @@ function exportarPrintLotes() {
   `;
   wrap.appendChild(header);
 
+  // Cartão de resumo (PMS médio, total de bags) — esta aba não tem esse resumo
+  // na tela, então é montado aqui só para o print, no mesmo estilo do de Lotes Comprados.
+  const totalBagsLotes = filteredLots.reduce((s, l) => s + (l.bags || 0), 0);
+  const lotsP1 = filteredLots.filter(l => l.peneira === 'P1' && l.pms_etq != null);
+  const lotsP2 = filteredLots.filter(l => l.peneira === 'P2' && l.pms_etq != null);
+  const pmsMedP1 = lotsP1.length ? (lotsP1.reduce((s, l) => s + l.pms_etq, 0) / lotsP1.length).toFixed(1) : null;
+  const pmsMedP2 = lotsP2.length ? (lotsP2.reduce((s, l) => s + l.pms_etq, 0) / lotsP2.length).toFixed(1) : null;
+  const kpis = document.createElement('div');
+  kpis.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;';
+  kpis.innerHTML = `
+    <div class="kpi"><div class="label">Lotes</div><div class="value" style="font-size:1.6rem;">${filteredLots.length}</div></div>
+    <div class="kpi"><div class="label">Total de Bags</div><div class="value" style="font-size:1.6rem;">${totalBagsLotes.toLocaleString('pt-BR')}</div></div>
+    <div class="kpi"><div class="label">PMS Médio P1</div><div class="value" style="font-size:1.6rem;">${pmsMedP1 != null ? pmsMedP1 + 'g' : '—'}</div><div class="sub">${lotsP1.length} lotes P1</div></div>
+    <div class="kpi"><div class="label">PMS Médio P2</div><div class="value" style="font-size:1.6rem;">${pmsMedP2 != null ? pmsMedP2 + 'g' : '—'}</div><div class="sub">${lotsP2.length} lotes P2</div></div>
+  `;
+  wrap.appendChild(kpis);
+
   // Clone the real table so visual styling matches what's on screen
   const originalTable = document.getElementById('lote-table');
   const clone = originalTable.cloneNode(true);
@@ -3896,6 +3913,10 @@ function exportarPrintComprados() {
     <div style="font-size:0.74rem;color:#64748B;margin-top:2px;">${filteredComprados.length} lote${filteredComprados.length!==1?'s':''} · Exportado em ${hoje} às ${hora}</div>
   `;
   wrap.appendChild(header);
+
+  // Leva pro print o mesmo cartão de resumo (PMS médio, total de bags, etc.) que já aparece na tela
+  const kpisClone = document.getElementById('comprados-kpis').cloneNode(true);
+  wrap.appendChild(kpisClone);
 
   const originalTable = document.getElementById('comprado-table');
   const clone = originalTable.cloneNode(true);
