@@ -323,6 +323,164 @@ def montar_summary(lots):
     return summary, pms_cv
 
 
+# ---------------------------------------------------------------- DIAGNÓSTICO DA SAFRA
+#
+# Gera o texto narrativo da aba "Diagnóstico da Safra" (DIAG_DATA) a partir dos
+# dados reais desta execução, em vez de deixá-lo estático. Antes, esse texto
+# era escrito uma vez à mão e nunca mais tocado pela automação — foi encontrado
+# citando "379 lotes... 42.7% de aprovação" numa safra que já ia em 708 lotes e
+# 66%, ou seja, desatualizado há semanas. As faixas de status (crítico/regular/
+# bom/excelente) e os textos-modelo abaixo foram reconstruídos a partir do
+# conteúdo antigo do DIAG_DATA; ajuste aqui se o critério de negócio for outro.
+
+def _status_cultivar(pct):
+    if pct >= 99.95:
+        return (
+            "excelente",
+            "Melhor desempenho da safra — todos os lotes aprovados.",
+            "Cultivar recomendado para comercialização sem restrições.",
+        )
+    if pct >= 80:
+        return (
+            "bom",
+            "Bom desempenho geral.",
+            "Comercialização possível com verificação individual dos lotes condicionais e reprovados.",
+        )
+    if pct >= 50:
+        return (
+            "regular",
+            "Desempenho intermediário, requer atenção.",
+            "Avaliar individualmente cada lote antes da comercialização.",
+        )
+    return (
+        "critico",
+        "Desempenho crítico — maioria dos lotes reprovada.",
+        "Uso comercial restrito — verificar lotes individualmente e avaliar destino dos reprovados.",
+    )
+
+
+def _diagnostico_cultivar(row, lots_cv):
+    total = row["lotes"]
+    aprov = row["rank_A"] + row["rank_B"] + row["rank_BV"]
+    cond, reprov, pend = row["rank_C"], row["rank_D"], row["rank_X"]
+    pct = round(aprov / total * 100, 1) if total else 0.0
+
+    partes = [f"{total} lotes analisados, totalizando {round(row['total_kg'] / 1000)}t."]
+
+    detalhes = [f"{aprov} aprovados"]
+    if cond:
+        detalhes.append(f"{cond} condicionais")
+    if reprov:
+        detalhes.append(f"{reprov} reprovados")
+    if pend:
+        detalhes.append(f"{pend} pendentes")
+    partes.append(f"Taxa de aprovação de {pct}% — {', '.join(detalhes)}.")
+
+    if row["germ_media"] is not None and row["vigor_media"] is not None:
+        partes.append(f"Germinação média de {row['germ_media']}% e vigor médio de {row['vigor_media']}%.")
+
+    if reprov:
+        vigor_fail = sum(
+            1 for l in lots_cv
+            if l["ranking"] == "D" and l.get("vigor_oficial") is not None and l["vigor_oficial"] < 80
+        )
+        germ_fail = sum(
+            1 for l in lots_cv
+            if l["ranking"] == "D" and l.get("germ_oficial") is not None and l["germ_oficial"] < 80
+        )
+        if vigor_fail or germ_fail:
+            if vigor_fail >= germ_fail:
+                partes.append(f"Principal causa de reprovação: vigor abaixo de 80% em {vigor_fail} lotes.")
+            else:
+                partes.append(f"Principal causa de reprovação: germinação abaixo de 80% em {germ_fail} lotes.")
+
+    if pend:
+        bags_pend = sum((l.get("bags") or 0) for l in lots_cv if l["ranking"] == "X")
+        partes.append(f"{pend} lotes com {bags_pend} bags ainda sem análise completa.")
+
+    return " ".join(partes), pct, aprov, cond, reprov, pend, total
+
+
+def montar_diagnostico(lots, summary):
+    df = pd.DataFrame(lots)
+    df["germ_eff"]  = df["germ_oficial"].combine_first(df["germ"])
+    df["vigor_eff"] = df["vigor_oficial"].combine_first(df["vigor"])
+
+    total   = len(df)
+    n_cvs   = df["cultivar"].nunique()
+    aprov   = int(df["ranking"].isin(APROVADOS).sum())
+    cond    = int((df["ranking"] == "C").sum())
+    reprov  = int((df["ranking"] == "D").sum())
+    pend    = int((df["ranking"] == "X").sum())
+    pct     = round(aprov / total * 100, 1) if total else 0.0
+
+    ap = df[df["ranking"].isin(APROVADOS)]
+    germ_g  = r1(ap["germ_eff"].dropna().mean())
+    vigor_g = r1(ap["vigor_eff"].dropna().mean())
+    tz_g    = r1(df["tz_viab"].dropna().mean())
+
+    geral = (
+        f"A safra conta com {total} lotes analisados, distribuídos em {n_cvs} cultivares. "
+        f"A taxa de aprovação está em {pct}%, com {aprov} lotes aprovados (A+B), {cond} condicionais (C), "
+        f"{reprov} reprovados (D) e {pend} aguardando análise (X). "
+        f"A média geral de germinação é {germ_g}%, vigor {vigor_g}% e TZ viabilidade {tz_g}%."
+    )
+
+    d_lots = df[df["ranking"] == "D"]
+    vigor_fail_g = int((d_lots["vigor_oficial"] < 80).sum())
+    germ_fail_g  = int((d_lots["germ_oficial"] < 80).sum())
+    if reprov == 0:
+        problema = "Nenhum lote foi reprovado na safra até o momento."
+    elif vigor_fail_g >= germ_fail_g:
+        problema = (
+            f"O principal critério responsável pelas reprovações é o Vigor EA. "
+            f"{vigor_fail_g} lotes foram reprovados com vigor abaixo de 80%, representando a maioria dos "
+            f"{reprov} lotes classificados como Ruim (D). A germinação abaixo de 80% contribui com outros "
+            f"{germ_fail_g} lotes reprovados. Como o sistema utiliza o pior critério entre os três, qualquer "
+            f"valor abaixo do mínimo resulta em reprovação do lote inteiro."
+        )
+    else:
+        problema = (
+            f"O principal critério responsável pelas reprovações é a Germinação. "
+            f"{germ_fail_g} lotes foram reprovados com germinação abaixo de 80%, representando a maioria dos "
+            f"{reprov} lotes classificados como Ruim (D). O vigor abaixo de 80% contribui com outros "
+            f"{vigor_fail_g} lotes reprovados. Como o sistema utiliza o pior critério entre os três, qualquer "
+            f"valor abaixo do mínimo resulta em reprovação do lote inteiro."
+        )
+
+    if pend == 0:
+        pendentes_txt = "Não há lotes pendentes de análise no momento."
+    else:
+        bags_pend_g = int(df.loc[df["ranking"] == "X", "bags"].fillna(0).sum())
+        pendentes_txt = (
+            f"{pend} lotes ainda não possuem análise de vigor e germinação, totalizando {bags_pend_g} bags "
+            f"sem classificação definida. Estes lotes permanecem como pendentes até a conclusão das análises "
+            f"laboratoriais."
+        )
+
+    cultivares_out = []
+    for row in summary:
+        lots_cv = [l for l in lots if l["cultivar"] == row["cultivar"]]
+        diagnostico, pct_c, aprov_c, cond_c, reprov_c, pend_c, total_c = _diagnostico_cultivar(row, lots_cv)
+        cor, status_txt, recomendacao = _status_cultivar(pct_c)
+        cultivares_out.append({
+            "cultivar": row["cultivar"],
+            "volume": f"{round(row['total_kg'] / 1000)}t",
+            "pct_aprov": pct_c,
+            "status_cor": cor,
+            "status_txt": status_txt,
+            "diagnostico": diagnostico,
+            "recomendacao": recomendacao,
+            "aprovados": aprov_c, "condicionais": cond_c, "reprovados": reprov_c,
+            "pendentes": pend_c, "total": total_c,
+        })
+
+    return {
+        "global": {"geral": geral, "problema": problema, "pendentes": pendentes_txt},
+        "cultivares": cultivares_out,
+    }
+
+
 def parse_comprados(buf):
     wb = openpyxl.load_workbook(buf)
     ws = wb["LOTES COMPRADOS"]
@@ -618,12 +776,20 @@ def atualizar_html(lots, summary, pms_cv, comprados, benef):
     else:
         html = substituir_const(html, "BENEF", benef)
 
+    # diagnóstico da safra — narrativa gerada a partir dos dados desta execução
+    # (antes era um texto estático, nunca atualizado pela automação)
+    diag = montar_diagnostico(lots, summary)
+    html = substituir_const(html, "DIAG_DATA", diag)
+
     # data no header e no rodapé
     html, _ = re.subn(
         r'(<div class="val" id="h-data"[^>]*>)[^<]*(</div>)',
         rf"\g<1>{CARIMBO_HEADER}\2", html,
     )
-    html, _ = re.subn(r"Atualizado em [0-9/]+", f"Atualizado em {HOJE}", html)
+    html, _ = re.subn(
+        r"Atualizado em [0-9/]+(?: \d{2}:\d{2})?",
+        f"Atualizado em {CARIMBO_HEADER}", html,
+    )
 
     # histórico de aprovação
     total = len(lots)
