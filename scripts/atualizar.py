@@ -37,11 +37,35 @@ CARIMBO_HEADER = datetime.now(timezone(timedelta(hours=-3))).strftime("%d/%m/%Y 
 
 APROVADOS = {"A", "B", "BV"}
 
-# Nomes usados por terceiros que não batem com o código oficial do CV_META
+# Nomes usados por terceiros que não batem com o código oficial do CV_META —
+# a planilha LOTES_BENEFICIADOS mistura, dependendo da UBS/obtentor, ora o
+# nome fantasia (cultivares Brasmax) ora o código com pequenas variações de
+# espaço/sufixo (cultivares Corteva). Sem essa normalização, o mesmo cultivar
+# aparecia como "cultivares" diferentes na aba Beneficiamento (ex.: ZEUS de
+# um lado e 55I57RSF IPRO do outro), fragmentando os totais.
 BENEF_ALIASES = {
     "VALENTE": "6968RSF RR",
     "C 2605 E": "C2605 E",
+    "TITANIUM": "56IX58RSF I2X",
+    "ZEUS": "55I57RSF IPRO",
+    "ORION": "55IX56RSF I2X",
+    "RAÇA": "63E66RSF E",
+    "IMUNE": "53IX55RSF I2X",
+    "VÊNUS": "57K58RSF CE",
+    "GRAFENO": "57K56RSF CE",
+    "RAIO": "50I52RSF IPRO",
+    "FIBRA": "64I61RSF IPRO",
+    "BATALHA": "68K66RSF CE",
+    "NEXUS": "64IX66RSF I2X",
+    "COMPACTA": "65I65RSF IPRO",
+    # variações de grafia do mesmo código (espaço a mais/faltando, sufixo omitido)
+    "C2615": "C2615CE",
+    "C2615 CE": "C2615CE",
+    "64I61 RSF IPRO": "64I61RSF IPRO",
+    "C2645 CE": "C2645CE",
+    "C2645": "C2645CE",
 }
+_BENEF_ALIASES_UP = {k.upper(): v for k, v in BENEF_ALIASES.items()}
 
 
 def log(msg):
@@ -576,6 +600,7 @@ def parse_benef(buf):
             cv = str(cv).strip()
             if cv in CV_INVALIDOS or "PARA SEMENTES" in cv or "SEMENTES COM VIGOR" in cv:
                 continue
+            cv = _BENEF_ALIASES_UP.get(cv.upper(), cv)
 
             bags = to_float(ws.cell(r, c_bags).value)
             if not bags or bags <= 0:
