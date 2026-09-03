@@ -521,7 +521,14 @@ def parse_comprados(buf):
 
     def txt(r, nome):
         v = cell(r, nome)
-        return str(v).strip() if v else None
+        if v is None:
+            return None
+        # Quando a célula é numérica (ex.: "LOTE DE ORIGEM" digitado como
+        # número em vez de texto), o Python devolve 10028.0 em vez de 10028.
+        # Sem isso, o ".0" vazava pro dashboard mesmo não existindo na planilha.
+        if isinstance(v, float) and v.is_integer():
+            v = int(v)
+        return str(v).strip()
 
     out = []
     for r in range(2, ws.max_row + 1):
