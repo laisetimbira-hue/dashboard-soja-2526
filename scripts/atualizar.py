@@ -571,25 +571,58 @@ def parse_comprados(buf):
 
 # ---------------------------------------------------------------- BENEFICIADOS
 
-# Cada aba tem layout próprio. (linha_inicial, col_cultivar, col_categoria,
-# col_peneira, col_pms, col_bags, pms_vem_do_peso)
-# índices de coluna por aba — precisaram ser reajustados em 09/09/2026 porque
-# alguém inseriu colunas novas no início das abas CAMBAÍ, SIMÃO e GIOVELLI na
-# planilha do Drive (confirmado comparando o cabeçalho real de cada aba com o
-# que essas colunas apontavam antes). SOJA 25-26 e CERENNA não mudaram.
+# Cada aba de LOTES_BENEFICIADOS mapeia pra uma UBS. As colunas de cada aba
+# já mudaram de posição mais de uma vez sem aviso (alguém insere/remove
+# colunas na planilha do Drive de tempos em tempos) — por isso, em vez de
+# fixar índices de coluna à mão (que quebravam silenciosamente a cada
+# reformatação), o parser abaixo relê o cabeçalho de cada aba a cada execução
+# e descobre sozinho onde está cada coluna, pelo texto do rótulo (CULTIVAR,
+# CAT., PMS etc.), que é a única coisa que nunca mudou nos arquivos vistos.
 LAYOUT_BENEF = {
-    "SOJA 25-26": ("SCV",      3, 2, 4, 6, 7, 9, False),
-    "CAMBAÍ":     ("CAMBAÍ",   3, 2, 4, 6, 10, 9, True),
-    "SIMÃO":      ("SIMÃO",    4, 3, 5, 7, 8, 10, False),
-    "GIOVELLI":   ("GIOVELLI", 3, 2, 4, 6, 7, 9, False),
-    "CERENNA":    ("CERENNA",  4, 1, 3, 5, 6, 8, False),
+    "SOJA 25-26": "SCV",
+    "CAMBAÍ":     "CAMBAÍ",
+    "SIMÃO":      "SIMÃO",
+    "GIOVELLI":   "GIOVELLI",
+    "CERENNA":    "CERENNA",
+}
+
+HEADER_LABELS_BENEF = {
+    "cv":   ["CULTIVAR"],
+    "cat":  ["CAT.", "CAT"],
+    "pen":  ["PEN.", "PEN"],
+    "pms":  ["PMS"],
+    "peso": ["PESO"],
+    "bags": ["N° BB", "N°BB", "QUANT BB", "QUANTIDADE"],
 }
 
 CV_INVALIDOS = {
-    "CULTIVAR", "DATA", "SAFRA", "CAT.", "N° BB", "QUANTIDADE",
+    "CULTIVAR", "DATA", "SAFRA", "CAT.", "N° BB", "QUANTIDADE", "QUANT BB",
     "LOTE", "PEN.", "PMS", "EMBALAGEM", "PESO", "LOCALIZAÇÃO",
     "STATUS", "OBSERVAÇÕES",
 }
+
+
+def _achar_cabecalho_benef(ws, max_linhas_busca=8):
+    """Procura, nas primeiras linhas da aba, a linha de cabeçalho (CULTIVAR,
+    CAT., PMS etc.) e devolve (primeira_linha_de_dados, {campo: coluna}).
+    Devolve None se não achar nada parecido com um cabeçalho conhecido."""
+    for r in range(1, max_linhas_busca + 1):
+        valores = {}
+        for c in range(1, ws.max_column + 1):
+            v = ws.cell(r, c).value
+            if isinstance(v, str) and v.strip():
+                valores[v.strip().upper()] = c
+        if "CULTIVAR" not in valores:
+            continue
+        cols = {}
+        for campo, rotulos in HEADER_LABELS_BENEF.items():
+            for rotulo in rotulos:
+                if rotulo in valores:
+                    cols[campo] = valores[rotulo]
+                    break
+        if "cv" in cols and "bags" in cols:
+            return r + 1, cols
+    return None
 
 
 def parse_benef(buf):
@@ -600,30 +633,26 @@ def parse_benef(buf):
     wb = openpyxl.load_workbook(buf, data_only=True)
     agrupado = defaultdict(lambda: {"bags": 0, "kg": 0.0, "pms_sum": 0.0, "pms_cnt": 0})
 
-    for aba, cfg in LAYOUT_BENEF.items():
+    for aba, ubs in LAYOUT_BENEF.items():
         if aba not in wb.sheetnames:
             log(f"  aviso: aba '{aba}' não encontrada — ignorando")
             continue
 
-        ubs, linha0, c_cv, c_cat, c_pen, c_pms, c_bags, pms_do_peso = cfg
         ws = wb[aba]
+        achado = _achar_cabecalho_benef(ws)
+        if achado is None:
+            log(f"  aviso: aba '{aba}' — não encontrei o cabeçalho (CULTIVAR / "
+                f"N° BB) nas primeiras linhas; aba ignorada nesta execução")
+            continue
+        linha0, cols = achado
+        c_cv, c_bags = cols["cv"], cols["bags"]
+        c_cat, c_pen = cols.get("cat"), cols.get("pen")
+        c_pms, c_peso = cols.get("pms"), cols.get("peso")
 
-        avisou_coluna_errada = False
         for r in range(linha0, ws.max_row + 1):
             cv = ws.cell(r, c_cv).value
-            if not cv:
-                continue
-            # se a coluna configurada como "cultivar" trouxer um número (data,
-            # peso etc.) em vez de texto, é sinal de que a planilha mudou de
-            # layout (colunas inseridas/removidas) e o índice está desalinhado
-            # — melhor avisar alto do que aplicar dado errado calado.
-            if isinstance(cv, (int, float)):
-                if not avisou_coluna_errada:
-                    log(f"  aviso: aba '{aba}' — coluna de cultivar (col {c_cv}) trouxe "
-                        f"número ({cv!r}) na linha {r}; layout provavelmente mudou — "
-                        f"conferir LAYOUT_BENEF")
-                    avisou_coluna_errada = True
-                continue
+            if not cv or isinstance(cv, (int, float)):
+                continue  # célula vazia ou linha de rótulo/rodapé (totais etc.)
             cv = str(cv).strip()
             if cv in CV_INVALIDOS or "PARA SEMENTES" in cv or "SEMENTES COM VIGOR" in cv:
                 continue
@@ -634,14 +663,18 @@ def parse_benef(buf):
                 continue
             bags = int(bags)
 
-            bruto = to_float(ws.cell(r, c_pms).value)
-            if not bruto:
+            # PMS: prefere a coluna "PMS" direto; se vier vazia (ou for uma
+            # fórmula que não resolveu), cai pro "PESO" (peso do bag) / 5.
+            pms = to_float(ws.cell(r, c_pms).value) if c_pms else None
+            if not pms and c_peso:
+                peso = to_float(ws.cell(r, c_peso).value)
+                pms = peso / 5 if peso else None
+            if not pms:
                 continue
-            pms = bruto / 5 if pms_do_peso else bruto  # coluna traz peso do bag
 
-            pen_raw = ws.cell(r, c_pen).value
+            pen_raw = ws.cell(r, c_pen).value if c_pen else None
             pen = "P1" if pen_raw and "P1" in str(pen_raw).upper() else "P2"
-            cat_raw = ws.cell(r, c_cat).value
+            cat_raw = ws.cell(r, c_cat).value if c_cat else None
             cat = str(cat_raw).strip() if cat_raw else "C2"
 
             k = agrupado[(cv, ubs, cat, pen)]
