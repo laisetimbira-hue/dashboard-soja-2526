@@ -569,6 +569,71 @@ def parse_comprados(buf):
     return out
 
 
+def parse_nosso_plantio(buf):
+    """Aba 'NOSSO PLANTIO' — sementes produzidas em área própria (Compra de
+    Terceiros tem sua própria aba/tela; esta é uma fonte separada, com
+    colunas mais simples: sem lote de origem, sem vigor oficial, sem
+    categoria dividida em origem/reembalado)."""
+    wb = openpyxl.load_workbook(buf, data_only=True)
+    if "NOSSO PLANTIO" not in wb.sheetnames:
+        log("  aviso: aba 'NOSSO PLANTIO' não encontrada — ignorando")
+        return []
+    ws = wb["NOSSO PLANTIO"]
+    header = [ws.cell(1, c).value for c in range(1, ws.max_column + 1)]
+    col = {h: i + 1 for i, h in enumerate(header) if h}
+    def _norm(s): return str(s).strip().upper()
+    col_norm = {_norm(h): i + 1 for i, h in enumerate(header) if h}
+
+    def cell(r, nome):
+        idx = col.get(nome)
+        if idx is None:
+            idx = col_norm.get(_norm(nome))
+        return ws.cell(r, idx).value if idx else None
+
+    def txt(r, nome):
+        v = cell(r, nome)
+        if v is None:
+            return None
+        if isinstance(v, float) and v.is_integer():
+            v = int(v)
+        return str(v).strip()
+
+    out = []
+    for r in range(2, ws.max_row + 1):
+        cultivar = cell(r, "CULTIVAR")
+        if not cultivar:
+            continue
+
+        bags     = to_float(cell(r, "QUANT BB"))
+        peso_bag = to_float(cell(r, "PESO BAG"))
+        kg_raw   = to_float(cell(r, "QUANT.    KG"))
+        kg = int(bags * peso_bag) if bags and peso_bag else (int(kg_raw) if kg_raw else None)
+
+        data_nf = cell(r, "DATA NF")
+        if hasattr(data_nf, "strftime"):
+            data_nf = data_nf.strftime("%d/%m/%Y")
+        elif data_nf:
+            data_nf = str(data_nf).strip()
+        else:
+            data_nf = None
+
+        out.append({
+            "cultivar": str(cultivar).strip(),
+            "lote": txt(r, "LOTE"),
+            "empresa": txt(r, "EMPRESA"),
+            "categoria": txt(r, "CATEGORIA"),
+            "peneira": txt(r, "PENEIRA"),
+            "pms": to_float(cell(r, "PMS (g)")),
+            "germ_oficial": to_float(cell(r, "GERM OFICIAL %")),
+            "bags": int(bags) if bags else None,
+            "peso_bag": peso_bag,
+            "kg": kg,
+            "data_nf": data_nf,
+            "num_sementes": txt(r, "N° SEMENTES (MILHÕES)"),
+        })
+    return out
+
+
 # ---------------------------------------------------------------- BENEFICIADOS
 
 # Cada aba de LOTES_BENEFICIADOS mapeia pra uma UBS. As colunas de cada aba
@@ -818,7 +883,7 @@ def detectar_mudancas_ranking(lots_novos, lots_antigos):
     }
 
 
-def atualizar_html(lots, summary, pms_cv, comprados, benef):
+def atualizar_html(lots, summary, pms_cv, comprados, benef, nosso_plantio):
     with open(HTML_PATH, encoding="utf-8") as f:
         html = f.read()
 
@@ -856,6 +921,7 @@ def atualizar_html(lots, summary, pms_cv, comprados, benef):
     html = substituir_const(html, "SUMMARY", summary)
     html = substituir_const(html, "PMS_CV", pms_cv)
     html = substituir_const(html, "LOTES_COMPRADOS", comprados)
+    html = substituir_const(html, "NOSSO_PLANTIO", nosso_plantio)
     if benef is None:
         log("  BENEF: preservado (planilha não informada)")
     else:
@@ -1167,7 +1233,9 @@ def main():
 
     buf_analises.seek(0)
     comprados = parse_comprados(buf_analises)
-    log(f"  {len(lots)} lotes · {len(comprados)} comprados")
+    buf_analises.seek(0)
+    nosso_plantio = parse_nosso_plantio(buf_analises)
+    log(f"  {len(lots)} lotes · {len(comprados)} comprados · {len(nosso_plantio)} nosso plantio")
 
     if buf_benef is None:
         benef = None
@@ -1178,7 +1246,7 @@ def main():
         log(f"  {len(benef)} entradas · {sum(b['bags_total'] for b in benef):,} bags")
 
     log(f"\nInjetando no {HTML_PATH}...")
-    total, aprov, cont = atualizar_html(lots, summary, pms_cv, comprados, benef)
+    total, aprov, cont = atualizar_html(lots, summary, pms_cv, comprados, benef, nosso_plantio)
 
     log("\nMontando resumo para o e-mail...")
     assunto, corpo, mudou = montar_resumo(lots, summary, comprados, benef)
