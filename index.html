@@ -1468,17 +1468,18 @@ html {
         <table id="plantio-table">
           <thead>
             <tr>
-              <th onclick="sortTableNossoPlantio('lote')">Lote</th>
+              <th onclick="sortTableNossoPlantio('data_nf')" class="col-hide-mobile">Data NF</th>
               <th onclick="sortTableNossoPlantio('cultivar')">Cultivar</th>
               <th onclick="sortTableNossoPlantio('categoria')" class="col-hide-mobile">Categoria</th>
-              <th onclick="sortTableNossoPlantio('empresa')">Empresa</th>
-              <th onclick="sortTableNossoPlantio('peneira')" class="col-hide-mobile">Pen.</th>
-              <th onclick="sortTableNossoPlantio('data_nf')" class="col-hide-mobile">Data NF</th>
-              <th onclick="sortTableNossoPlantio('germ_oficial')" class="num" style="color:#15803D;">Germ. Of. %</th>
+              <th onclick="sortTableNossoPlantio('peneira')" class="col-hide-mobile">Peneira</th>
               <th onclick="sortTableNossoPlantio('pms')" class="num">PMS (g)</th>
-              <th onclick="sortTableNossoPlantio('peso_bag')" class="num">Peso Bag</th>
-              <th onclick="sortTableNossoPlantio('kg')" class="num col-hide-mobile">KG</th>
-              <th onclick="sortTableNossoPlantio('bags')" class="num">Bags</th>
+              <th onclick="sortTableNossoPlantio('germ_oficial')" class="num" style="color:#15803D;">Germ Oficial %</th>
+              <th onclick="sortTableNossoPlantio('lote')">Lote</th>
+              <th onclick="sortTableNossoPlantio('bags')" class="num">Quant BB</th>
+              <th onclick="sortTableNossoPlantio('peso_bag')" class="num">Peso da Embalagem</th>
+              <th onclick="sortTableNossoPlantio('kg')" class="num col-hide-mobile">Quant. KG</th>
+              <th onclick="sortTableNossoPlantio('num_sementes')" class="col-hide-mobile">Embalagem</th>
+              <th onclick="sortTableNossoPlantio('empresa')">Empresa</th>
             </tr>
           </thead>
           <tbody id="plantio-tbody"></tbody>
@@ -3049,26 +3050,27 @@ function renderNossoPlantioTable() {
   `;
 
   if (!NOSSO_PLANTIO.length) {
-    document.getElementById('plantio-tbody').innerHTML = `<tr><td colspan="11" style="text-align:center;padding:32px;color:var(--texto2);">Nenhum lote de plantio próprio registrado ainda.</td></tr>`;
+    document.getElementById('plantio-tbody').innerHTML = `<tr><td colspan="12" style="text-align:center;padding:32px;color:var(--texto2);">Nenhum lote de plantio próprio registrado ainda.</td></tr>`;
     return;
   }
   if (!filteredPlantio.length) {
-    document.getElementById('plantio-tbody').innerHTML = `<tr><td colspan="11" style="text-align:center;padding:32px;color:var(--texto2);">Nenhum lote encontrado com os filtros selecionados.</td></tr>`;
+    document.getElementById('plantio-tbody').innerHTML = `<tr><td colspan="12" style="text-align:center;padding:32px;color:var(--texto2);">Nenhum lote encontrado com os filtros selecionados.</td></tr>`;
     return;
   }
   document.getElementById('plantio-tbody').innerHTML = filteredPlantio.map(l => `
     <tr>
-      <td><code style="color:var(--accent);font-size:0.78rem;font-family:'IBM Plex Mono',monospace;">${l.lote||'—'}</code></td>
+      <td class="col-hide-mobile">${l.data_nf||'—'}</td>
       <td style="font-size:0.74rem;">${(CV_META[l.cultivar] && CV_META[l.cultivar].nome) || l.cultivar}</td>
       <td class="col-hide-mobile">${l.categoria||'—'}</td>
-      <td style="font-size:0.74rem;">${l.empresa||'—'}</td>
       <td class="col-hide-mobile">${l.peneira||'—'}</td>
-      <td class="col-hide-mobile">${l.data_nf||'—'}</td>
-      <td class="num" style="color:${l.germ_oficial!=null?'#15803D':'#94A3B8'};font-weight:${l.germ_oficial!=null?'700':'400'};">${l.germ_oficial!=null?l.germ_oficial+'%':'—'}</td>
       <td class="num">${l.pms != null ? l.pms+'g' : '—'}</td>
+      <td class="num" style="color:${l.germ_oficial!=null?'#15803D':'#94A3B8'};font-weight:${l.germ_oficial!=null?'700':'400'};">${l.germ_oficial!=null?l.germ_oficial+'%':'—'}</td>
+      <td><code style="color:var(--accent);font-size:0.78rem;font-family:'IBM Plex Mono',monospace;">${l.lote||'—'}</code></td>
+      <td class="num">${l.bags != null ? l.bags.toLocaleString('pt-BR') : '—'}</td>
       <td class="num">${l.peso_bag != null ? l.peso_bag.toLocaleString('pt-BR')+'kg' : '—'}</td>
       <td class="num col-hide-mobile">${l.kg != null ? l.kg.toLocaleString('pt-BR') : '—'}</td>
-      <td class="num">${l.bags != null ? l.bags.toLocaleString('pt-BR') : '—'}</td>
+      <td class="col-hide-mobile">${l.num_sementes||'—'}</td>
+      <td style="font-size:0.74rem;">${l.empresa||'—'}</td>
     </tr>`).join('');
 }
 
