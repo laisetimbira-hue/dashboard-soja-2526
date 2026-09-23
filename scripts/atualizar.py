@@ -590,8 +590,28 @@ def parse_nosso_plantio(buf):
             idx = col_norm.get(_norm(nome))
         return ws.cell(r, idx).value if idx else None
 
+    def cell_any(r, *nomes):
+        """Tenta várias variações conhecidas do rótulo da coluna, na ordem —
+        essa aba já trocou o nome de 'QUANT BB'/'PESO BAG'/'N° SEMENTES
+        (MILHÕES)' para 'QUANT EMBALAGEM'/'PESO EMBALAGEM'/'EMBALAGEM' sem
+        aviso, então em vez de travar numa única grafia, testa todas as
+        conhecidas até encontrar a coluna."""
+        for nome in nomes:
+            v = cell(r, nome)
+            if v is not None:
+                return v
+        return None
+
     def txt(r, nome):
         v = cell(r, nome)
+        if v is None:
+            return None
+        if isinstance(v, float) and v.is_integer():
+            v = int(v)
+        return str(v).strip()
+
+    def txt_any(r, *nomes):
+        v = cell_any(r, *nomes)
         if v is None:
             return None
         if isinstance(v, float) and v.is_integer():
@@ -604,9 +624,9 @@ def parse_nosso_plantio(buf):
         if not cultivar:
             continue
 
-        bags     = to_float(cell(r, "QUANT BB"))
-        peso_bag = to_float(cell(r, "PESO BAG"))
-        kg_raw   = to_float(cell(r, "QUANT.    KG"))
+        bags     = to_float(cell_any(r, "QUANT EMBALAGEM", "QUANT BB", "QUANTIDADE"))
+        peso_bag = to_float(cell_any(r, "PESO EMBALAGEM", "PESO BAG"))
+        kg_raw   = to_float(cell_any(r, "QUANT.    KG", "QUANT. KG", "QUANT KG"))
         kg = int(bags * peso_bag) if bags and peso_bag else (int(kg_raw) if kg_raw else None)
 
         data_nf = cell(r, "DATA NF")
@@ -629,7 +649,7 @@ def parse_nosso_plantio(buf):
             "peso_bag": peso_bag,
             "kg": kg,
             "data_nf": data_nf,
-            "num_sementes": txt(r, "N° SEMENTES (MILHÕES)"),
+            "num_sementes": txt_any(r, "EMBALAGEM", "N° SEMENTES (MILHÕES)", "Nº SEMENTES (MILHÕES)"),
         })
     return out
 
