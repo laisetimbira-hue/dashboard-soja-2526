@@ -6,8 +6,10 @@ Baixa as duas planilhas do Google Drive, processa e injeta os dados
 no index.html. Roda dentro do GitHub Actions.
 
 Configuração via variáveis de ambiente (secrets do repositório):
-  ID_ANALISES  → ID do arquivo ANALISES_DE_SEMENTES_DE_VERAO_25-26.xlsx
-  ID_BENEF     → ID do arquivo LOTES_BENEFICIADOS_VERAO_25-26.xlsx
+  ID_ANALISES          → ID do arquivo ANALISES_DE_SEMENTES_DE_VERAO_25-26.xlsx
+  ID_BENEF             → ID do arquivo LOTES_BENEFICIADOS_VERAO_25-26.xlsx
+  ID_ANALISES_INVERNO  → (opcional) ID do arquivo ANALISES_DE_SEMENTES_INVERNO
+  ID_BENEF_INVERNO     → (opcional) ID do arquivo de Lotes Beneficiados do Inverno
 """
 
 import os
@@ -28,6 +30,14 @@ HTML_PATH = "index.html"
 
 ID_ANALISES = os.environ.get("ID_ANALISES", "").strip()
 ID_BENEF    = os.environ.get("ID_BENEF", "").strip()
+
+# Safra de Inverno 26/26 (trigo, cevada, aveia branca, aveia preta, nabo,
+# ervilha, ervilhaca, trigo mourisco) — totalmente separada da soja acima,
+# planilhas próprias. Opcionais: enquanto não estiverem configuradas nos
+# secrets, a automação continua normalmente só com a soja e preserva o que
+# já estiver publicado em Inverno (igual ao comportamento do ID_BENEF).
+ID_ANALISES_INVERNO = os.environ.get("ID_ANALISES_INVERNO", "").strip()
+ID_BENEF_INVERNO    = os.environ.get("ID_BENEF_INVERNO", "").strip()
 
 # Fuso de Brasília — o GitHub Actions roda em UTC
 HOJE = datetime.now(timezone(timedelta(hours=-3))).strftime("%d/%m/%Y")
@@ -654,6 +664,300 @@ def parse_nosso_plantio(buf):
     return out
 
 
+# ---------------------------------------------------------------- INVERNO (safra 26/26)
+#
+# Fonte: planilha ANALISES_DE_SEMENTES_INVERNO — totalmente separada da
+# planilha de soja (ANALISES_DE_SEMENTES_DE_VERAO). Cada cultura (trigo,
+# cevada, aveia branca, aveia preta, nabo, ervilha, ervilhaca — e trigo
+# mourisco quando a aba existir) tem sua própria aba, todas com o mesmo
+# formato geral, mas cada uma com pequenas variações no nome da coluna de
+# germinação oficial (cevada usa um padrão próprio da AMBEV, nabo usa
+# "rolo de papel" em vez de "germinação" no nome). Classificação aqui é bem
+# mais simples que a da soja: só germinação oficial — sem vigor, sem TZ.
+# Aprovado se >=90%, senão reprovado. Essa regra é geral pro Inverno (não
+# por cultura) — se algum dia mudar por cultura, ajustar GERMINACAO_MINIMA.
+
+GERMINACAO_MINIMA_INVERNO = 90.0
+
+# nome da aba (comparado sem acentuar maiúsculas/espaços nas pontas) -> cultura
+CULTURAS_INVERNO = {
+    "TRIGO": "Trigo",
+    "TRIGO MOURISCO": "Trigo Mourisco",  # ainda não existe na planilha (nova cultura desta safra)
+    "CEVADA": "Cevada",
+    "AVEIA BRANCA": "Aveia Branca",
+    "AVEIA PRETA": "Aveia Preta",
+    "NABO": "Nabo",
+    "ERVILHA": "Ervilha",
+    "ERVILHACA": "Ervilhaca",
+}
+
+# qual coluna usar como "germinação oficial" em cada cultura — na maioria é
+# "OFICIAL GERMINAÇÃO", mas cevada e nabo fogem do padrão
+GERMINACAO_COL_INVERNO = {
+    "Cevada": ["OFICIAL AMBEV"],
+    "Nabo": ["OFICIAL GER. ROLO DE PAPEL"],
+}
+GERMINACAO_COL_PADRAO_INVERNO = ["OFICIAL GERMINAÇÃO", "GERMINAÇÃO UCS", "GER. ROLO DE PAPEL"]
+
+
+def _norm_aba(s):
+    return str(s).strip().upper()
+
+
+def _achar_aba_inverno(wb, nome_aba):
+    """Acha a aba pelo nome tolerando espaço extra nas pontas (a aba de
+    ervilha, por exemplo, vem salva como ' ERVILHA ' na planilha)."""
+    alvo = _norm_aba(nome_aba)
+    for sheetname in wb.sheetnames:
+        if _norm_aba(sheetname) == alvo:
+            return wb[sheetname]
+    return None
+
+
+def parse_inverno_lotes(buf):
+    """Lê as abas de cultura (uma por cultura) da planilha ANALISES_INVERNO.
+    Cada lote vira uma entrada com cultura, cultivar, lote, categoria, kg,
+    embalagem e germinação oficial — e a aprovação binária (>=90%)."""
+    wb = openpyxl.load_workbook(buf, data_only=True)
+    out = []
+
+    for nome_aba, cultura in CULTURAS_INVERNO.items():
+        ws = _achar_aba_inverno(wb, nome_aba)
+        if ws is None:
+            log(f"  aviso: aba '{nome_aba}' (Inverno) não encontrada — ignorando")
+            continue
+
+        header = [ws.cell(1, c).value for c in range(1, ws.max_column + 1)]
+        col_norm = {_norm_aba(h): i + 1 for i, h in enumerate(header) if h}
+
+        def cell(r, *nomes, _col_norm=col_norm):
+            for nome in nomes:
+                idx = _col_norm.get(_norm_aba(nome))
+                if idx:
+                    v = ws.cell(r, idx).value
+                    if v is not None:
+                        return v
+            return None
+
+        candidatos_germ = GERMINACAO_COL_INVERNO.get(cultura, GERMINACAO_COL_PADRAO_INVERNO)
+
+        n_lote = 0
+        for r in range(2, ws.max_row + 1):
+            cultivar = cell(r, "CULTIVAR")
+            if not cultivar:
+                continue
+
+            data = cell(r, "DATA")
+            if hasattr(data, "strftime"):
+                data = data.strftime("%d/%m/%Y")
+            elif data:
+                data = str(data).strip()
+            else:
+                data = None
+
+            germ = to_float(cell(r, *candidatos_germ))
+            if germ is not None:
+                status = "Aprovado" if germ >= GERMINACAO_MINIMA_INVERNO else "Reprovado"
+            else:
+                status = None
+
+            quant = to_float(cell(r, "QUANT."))
+            embalagem = cell(r, "EMBALAGEM")
+
+            out.append({
+                "cultura": cultura,
+                "cultivar": str(cultivar).strip(),
+                "categoria": str(cell(r, "CATEGORIA")).strip() if cell(r, "CATEGORIA") else None,
+                "lote": str(cell(r, "LOTE")).strip() if cell(r, "LOTE") else None,
+                "data": data,
+                "kg": quant,
+                "embalagem": str(embalagem).strip() if embalagem else None,
+                "germinacao": germ,
+                "status": status,
+            })
+            n_lote += 1
+
+        log(f"  Inverno/{cultura}: {n_lote} lotes")
+
+    return out
+
+
+def _cv_meta_inverno_index(lots_inverno):
+    """Cultivar (nome completo, como aparece nas abas de cultura) -> cultura.
+    Usado pra descobrir a cultura de um lote de Colheita/Comprados, cujos
+    nomes de cultivar às vezes vêm abreviados ou diferentes."""
+    idx = {}
+    for l in lots_inverno:
+        idx[_norm_aba(l["cultivar"])] = l["cultura"]
+    return idx
+
+
+def _inferir_cultura_inverno(cultivar_raw, idx_cultivar_cultura):
+    """Tenta descobrir a cultura de um cultivar que não bate 100% com o nome
+    oficial das abas de cultura — acontece nas abas de Colheita/Comprados,
+    que às vezes usam um nome curto ou sem espaço (ex.: 'CALIBRE' ou
+    'BLINDADO' em vez de 'TBIO CALIBRE'/'ORSBLINDADO') ou até o nome da
+    própria espécie como se fosse cultivar (ex.: cultivar='NABO'). Nessa
+    ordem: (1) nome igual a alguma cultura conhecida, (2) nome exatamente
+    igual a um cultivar já visto nas abas de cultura, (3) nome contido (ou
+    que contém) um cultivar conhecido, pra pegar variação de espaço/prefixo
+    de marca (ex.: 'ORSBLINDADO' contém 'BLINDADO'; 'IAPAR 61 (IBIPORÃ)'
+    contém 'IAPAR 61'). Não encontrando, devolve None — melhor deixar em
+    branco do que arriscar uma cultura errada."""
+    alvo = _norm_aba(cultivar_raw)
+    for cultura in CULTURAS_INVERNO.values():
+        if _norm_aba(cultura) == alvo:
+            return cultura
+    if alvo in idx_cultivar_cultura:
+        return idx_cultivar_cultura[alvo]
+    if len(alvo) >= 4:  # evita match curto demais virar falso positivo
+        for cultivar_conhecido, cultura in idx_cultivar_cultura.items():
+            if alvo in cultivar_conhecido or cultivar_conhecido in alvo:
+                return cultura
+        # variação de espaço dentro do nome (ex.: "ORS GLADIADOR" vs "ORSGLADIADOR")
+        alvo_sem_espaco = alvo.replace(" ", "")
+        for cultivar_conhecido, cultura in idx_cultivar_cultura.items():
+            conhecido_sem_espaco = cultivar_conhecido.replace(" ", "")
+            if alvo_sem_espaco == conhecido_sem_espaco:
+                return cultura
+    return None
+
+
+def parse_inverno_colheita(buf, lots_inverno):
+    """Aba 'COLHEITA' — equivalente ao 'Nosso Plantio' da soja: matéria-prima
+    da colheita própria chegando, antes de virar lote oficial classificado
+    (por isso o 'LOTE DE ORIGEM' vem com valores informais tipo 'PRÉ LOTE',
+    'SILO 6', em vez de um código de lote)."""
+    wb = openpyxl.load_workbook(buf, data_only=True)
+    ws = _achar_aba_inverno(wb, "COLHEITA")
+    if ws is None:
+        log("  aviso: aba 'COLHEITA' (Inverno) não encontrada — ignorando")
+        return []
+
+    idx_cultura = _cv_meta_inverno_index(lots_inverno)
+    header = [ws.cell(1, c).value for c in range(1, ws.max_column + 1)]
+    col_norm = {_norm_aba(h): i + 1 for i, h in enumerate(header) if h}
+
+    def cell(r, *nomes):
+        for nome in nomes:
+            idx = col_norm.get(_norm_aba(nome))
+            if idx:
+                v = ws.cell(r, idx).value
+                if v is not None:
+                    return v
+        return None
+
+    out = []
+    for r in range(2, ws.max_row + 1):
+        cultivar = cell(r, "CULTIVAR")
+        if not cultivar:
+            continue
+        cultivar = str(cultivar).strip()
+
+        data = cell(r, "DATA")
+        if hasattr(data, "strftime"):
+            data = data.strftime("%d/%m/%Y")
+        elif data:
+            data = str(data).strip()
+        else:
+            data = None
+
+        quant = to_float(cell(r, "QUANT."))
+        embalagem = cell(r, "EMBALAGEM")
+        empresa = cell(r, "EMPRESA") or cell(r, "EMPRESA2")
+
+        out.append({
+            "cultura": _inferir_cultura_inverno(cultivar, idx_cultura),
+            "cultivar": cultivar,
+            "categoria": str(cell(r, "CATEGORIA")).strip() if cell(r, "CATEGORIA") else None,
+            "data": data,
+            "kg": quant,
+            "lote_origem": str(cell(r, "LOTE DE ORIGEM")).strip() if cell(r, "LOTE DE ORIGEM") else None,
+            "embalagem": str(embalagem).strip() if embalagem else None,
+            "empresa": str(empresa).strip() if empresa else None,
+            "situacao": str(cell(r, "SITUAÇÃO")).strip() if cell(r, "SITUAÇÃO") else None,
+            "observacao": str(cell(r, "OBSERVAÇÃO")).strip() if cell(r, "OBSERVAÇÃO") else None,
+        })
+    return out
+
+
+def parse_inverno_comprados(buf, lots_inverno):
+    """Aba 'LOTES COMPRADOS' do Inverno — sementes compradas de terceiros,
+    todas as culturas juntas numa aba só (diferente das abas de cultura, que
+    são uma por cultura)."""
+    wb = openpyxl.load_workbook(buf, data_only=True)
+    ws = _achar_aba_inverno(wb, "LOTES COMPRADOS")
+    if ws is None:
+        log("  aviso: aba 'LOTES COMPRADOS' (Inverno) não encontrada — ignorando")
+        return []
+
+    idx_cultura = _cv_meta_inverno_index(lots_inverno)
+    header = [ws.cell(1, c).value for c in range(1, ws.max_column + 1)]
+    col_norm = {_norm_aba(h): i + 1 for i, h in enumerate(header) if h}
+
+    def cell(r, *nomes):
+        for nome in nomes:
+            idx = col_norm.get(_norm_aba(nome))
+            if idx:
+                v = ws.cell(r, idx).value
+                if v is not None:
+                    return v
+        return None
+
+    out = []
+    for r in range(2, ws.max_row + 1):
+        cultivar = cell(r, "CULTIVAR")
+        if not cultivar:
+            continue
+        cultivar = str(cultivar).strip()
+
+        data = cell(r, "DATA")
+        if hasattr(data, "strftime"):
+            data = data.strftime("%d/%m/%Y")
+        elif data:
+            data = str(data).strip()
+        else:
+            data = None
+
+        quant = to_float(cell(r, "QUANT."))
+        embalagem = cell(r, "EMBALAGEM")
+        empresa = cell(r, "EMPRESA") or cell(r, "EMPRESA2")
+        # planilha de comprados não tem "oficial" — usa o teste disponível
+        germ = to_float(cell(r, "GERMINAÇÃO UCS", "GER. ROLO DE PAPEL"))
+
+        out.append({
+            "cultura": _inferir_cultura_inverno(cultivar, idx_cultura),
+            "cultivar": cultivar,
+            "categoria": str(cell(r, "CATEGORIA")).strip() if cell(r, "CATEGORIA") else None,
+            "data": data,
+            "kg": quant,
+            "lote_origem": str(cell(r, "LOTE DE ORIGEM")).strip() if cell(r, "LOTE DE ORIGEM") else None,
+            "embalagem": str(embalagem).strip() if embalagem else None,
+            "empresa": str(empresa).strip() if empresa else None,
+            "germinacao": germ,
+            "situacao": str(cell(r, "SITUAÇÃO")).strip() if cell(r, "SITUAÇÃO") else None,
+            "observacao": str(cell(r, "OBSERVAÇÃO")).strip() if cell(r, "OBSERVAÇÃO") else None,
+        })
+    return out
+
+
+def montar_cv_meta_inverno(lots_inverno, cv_meta_atual=None):
+    """Monta/atualiza o cadastro cultivar -> {cultura, obtentor}. Obtentor
+    fica em branco pra cultivar nova — é um dado que só a Laise tem, não dá
+    pra inferir da planilha (diferente de cultura, que a própria aba já
+    informa). Preserva obtentor já cadastrado anteriormente (não reseta a
+    cada atualização)."""
+    cv_meta_atual = cv_meta_atual or {}
+    novo = dict(cv_meta_atual)
+    for l in lots_inverno:
+        cv = l["cultivar"]
+        if cv not in novo:
+            novo[cv] = {"cultura": l["cultura"], "obtentor": None}
+        else:
+            novo[cv]["cultura"] = l["cultura"]  # cultura sempre vem da aba, pode atualizar
+    return novo
+
+
 # ---------------------------------------------------------------- BENEFICIADOS
 
 # Cada aba de LOTES_BENEFICIADOS mapeia pra uma UBS. As colunas de cada aba
@@ -848,6 +1152,18 @@ def ler_const(html, nome):
         return []
 
 
+def ler_const_obj(html, nome):
+    """Igual ao ler_const, mas pra const que é objeto ({...}), não array —
+    usado pro CV_META_INVERNO, pra preservar obtentor já cadastrado."""
+    m = re.search(rf"const {nome} = (\{{.*?\}});", html, re.DOTALL)
+    if not m:
+        return {}
+    try:
+        return json.loads(m.group(1))
+    except json.JSONDecodeError:
+        return {}
+
+
 # Mesma ordem de classificação já usada em outros dois lugares do projeto
 # (a tabela de composição do e-mail de notificação, mais abaixo neste arquivo,
 # e o array `ranks` usado pelo dashboard em `renderAprovacaoPanel`): do melhor
@@ -903,7 +1219,7 @@ def detectar_mudancas_ranking(lots_novos, lots_antigos):
     }
 
 
-def atualizar_html(lots, summary, pms_cv, comprados, benef, nosso_plantio):
+def atualizar_html(lots, summary, pms_cv, comprados, benef, nosso_plantio, inverno=None):
     with open(HTML_PATH, encoding="utf-8") as f:
         html = f.read()
 
@@ -946,6 +1262,22 @@ def atualizar_html(lots, summary, pms_cv, comprados, benef, nosso_plantio):
         log("  BENEF: preservado (planilha não informada)")
     else:
         html = substituir_const(html, "BENEF", benef)
+
+    # Inverno 26/26 — totalmente separado da soja acima. Se a planilha de
+    # Inverno não estiver configurada (ID_ANALISES_INVERNO vazio) ou falhar,
+    # `inverno` vem None e os dados de Inverno já publicados são preservados
+    # (igual ao BENEF quando a planilha de beneficiados não é informada).
+    if inverno is None:
+        log("  Inverno: preservado (planilha não informada)")
+    else:
+        html = substituir_const(html, "LOTS_INVERNO", inverno["lots"])
+        html = substituir_const(html, "NOSSO_PLANTIO_INVERNO", inverno["colheita"])
+        html = substituir_const(html, "LOTES_COMPRADOS_INVERNO", inverno["comprados"])
+        html = substituir_const(html, "CV_META_INVERNO", inverno["cv_meta"])
+        if inverno.get("benef") is not None:
+            html = substituir_const(html, "BENEF_INVERNO", inverno["benef"])
+        else:
+            log("  BENEF_INVERNO: preservado (planilha de beneficiados do Inverno ainda não existe)")
 
     # diagnóstico da safra — narrativa gerada a partir dos dados desta execução
     # (antes era um texto estático, nunca atualizado pela automação)
@@ -1265,8 +1597,50 @@ def main():
         benef = parse_benef(buf_benef)
         log(f"  {len(benef)} entradas · {sum(b['bags_total'] for b in benef):,} bags")
 
+    log("\nBaixando planilhas do Inverno 26/26 (opcional)...")
+    buf_analises_inverno = baixar(ID_ANALISES_INVERNO, "ANALISES_INVERNO", obrigatorio=False)
+    inverno = None
+    if buf_analises_inverno is None:
+        log("  Inverno: pulado — planilha ainda não configurada")
+    else:
+        # qualquer erro aqui (aba nova, coluna renomeada etc.) não pode
+        # derrubar a atualização da soja — só pula o Inverno nesta execução
+        # e preserva o que já estava publicado, igual ao BENEF.
+        try:
+            log("  Processando Inverno...")
+            lots_inverno = parse_inverno_lotes(buf_analises_inverno)
+            buf_analises_inverno.seek(0)
+            colheita_inverno = parse_inverno_colheita(buf_analises_inverno, lots_inverno)
+            buf_analises_inverno.seek(0)
+            comprados_inverno = parse_inverno_comprados(buf_analises_inverno, lots_inverno)
+
+            with open(HTML_PATH, encoding="utf-8") as f:
+                cv_meta_atual_inverno = ler_const_obj(f.read(), "CV_META_INVERNO")
+            cv_meta_inverno = montar_cv_meta_inverno(lots_inverno, cv_meta_atual_inverno)
+
+            # a planilha de Beneficiados do Inverno ainda não existe — quando
+            # existir, isso aqui precisa de um parser próprio (a estrutura
+            # dela ainda não foi vista, não dá pra reaproveitar o parse_benef
+            # da soja às cegas). Por ora fica sempre None = preservado.
+            benef_inverno = None
+            if ID_BENEF_INVERNO:
+                log("  aviso: ID_BENEF_INVERNO configurado, mas ainda não há parser "
+                    "pra essa planilha — BENEF_INVERNO será preservado")
+
+            inverno = {
+                "lots": lots_inverno, "colheita": colheita_inverno,
+                "comprados": comprados_inverno, "cv_meta": cv_meta_inverno,
+                "benef": benef_inverno,
+            }
+            log(f"  Inverno: {len(lots_inverno)} lotes · {len(colheita_inverno)} colheita · "
+                f"{len(comprados_inverno)} comprados · {len(cv_meta_inverno)} cultivares")
+        except Exception as e:
+            log(f"  aviso: Inverno falhou nesta execução ({type(e).__name__}: {e}) — "
+                f"dados de Inverno já publicados serão preservados")
+            inverno = None
+
     log(f"\nInjetando no {HTML_PATH}...")
-    total, aprov, cont = atualizar_html(lots, summary, pms_cv, comprados, benef, nosso_plantio)
+    total, aprov, cont = atualizar_html(lots, summary, pms_cv, comprados, benef, nosso_plantio, inverno)
 
     log("\nMontando resumo para o e-mail...")
     assunto, corpo, mudou = montar_resumo(lots, summary, comprados, benef)
