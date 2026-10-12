@@ -34,6 +34,8 @@ jobs:
         env:
           ID_ANALISES: ${{ secrets.ID_ANALISES }}
           ID_BENEF: ${{ secrets.ID_BENEF }}
+          ID_ANALISES_INVERNO: ${{ secrets.ID_ANALISES_INVERNO }}
+          ID_BENEF_INVERNO: ${{ secrets.ID_BENEF_INVERNO }}
         run: python scripts/atualizar.py
 
       - name: Publicar as mudanças
