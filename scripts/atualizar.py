@@ -768,7 +768,7 @@ def parse_inverno_lotes(buf):
                 "cultura": cultura,
                 "cultivar": str(cultivar).strip(),
                 "categoria": str(cell(r, "CATEGORIA")).strip() if cell(r, "CATEGORIA") else None,
-                "lote": str(cell(r, "LOTE")).strip() if cell(r, "LOTE") else None,
+                "lote": str(cell(r, "LOTE DE ORIGEM", "LOTE")).strip() if cell(r, "LOTE DE ORIGEM", "LOTE") else None,
                 "data": data,
                 "kg": quant,
                 "embalagem": str(embalagem).strip() if embalagem else None,
