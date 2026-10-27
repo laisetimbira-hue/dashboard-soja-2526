@@ -761,7 +761,14 @@ def parse_inverno_lotes(buf):
             else:
                 status = None
 
+            # "QUANT." é a contagem de embalagens (ex.: 28 big bags), não o
+            # peso — o peso total do lote vem de "PESO LOTE". Usar QUANT.
+            # direto aqui subestimava o KG em várias vezes (28 em vez de
+            # 28.000, por exemplo). Mantém QUANT. como fallback só pro caso
+            # de algum lote antigo não ter "PESO LOTE" preenchido.
+            peso_lote = to_float(cell(r, "PESO LOTE"))
             quant = to_float(cell(r, "QUANT."))
+            kg = peso_lote if peso_lote is not None else quant
             embalagem = cell(r, "EMBALAGEM")
 
             out.append({
@@ -770,7 +777,7 @@ def parse_inverno_lotes(buf):
                 "categoria": str(cell(r, "CATEGORIA")).strip() if cell(r, "CATEGORIA") else None,
                 "lote": str(cell(r, "LOTE DE ORIGEM", "LOTE")).strip() if cell(r, "LOTE DE ORIGEM", "LOTE") else None,
                 "data": data,
-                "kg": quant,
+                "kg": kg,
                 "embalagem": str(embalagem).strip() if embalagem else None,
                 "germinacao": germ,
                 "status": status,
@@ -919,22 +926,35 @@ def parse_inverno_comprados(buf, lots_inverno):
         else:
             data = None
 
-        quant = to_float(cell(r, "QUANT."))
+        # "QUANT." é a contagem de embalagens, não o peso — o peso total do
+        # lote vem da coluna "KG" (ex.: 28 big bags = 28.000 kg). Usar
+        # QUANT. direto aqui subestimava o KG em várias vezes.
+        kg = to_float(cell(r, "KG"))
+        if kg is None:
+            kg = to_float(cell(r, "QUANT."))
         embalagem = cell(r, "EMBALAGEM")
         empresa = cell(r, "EMPRESA") or cell(r, "EMPRESA2")
         # planilha de comprados não tem "oficial" — usa o teste disponível
         germ = to_float(cell(r, "GERMINAÇÃO UCS", "GER. ROLO DE PAPEL"))
+        vigor = to_float(cell(r, "VIGOR UCS"))
+
+        # a aba já informa a cultura de cada lote direto na coluna CULTURA
+        # (ela mistura várias culturas numa aba só) — só recorre à inferência
+        # pelo nome do cultivar se a célula vier vazia.
+        cultura_cel = cell(r, "CULTURA")
+        cultura = str(cultura_cel).strip() if cultura_cel else _inferir_cultura_inverno(cultivar, idx_cultura)
 
         out.append({
-            "cultura": _inferir_cultura_inverno(cultivar, idx_cultura),
+            "cultura": cultura,
             "cultivar": cultivar,
             "categoria": str(cell(r, "CATEGORIA")).strip() if cell(r, "CATEGORIA") else None,
             "data": data,
-            "kg": quant,
+            "kg": kg,
             "lote_origem": str(cell(r, "LOTE DE ORIGEM")).strip() if cell(r, "LOTE DE ORIGEM") else None,
             "embalagem": str(embalagem).strip() if embalagem else None,
             "empresa": str(empresa).strip() if empresa else None,
             "germinacao": germ,
+            "vigor": vigor,
             "situacao": str(cell(r, "SITUAÇÃO")).strip() if cell(r, "SITUAÇÃO") else None,
             "observacao": str(cell(r, "OBSERVAÇÃO")).strip() if cell(r, "OBSERVAÇÃO") else None,
         })
