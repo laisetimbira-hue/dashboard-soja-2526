@@ -1761,6 +1761,7 @@ html {
               <th onclick="sortTableInvernoComprados('lote_origem')" class="col-hide-mobile">Lote Origem</th>
               <th onclick="sortTableInvernoComprados('embalagem')" class="col-hide-mobile">Embalagem</th>
               <th onclick="sortTableInvernoComprados('germinacao')" class="num" style="color:#15803D;">Germinação</th>
+              <th onclick="sortTableInvernoComprados('vigor')" class="num" style="color:#15803D;">Vigor</th>
               <th onclick="sortTableInvernoComprados('kg')" class="num">KG</th>
             </tr>
           </thead>
@@ -2339,11 +2340,11 @@ function sortTableInvernoComprados(key) {
 function renderInvernoCompradosTable() {
   document.getElementById('inverno-comprados-count').textContent = filteredInvernoComprados.length;
   if (!LOTES_COMPRADOS_INVERNO.length) {
-    document.getElementById('inverno-comprados-tbody').innerHTML = `<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--texto2);">Nenhum lote comprado de Inverno registrado ainda.</td></tr>`;
+    document.getElementById('inverno-comprados-tbody').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--texto2);">Nenhum lote comprado de Inverno registrado ainda.</td></tr>`;
     return;
   }
   if (!filteredInvernoComprados.length) {
-    document.getElementById('inverno-comprados-tbody').innerHTML = `<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--texto2);">Nenhum lote encontrado com os filtros selecionados.</td></tr>`;
+    document.getElementById('inverno-comprados-tbody').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--texto2);">Nenhum lote encontrado com os filtros selecionados.</td></tr>`;
     return;
   }
   document.getElementById('inverno-comprados-tbody').innerHTML = filteredInvernoComprados.map(l => `
@@ -2356,6 +2357,7 @@ function renderInvernoCompradosTable() {
       <td class="col-hide-mobile">${l.lote_origem||'—'}</td>
       <td class="col-hide-mobile">${l.embalagem||'—'}</td>
       <td class="num">${l.germinacao!=null?l.germinacao+'%':'—'}</td>
+      <td class="num">${l.vigor!=null?l.vigor+'%':'—'}</td>
       <td class="num">${l.kg!=null?l.kg.toLocaleString('pt-BR'):'—'}</td>
     </tr>`).join('');
 }
